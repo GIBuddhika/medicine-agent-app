@@ -1,0 +1,32 @@
+<div class="row background">
+  <div class="col-md-4 col-sm-12 col-xs-12 column">
+    <div class="card bg-warning text-white">
+      <div class="card-header">
+        <h3><b>Create an Account</b></h3>
+      </div>
+      <div class="card-body bg-light text-dark">
+        <div [innerHtml]="errorMessage"></div><br />
+        <form [formGroup]="createAccountForm" (ngSubmit)="register()">
+          <div class="form-group">
+            <label for="email">Email address:</label>
+            <input type="email" class="form-control" formControlName="email" placeholder="Enter email" id="email">
+          </div>
+          <div class="form-group">
+            <label for="pwd">Password:</label>
+            <input type="password" class="form-control" formControlName="password" placeholder="Enter password"
+              id="password">
+          </div>
+          <div class="form-group">
+            <label for="pwd">Confirm Password:</label>
+            <input type="password" class="form-control" formControlName="confirmPassword" placeholder="Confirm password"
+              id="confirmPassword">
+          </div>
+          <button type="submit" class="btn btn-primary" replaceText="Signing up" [spinnerButton]="isSigningUp">Sign
+            Up</button>
+        </form>
+      </div>
+      <div class="card-footer">Already have an account? <a [routerLink]="['/sign-in']"
+          routerLinkActive="router-link-active">Sign In</a></div>
+    </div>
+  </div>
+</div>

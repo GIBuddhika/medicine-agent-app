@@ -1,1 +1,16 @@
-/* You can add global styles to this file, and also import other style files */
+.card, input, .btn{
+    border-radius: 0 !important;
+}
+
+//validation error style
+.invalid-input {
+    text-align: right;
+    font-size: 12px;
+    margin: 0;
+    color: #dd4b39;
+}
+  
+.validation-error-border {
+    border: 1px solid #dd4b39;
+}
+// endvalidation error style
