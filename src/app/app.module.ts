@@ -1,60 +1,34 @@
 import { BrowserModule } from '@angular/platform-browser';
-import { NgModule, APP_INITIALIZER } from '@angular/core';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { AppRoutingModule } from './app-routing.module';
-import { AppComponent } from './app.component';
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
-import { ToastrModule } from 'ngx-toastr';
-import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { HttpClientModule } from '@angular/common/http';
+import { RouterModule } from '@angular/router';
+import { AppRoutingModule } from './app.routing';
 
-import { SpinnerButtonDirective } from './directives/spinner-button/spinner-button.directive';
-import { RuntimeEnvLoaderService } from './services/runtime-env-loader.service';
+import { AppComponent } from './app.component';
+import { NavbarComponent } from './shared/navbar/navbar.component';
+import { FooterComponent } from './shared/footer/footer.component';
 
-import { CreateAccountComponent } from './pages/create-account/create-account.component';
-import { SignInComponent } from './pages/sign-in/sign-in.component';
-
-const appInitializerFn = (envLoader: RuntimeEnvLoaderService) => {
-  return () => {
-    return envLoader.loadAppConfig();
-  };
-};
-
-const DIRECTIVES = [
-  SpinnerButtonDirective,
-];
+import { ComponentsModule } from './components/components.module';
+import { ExamplesModule } from './examples/examples.module';
 
 
 @NgModule({
   declarations: [
     AppComponent,
-    ...DIRECTIVES,
-    CreateAccountComponent,
-    SignInComponent,
+    NavbarComponent,
+    FooterComponent
   ],
   imports: [
     BrowserModule,
-    AppRoutingModule,
     NgbModule,
     FormsModule,
-    ReactiveFormsModule,
-    HttpClientModule,
-    BrowserAnimationsModule,
-    ToastrModule.forRoot(
-      {
-        closeButton: true
-      }
-    )
+    RouterModule,
+    ComponentsModule,
+    ExamplesModule,
+    AppRoutingModule,
   ],
-  providers: [
-    RuntimeEnvLoaderService,
-    {
-      provide: APP_INITIALIZER,
-      useFactory: appInitializerFn,
-      multi: true,
-      deps: [RuntimeEnvLoaderService]
-    },
-  ],
+  providers: [],
   bootstrap: [AppComponent]
 })
 export class AppModule { }
