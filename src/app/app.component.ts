@@ -5,6 +5,7 @@ import 'rxjs/add/operator/filter';
 import { DOCUMENT } from '@angular/common';
 import { LocationStrategy, PlatformLocation, Location } from '@angular/common';
 import { NavbarComponent } from './shared/navbar/navbar.component';
+import { UpdateMainViewSharedService } from './shared-services/update-main-view.service';
 
 @Component({
     selector: 'app-root',
@@ -13,29 +14,54 @@ import { NavbarComponent } from './shared/navbar/navbar.component';
 })
 export class AppComponent implements OnInit {
     private _router: Subscription;
+    showHeader: any;
+    showFooter: any;
     @ViewChild(NavbarComponent) navbar: NavbarComponent;
 
-    constructor( private renderer : Renderer2, private router: Router, @Inject(DOCUMENT,) private document: any, private element : ElementRef, public location: Location) {}
+    constructor(
+        private renderer: Renderer2,
+        private router: Router,
+        @Inject(DOCUMENT) private document: any,
+        private element: ElementRef,
+        public location: Location,
+        private updateMainViewSharedService: UpdateMainViewSharedService
+    ) {
+
+    }
     ngOnInit() {
-        var navbar : HTMLElement = this.element.nativeElement.children[0].children[0];
+        this.showHeader = true;
+        this.showFooter = true;
+        this.updateMainViewSharedService.updateMainViewData.subscribe(response => {
+            if (response == 'sign-up') {
+                this.showHeader = false;
+                this.showFooter = false;
+            }
+        });
+
+        var navbar: HTMLElement = this.element.nativeElement.children[0].children[0];
+        console.log(navbar);
+
         this._router = this.router.events.filter(event => event instanceof NavigationEnd).subscribe((event: NavigationEnd) => {
             if (window.outerWidth > 991) {
                 window.document.children[0].scrollTop = 0;
-            }else{
+            } else {
                 window.document.activeElement.scrollTop = 0;
             }
             this.navbar.sidebarClose();
         });
-        this.renderer.listen('window', 'scroll', (event) => {
-            const number = window.scrollY;
-            if (number > 150 || window.pageYOffset > 150) {
-                // add logic
-                navbar.classList.remove('navbar-transparent');
-            } else {
-                // remove logic
-                navbar.classList.add('navbar-transparent');
-            }
-        });
+        if (navbar) {
+            this.renderer.listen('window', 'scroll', (event) => {
+                const number = window.scrollY;
+                if (number > 150 || window.pageYOffset > 150) {
+                    // add logic
+                    navbar.classList.remove('navbar-transparent');
+                } else {
+                    // remove logic
+                    navbar.classList.add('navbar-transparent');
+                }
+            });
+        }
+
         var ua = window.navigator.userAgent;
         var trident = ua.indexOf('Trident/');
         if (trident > 0) {
@@ -52,8 +78,8 @@ export class AppComponent implements OnInit {
     }
     removeFooter() {
         var titlee = this.location.prepareExternalUrl(this.location.path());
-        titlee = titlee.slice( 1 );
-        if(titlee === 'signup' || titlee === 'nucleoicons'){
+        titlee = titlee.slice(1);
+        if (titlee === 'signup' || titlee === 'nucleoicons') {
             return false;
         }
         else {

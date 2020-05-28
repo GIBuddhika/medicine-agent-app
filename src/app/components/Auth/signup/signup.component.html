@@ -6,6 +6,14 @@
                 <div class="col-lg-4 col-sm-6 mr-auto ml-auto">
                     <div class="card card-register">
                         <h3 class="title" style="font-weight: bold;color: white;">Welcome</h3>
+                        <div class="row">
+                            <div class="col-md-12" style="margin-top: 10px;">
+                                <div class="alert alert-primary"
+                                    style="background-color: white;color: red;font-weight: bold;"
+                                    *ngFor="let error of errorsList;index as i">{{error }}
+                                </div>
+                            </div>
+                        </div>
                         <form [formGroup]="signUpForm" (ngSubmit)="onSubmit()">
                             <label>Email</label>
                             <div class="input-group form-group-no-border"
@@ -15,9 +23,14 @@
                                         <i class="nc-icon nc-email-85"></i>
                                     </span>
                                 </div>
-
-                                <input type="text" class="form-control" placeholder="Email" (focus)="focus=true"
-                                    (blur)="focus=false" formControlName="email">
+                                <input type="text" id="email" class="form-control" placeholder="Email"
+                                    (focus)="focus=true" (blur)="focus=false" formControlName="email">
+                            </div>
+                            <div *ngIf="isSubmitted && signUpForm.controls.email.errors">
+                                <p *ngIf="signUpForm.controls.email.errors.required"
+                                    style="text-align: right;color:black;">Required</p>
+                                <p *ngIf="signUpForm.controls.email.errors.email"
+                                    style="text-align: right;color:black;">Should be a valid Email</p>
                             </div>
 
                             <label>Password</label>
@@ -31,6 +44,11 @@
                                 <input type="password" class="form-control" placeholder="Password" (focus)="focus1=true"
                                     (blur)="focus1=false" formControlName="password">
                             </div>
+                            <div *ngIf="isSubmitted && signUpForm.controls.password.errors">
+                                <p *ngIf="signUpForm.controls.password.errors.required"
+                                    style="text-align: right;color:black;">Required</p>
+                            </div>
+
                             <label>Confirm Password</label>
                             <div class="input-group form-group-no-border"
                                 [ngClass]="{'input-group-focus':focus1===true}">
@@ -42,7 +60,15 @@
                                 <input type="password" class="form-control" placeholder="Confirm Password"
                                     (focus)="focus1=true" (blur)="focus1=false" formControlName="confirmPassword">
                             </div>
-                            <button type="submit" class="btn btn-danger btn-block btn-round">Register</button>
+                            <div *ngIf="isSubmitted && signUpForm.controls.confirmPassword.errors">
+                                <p *ngIf="signUpForm.controls.confirmPassword.errors.required"
+                                    style="text-align: right;color:black;">Required</p>
+                            </div>
+                            <p *ngIf="isSubmitted && signUpForm.errors && signUpForm.errors.notSame"
+                                style="text-align: right;color:black;">
+                                Password does not match</p>
+                            <button type="submit" class="btn btn-danger btn-block btn-round" replaceText="Processing"
+                                [spinnerButton]="submitting">Register</button>
                         </form>
                         <div class="forgot">
                             <a href="#" class="btn btn-link btn-danger">Forgot password?</a>
