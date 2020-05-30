@@ -32,7 +32,20 @@ export class AuthService {
 
     return this.http.post<any>(this.basePath + "/create-account", params).pipe(
       map(response => {
-        return response.data;
+        return response;
+      }),
+      catchError(this.handleError)
+    );
+  }
+
+  login(query: object): Observable<any> {
+    const params = new HttpParams()
+      .set("email", query["email"])
+      .set("password", query["password"]);
+
+    return this.http.post<any>(this.basePath + "/sign-in", params).pipe(
+      map(response => {
+        return response;
       }),
       catchError(this.handleError)
     );

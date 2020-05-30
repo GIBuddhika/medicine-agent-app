@@ -14,8 +14,8 @@ import { UpdateMainViewSharedService } from './shared-services/update-main-view.
 })
 export class AppComponent implements OnInit {
     private _router: Subscription;
-    showHeader: any;
-    showFooter: any;
+    showHeader: boolean = true;
+    showFooter: boolean = true;
     @ViewChild(NavbarComponent) navbar: NavbarComponent;
 
     constructor(
@@ -32,14 +32,16 @@ export class AppComponent implements OnInit {
         this.showHeader = true;
         this.showFooter = true;
         this.updateMainViewSharedService.updateMainViewData.subscribe(response => {
-            if (response == 'sign-up') {
+            if (response == 'sign-up' || response == 'login') {
                 this.showHeader = false;
                 this.showFooter = false;
+            } else {
+                this.showHeader = true;
+                this.showFooter = true;
             }
         });
 
         var navbar: HTMLElement = this.element.nativeElement.children[0].children[0];
-        console.log(navbar);
 
         this._router = this.router.events.filter(event => event instanceof NavigationEnd).subscribe((event: NavigationEnd) => {
             if (window.outerWidth > 991) {
@@ -49,18 +51,6 @@ export class AppComponent implements OnInit {
             }
             this.navbar.sidebarClose();
         });
-        if (navbar) {
-            this.renderer.listen('window', 'scroll', (event) => {
-                const number = window.scrollY;
-                if (number > 150 || window.pageYOffset > 150) {
-                    // add logic
-                    navbar.classList.remove('navbar-transparent');
-                } else {
-                    // remove logic
-                    navbar.classList.add('navbar-transparent');
-                }
-            });
-        }
 
         var ua = window.navigator.userAgent;
         var trident = ua.indexOf('Trident/');

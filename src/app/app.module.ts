@@ -15,6 +15,7 @@ import { RuntimeEnvLoaderService } from './services/runtime-env-loader.service';
 import { HttpClientModule } from '@angular/common/http';
 
 import { SpinnerButtonDirective } from './directives/spinner-button/spinner-button.directive';
+import { LoginComponent } from './components/Auth/login/login.component';
 
 const appInitializerFn = (envLoader: RuntimeEnvLoaderService) => {
   return () => {
@@ -32,6 +33,7 @@ const DIRECTIVES = [
     NavbarComponent,
     FooterComponent,
     SignupComponent,
+    LoginComponent,
     ...DIRECTIVES,
   ],
   imports: [

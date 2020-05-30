@@ -8,10 +8,12 @@ import { ProfileComponent } from './examples/profile/profile.component';
 import { LandingComponent } from './examples/landing/landing.component';
 import { NucleoiconsComponent } from './components/nucleoicons/nucleoicons.component';
 import { SignupComponent } from './components/Auth/signup/signup.component';
+import { LoginComponent } from './components/Auth/login/login.component';
 
 const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' },
   { path: 'signup', component: SignupComponent },
+  { path: 'login', component: LoginComponent },
 
   { path: 'home', component: ComponentsComponent },
   { path: 'user-profile', component: ProfileComponent },

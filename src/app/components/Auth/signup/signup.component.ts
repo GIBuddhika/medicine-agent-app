@@ -5,6 +5,7 @@ import { AuthService } from 'app/services/auth/auth.service';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { UpdateMainViewSharedService } from 'app/shared-services/update-main-view.service';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-signup',
@@ -14,7 +15,7 @@ import { UpdateMainViewSharedService } from 'app/shared-services/update-main-vie
 export class SignupComponent implements OnInit, OnDestroy {
     private destroy$: Subject<void> = new Subject<void>();
 
-    errorsList: any;
+    errorsList = [];
     isSubmitted: boolean = false;
     signUpForm: FormGroup;
     submitting: boolean = false;
@@ -27,8 +28,13 @@ export class SignupComponent implements OnInit, OnDestroy {
         private formBuilder: FormBuilder,
         private authService: AuthService,
         private updateMainViewSharedService: UpdateMainViewSharedService,
+        private router: Router,
     ) {
-        this.updateMainViewSharedService.updateMainView("sign-up");
+        if (localStorage.getItem("token")) {
+            this.router.navigate(['home']);
+        } else {
+            this.updateMainViewSharedService.updateMainView("sign-up");
+        }
     }
 
     ngOnInit() {
@@ -55,12 +61,15 @@ export class SignupComponent implements OnInit, OnDestroy {
     }
 
     onSubmit() {
+        console.log(1);
+
         this.errorsList = [];
         this.isSubmitted = true;
         if (!this.signUpForm.valid) {
             return false;
         }
         this.submitting = true;
+        console.log(11);
 
         var submitData = {
             email: this.signUpForm.controls.email.value,
@@ -74,19 +83,20 @@ export class SignupComponent implements OnInit, OnDestroy {
                 this.submitting = false;
             }))
             .subscribe(response => {
-                localStorage.setItem("token", response["security_token"]["token"]);
-                localStorage.setItem("userId", response["user"]["id"]);
-                localStorage.setItem("email", response["user"]["email"]);
-                window.location.reload();
+                localStorage.setItem("token", response["token"]);
+                localStorage.setItem("userId", response["user_id"]);
+                this.router.navigate(['home']);
             }, errors => {
-                if (errors.code == "400") {
+                if (errors.code == 400) {
                     for (let key in errors.errors) {
-                        if (key == "1email" && errors.errors[key].includes("duplicate")) {
+                        if (key == "email" && errors.errors[key].includes("duplicate")) {
                             this.errorsList.push("This email has already been used.");
                         } else {
                             this.errorsList.push("Something went wrong. Please try again.");
                         }
                     }
+                } else {
+                    this.errorsList.push("Something went wrong. Please try again.");
                 }
             });
     }
