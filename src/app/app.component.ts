@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, Renderer2, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, Inject, Renderer2, ElementRef, ViewChild, HostListener, AfterViewInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/add/operator/filter';
@@ -17,6 +17,17 @@ export class AppComponent implements OnInit {
     showHeader: boolean = true;
     showFooter: boolean = true;
     @ViewChild(NavbarComponent) navbar: NavbarComponent;
+
+    @HostListener("window:scroll", ["$event"])
+    onWindowScroll() {
+        let pos = (document.documentElement.scrollTop || document.body.scrollTop) + document.documentElement.offsetHeight;
+        let max = document.documentElement.scrollHeight;
+        if (pos == max) {
+            this.renderer.addClass(document.getElementById('navBarDiv'), "top");
+        } else {
+            this.renderer.removeClass(document.getElementById('navBarDiv'), "top");
+        }
+    }
 
     constructor(
         private renderer: Renderer2,
@@ -64,7 +75,6 @@ export class AppComponent implements OnInit {
             body.classList.add('ie-background');
 
         }
-
     }
     removeFooter() {
         var titlee = this.location.prepareExternalUrl(this.location.path());
