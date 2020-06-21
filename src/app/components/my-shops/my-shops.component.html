@@ -1,57 +1,91 @@
 <div class="wrapper">
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-4 col-sm-6 mr-auto ml-auto">
-                <div class="card card-register">
-                    <h3 class="title" style="margin-top: 10px;font-weight: bold;color: white;">Login</h3>
-                    <div class="row" *ngIf="errorMessage" style="height: 50px;">
-                        <div class="col-md-12" style="margin-top: 10px;">
-                            <div class="alert alert-primary"
-                                style="background-color: white;color: red;font-weight: bold;"
-                                [innerHtml]="errorMessage"></div><br />
+    <div class="container-fluid">
+        <h2 class="page-title"><b>Shops</b></h2>
+        <div class="shops">
+            <ul>
+                <li style="width: 300px;">
+                    <div class="card-normal">
+                        <div class="shops">
+                            <i class="fa fa-plus-square-o fa-5x" style="font-size:10rem;" aria-hidden="true"></i>
+                            <div class="buttons">
+                                <button type="button" class="btn btn-outline-success btn-sm"
+                                    (click)="openCreateModal(content)">Add</button>
+                            </div>
                         </div>
                     </div>
-                    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-                        <label>Email</label>
-                        <div class="input-group form-group-no-border" [ngClass]="{'input-group-focus':focus===true}">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">
-                                    <i class="nc-icon nc-email-85"></i>
-                                </span>
+                </li>
+                <li *ngFor="let shop of shops;" style="width: 300px;">
+                    <div class="card-normal">
+                        <div class="shops">
+                            <img width="120" src="assets/img/faces/clem-onojeghuo-3.jpg" alt="Rounded Image"
+                                class="img-thumbnail img-responsive">
+                            <p><b>{{shop.name|titlecase}}</b></p>
+                            <p>{{shop.address|titlecase}}, {{shop.city.name|titlecase}}</p>
+                            <div class="buttons">
+                                <button type="button" class="btn btn-outline-info btn-sm"
+                                    (click)="openEditModal(content)">Edit</button>
+                                <button type="button" class="btn btn-outline-danger btn-sm">Delete</button>
                             </div>
-                            <input type="text" id="email" class="form-control" placeholder="Email" (focus)="focus=true"
-                                (blur)="focus=false" formControlName="email">
                         </div>
-                        <div *ngIf="isSubmitted && loginForm.controls.email.errors">
-                            <p *ngIf="loginForm.controls.email.errors.required" style="text-align: right;color:black;">
-                                Required</p>
-                            <p *ngIf="loginForm.controls.email.errors.email" style="text-align: right;color:black;">
-                                Should be a valid Email</p>
-                        </div>
-
-                        <label>Password</label>
-                        <div class="input-group form-group-no-border" [ngClass]="{'input-group-focus':focus1===true}">
-                            <div class="input-group-prepend">
-                                <span class="input-group-text">
-                                    <i class="nc-icon nc-key-25"></i>
-                                </span>
-                            </div>
-                            <input type="password" class="form-control" placeholder="Password" (focus)="focus1=true"
-                                (blur)="focus1=false" formControlName="password">
-                        </div>
-                        <div *ngIf="isSubmitted && loginForm.controls.password.errors">
-                            <p *ngIf="loginForm.controls.password.errors.required"
-                                style="text-align: right;color:black;">Required</p>
-                        </div>
-                        <button type="submit" class="btn btn-danger btn-block btn-round" replaceText="Processing"
-                            [spinnerButton]="submitting">Login</button>
-                    </form>
-                    <div class="forgot">
-                        <a href="/signup" class="btn btn-link btn-danger">Register Here</a>
-                        <a href="#" style="margin-top: 0;" class="btn btn-link btn-danger">Forgot password?</a>
                     </div>
-                </div>
-            </div>
+                </li>
+            </ul>
         </div>
     </div>
 </div>
+<ng-template #content let-modal>
+    <div class="modal-header">
+        <h5 class="modal-title text-center">Create new shop</h5>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <form [formGroup]="createShopForm" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" class="form-control" formControlName="name">
+            </div>
+            <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
+                <label>District</label>
+                <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="districtName"
+                    [ngModelOptions]="{standalone: true}" (selectItem)="selectedDistrict($event)"
+                    [ngbTypeahead]="searchDistricts" (focus)="focus$.next($any($event).target.value)"
+                    (click)="click$.next($any($event).target.value)" #instance="ngbTypeahead"
+                    (focusout)="focusOut($event)" />
+                <div class="form-control-feedback" *ngIf="isDistrictError">No district selected. Please select one.
+                </div>
+            </div>
+            <div class="form-group" [ngClass]="{'has-danger':isCityError}">
+                <label>Cities</label>
+                <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="cityName" disabled="{{cities.length==0}}"
+                    [ngModelOptions]="{standalone: true}" (selectItem)="selectedCity($event)"
+                    [ngbTypeahead]="searchCities" (focus)="focusCities$.next($any($event).target.value)"
+                    (click)="clickCities$.next($any($event).target.value)" #instance="ngbTypeahead"
+                    (focusout)="focusOutCities($event)" />
+                <div class="form-control-feedback" *ngIf="isCityError">No city selected. Please select one.</div>
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text" class="form-control" formControlName="address">
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="text" class="form-control" formControlName="phone">
+            </div>
+            <div class="form-group">
+                <label>Website</label>
+                <input type="text" class="form-control" formControlName="website">
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <div class="left-side">
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Cancel</button>
+        </div>
+        <div class="divider"></div>
+        <div class="right-side">
+            <button type="button" class="btn btn-success btn-link" (click)="createShop()">Submit</button>
+        </div>
+    </div>
+</ng-template>

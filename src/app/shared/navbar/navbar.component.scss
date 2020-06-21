@@ -1,4 +1,6 @@
-
+.navbar .navbar-brand {
+    padding: 0 15px !important;
+}
 .navbar .navbar-nav .dropdown-menu {
     margin-top: -20px;
 }
@@ -10,10 +12,10 @@ li {
     }
 }
 
-.navbar{
+.navbar {
     border-bottom: 1px solid rgba(0, 0, 0, 0.15);
 }
 
-.top{
-    box-shadow: none !important;    
+.top {
+    box-shadow: none !important;
 }

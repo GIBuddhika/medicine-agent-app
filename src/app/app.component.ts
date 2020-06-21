@@ -6,6 +6,8 @@ import { DOCUMENT } from '@angular/common';
 import { LocationStrategy, PlatformLocation, Location } from '@angular/common';
 import { NavbarComponent } from './shared/navbar/navbar.component';
 import { UpdateMainViewSharedService } from './shared-services/update-main-view.service';
+import { MetaService } from './services/meta.service';
+import { stringify } from 'querystring';
 
 @Component({
     selector: 'app-root',
@@ -35,11 +37,13 @@ export class AppComponent implements OnInit {
         @Inject(DOCUMENT) private document: any,
         private element: ElementRef,
         public location: Location,
-        private updateMainViewSharedService: UpdateMainViewSharedService
+        private updateMainViewSharedService: UpdateMainViewSharedService,
+        private metaService: MetaService,
     ) {
 
     }
     ngOnInit() {
+        this.getMainData();
         this.showHeader = true;
         this.showFooter = true;
         this.updateMainViewSharedService.updateMainViewData.subscribe(response => {
@@ -84,6 +88,20 @@ export class AppComponent implements OnInit {
         }
         else {
             return true;
+        }
+    }
+    
+    getMainData() {
+        if (localStorage.getItem('districts') === null) {
+            this.metaService.getDistricts()
+                .subscribe(response => {
+                    console.log(response);
+                    var districts = [];
+                    response.forEach(district => {
+                        districts.push({ id: district.id, name: district.name });
+                    });
+                    localStorage.setItem("districts", JSON.stringify(districts));
+                });
         }
     }
 }
