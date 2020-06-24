@@ -5,7 +5,6 @@ import { Injectable } from '@angular/core';
 })
 
 export class ValidationMessagesHelper {
-
     /*
     Input `id` and `formControlName` should be equal.
     Custom error messages can set as data-error-{error-type}
@@ -26,7 +25,7 @@ export class ValidationMessagesHelper {
                 elements[0].parentNode.removeChild(elements[0]);
             }
             if (element) {
-                element.classList.remove("validation-error-border");
+                element.closest(".form-group").classList.remove("has-danger", "margin-b-0");
             }
             /*end - remove previous errors from control*/
 
@@ -35,25 +34,25 @@ export class ValidationMessagesHelper {
                     switch (error) {
                         case 'required':
                             let errorRequired = element.getAttribute('data-error-required');
-                            errorRequired = errorRequired ? errorRequired : 'Required';
+                            errorRequired = errorRequired ? errorRequired : 'Required.';
                             this.showError(element, i, errorRequired);
                             break;
 
                         case 'email':
                             let errorEmail = element.getAttribute('data-error-email');
-                            errorEmail = errorEmail ? errorEmail : 'Should be a valid email';
+                            errorEmail = errorEmail ? errorEmail : 'Should be a valid email.';
                             this.showError(element, i, errorEmail);
                             break;
 
                         case 'minlength':
                             let errorMinLength = element.getAttribute('data-error-minlength');
-                            errorMinLength = errorMinLength ? errorMinLength : 'Should be greater than ' + control.errors.minlength.requiredLength + ' characters';
+                            errorMinLength = errorMinLength ? errorMinLength : 'Should be greater than ' + control.errors.minlength.requiredLength + ' characters.';
                             this.showError(element, i, errorMinLength);
                             break;
 
                         case 'pattern':
                             let errorPattern = element.getAttribute('data-error-pattern');
-                            errorPattern = errorPattern ? errorPattern : 'Should be valid phone number';
+                            errorPattern = errorPattern ? errorPattern : 'Should be valid phone number. Ex: 071 123 1234';
                             this.showError(element, i, errorPattern);
                         default:
                             break;
@@ -65,8 +64,8 @@ export class ValidationMessagesHelper {
 
     private showError(element, id, errorText) {
         if (element) {
-            element.classList.add("validation-error-border");
+            element.parentNode.classList.add("has-danger", "margin-b-0");
         }
-        element.insertAdjacentHTML('afterend', "<br><p class='invalid-" + id + " invalid-input'>" + errorText + "</p>");
+        element.insertAdjacentHTML('afterend', "<p class='invalid-" + id + " form-control-feedback'>" + errorText + "</p>");
     }
 }

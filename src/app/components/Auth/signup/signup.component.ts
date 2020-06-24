@@ -69,7 +69,6 @@ export class SignupComponent implements OnInit, OnDestroy {
             return false;
         }
         this.submitting = true;
-        console.log(11);
 
         var submitData = {
             email: this.signUpForm.controls.email.value,

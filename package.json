@@ -16,6 +16,7 @@
     "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start"
   },
   "dependencies": {
+    "@agm/core": "1.0.0-beta.7",
     "@angular/animations": "9.0.6",
     "@angular/common": "9.0.6",
     "@angular/compiler": "9.0.6",

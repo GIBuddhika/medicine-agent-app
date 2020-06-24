@@ -1,11 +1,13 @@
 import { Component, OnInit, OnDestroy, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
-import { Subject, Observable, merge } from 'rxjs';
-import { take, debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { Subject, Observable, merge, pipe } from 'rxjs';
+import { take, debounceTime, distinctUntilChanged, filter, map, takeUntil } from 'rxjs/operators';
 import { Router } from '@angular/router';
 import { UsersService } from 'app/services/users.service';
 import { NgbModal, NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { MetaService } from 'app/services/meta.service';
+import { AgmMap } from '@agm/core';
+import { ValidationMessagesHelper } from 'app/helpers/validation-messages.helper';
 
 @Component({
     selector: 'app-my-shops',
@@ -15,6 +17,12 @@ import { MetaService } from 'app/services/meta.service';
 })
 export class MyShopsComponent implements OnInit, OnDestroy {
     private destroy$: Subject<void> = new Subject<void>();
+
+    @ViewChild(AgmMap, { static: false }) map: AgmMap;
+
+    zoom: number = 8;
+    lat: number = 6.932942971060562;
+    lng: number = 79.84612573779296;
 
     modalRef: any;
     errorMessage: any;
@@ -46,7 +54,8 @@ export class MyShopsComponent implements OnInit, OnDestroy {
         private router: Router,
         private usersService: UsersService,
         private modalService: NgbModal,
-        private metaService: MetaService
+        private metaService: MetaService,
+        private validationMessagesHelper: ValidationMessagesHelper,
     ) {
         this.districts.forEach(district => {
             this.districtNames.push(district.name);
@@ -62,7 +71,6 @@ export class MyShopsComponent implements OnInit, OnDestroy {
         this.destroy$.complete();
     }
 
-
     getMainData() {
         this.usersService.getShops()
             .pipe(take(1))
@@ -75,11 +83,17 @@ export class MyShopsComponent implements OnInit, OnDestroy {
         this.createShopForm = this.formBuilder.group({
             name: new FormControl('', [Validators.required]),
             address: new FormControl('', [Validators.required]),
-            phone: new FormControl('', [Validators.required]),
-            website: new FormControl('', [Validators.required]),
+            phone: new FormControl('', [Validators.required, Validators.pattern('\\d{3}[- ]?\\d{3}[- ]?\\d{4}')]),
+            website: new FormControl('', []),
         });
-
         this.modalRef = this.modalService.open(content, { windowClass: 'custom-class' });
+        this.createShopForm.valueChanges
+            .pipe(takeUntil(this.destroy$)) //should takeUntil because else the method not keep calling while change the inputs
+            .subscribe(data => {
+                if (this.isSubmitted) {
+                    this.validationMessagesHelper.showErrorMessages(this.createShopForm);
+                }
+            });
     }
 
     searchDistricts = (text$: Observable<string>) => {
@@ -119,6 +133,7 @@ export class MyShopsComponent implements OnInit, OnDestroy {
     focusOutCities() {
         if (this.cityName && this.cityNames.filter(v => v.toLowerCase() == this.cityName.toLowerCase()).length == 1) {
             this.isCityError = false;
+            this.getCoordinatesOfCity();
         } else {
             this.isCityError = true;
         }
@@ -134,6 +149,17 @@ export class MyShopsComponent implements OnInit, OnDestroy {
     selectedCity(event) {
         this.cityName = event.item;
         this.isCityError = false;
+        this.getCoordinatesOfCity();
+    }
+
+    getCoordinatesOfCity() {
+        this.usersService.getCoordinatesByAddress(this.cityName + "+" + this.districtName)
+            .pipe(take(1))
+            .subscribe(response => {
+                this.lat = response.results[0].geometry.location.lat;
+                this.lng = response.results[0].geometry.location.lng;
+                this.zoom = 12;
+            });
     }
 
     getCities(districtId) {
@@ -151,8 +177,18 @@ export class MyShopsComponent implements OnInit, OnDestroy {
     }
 
     createShop() {
-        console.log(this.districtName);
-        console.log(this.cityName);
+        this.isSubmitted = true;
+        this.validationMessagesHelper.showErrorMessages(this.createShopForm);
+        if (!this.createShopForm.valid) {
+            console.log(this.createShopForm);
+            return false;
+        }
+    }
 
+    markerDragEnd(event: MouseEvent) {
+        this.lat = event.coords.lat;
+        this.lng = event.coords.lng;
+        console.log(this.lat);
+        console.log(this.lng);
     }
 }

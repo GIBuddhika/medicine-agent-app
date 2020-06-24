@@ -24,7 +24,12 @@ h4,
     z-index: 1;
     box-shadow: 0 6px 10px -4px rgba(0, 0, 0, 0.15);
 }
-
+.form-control + .form-control-feedback {
+    position: relative;
+}
+.margin-b-0 {
+    margin-bottom: 0;
+}
 @media (max-width: 767px) {
     .modal-body {
         padding: 20px 20px;

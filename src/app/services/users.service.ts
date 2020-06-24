@@ -31,8 +31,20 @@ export class UsersService {
   getShops(): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
-      .get<any>(this.basePath + "/users/"+this.userId+"/shops", {
+      .get<any>(this.basePath + "/users/" + this.userId + "/shops", {
         headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  getCoordinatesByAddress(address): Observable<any> {
+    return this.http
+      .get<any>("https://maps.google.com/maps/api/geocode/json?address=" + address + "&key=" + this.envLoader.config.GOOGLE_MAP_API_KEY, {
       })
       .pipe(
         map(response => {
