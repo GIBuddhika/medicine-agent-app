@@ -8,6 +8,7 @@ import { NgbModal, NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { MetaService } from 'app/services/meta.service';
 import { AgmMap } from '@agm/core';
 import { ValidationMessagesHelper } from 'app/helpers/validation-messages.helper';
+import { MouseEvent as AGMMouseEvent } from '@agm/core';
 
 @Component({
     selector: 'app-my-shops',
@@ -16,7 +17,7 @@ import { ValidationMessagesHelper } from 'app/helpers/validation-messages.helper
     styleUrls: ['./my-shops.component.scss']
 })
 export class MyShopsComponent implements OnInit, OnDestroy {
-    private destroy$: Subject<void> = new Subject<void>();
+    private destroy$: Subject<any> = new Subject();
 
     @ViewChild(AgmMap, { static: false }) map: AgmMap;
 
@@ -185,7 +186,7 @@ export class MyShopsComponent implements OnInit, OnDestroy {
         }
     }
 
-    markerDragEnd(event: MouseEvent) {
+    markerDragEnd(event: AGMMouseEvent) {
         this.lat = event.coords.lat;
         this.lng = event.coords.lng;
         console.log(this.lat);

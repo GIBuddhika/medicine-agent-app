@@ -9,7 +9,7 @@ import { Location, LocationStrategy, PathLocationStrategy } from '@angular/commo
 export class NavbarComponent implements OnInit {
     private toggleButton: any;
     private sidebarVisible: boolean;
-    private isLoggedInUser: boolean = false;
+    isLoggedInUser: boolean = false;
 
     constructor(public location: Location, private element: ElementRef) {
         this.sidebarVisible = false;
