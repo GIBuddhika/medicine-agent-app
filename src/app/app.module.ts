@@ -5,6 +5,7 @@ import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app.routing';
 import { AgmCoreModule, GoogleMapsAPIWrapper } from '@agm/core';
+import { ImageCropperModule } from 'ngx-image-cropper';
 
 import { AppComponent } from './app.component';
 import { NavbarComponent } from './shared/navbar/navbar.component';
@@ -48,6 +49,7 @@ const DIRECTIVES = [
     ComponentsModule,
     AppRoutingModule,
     HttpClientModule,
+    ImageCropperModule,
     AgmCoreModule.forRoot({
       apiKey: 'AIzaSyD7MA9r-hE1xk2ddbASxB17DYAllSOOeYY',
       libraries: ['places']

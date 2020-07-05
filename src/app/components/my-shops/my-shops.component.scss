@@ -45,6 +45,15 @@
         }
     }
 }
+@media (max-width: 575px) {
+    .title {
+        .card-normal {
+            float: none !important;
+            width: 150px;
+            margin: 0 auto;
+        }
+    }
+}
 @media (max-width: 767px) {
     .shops {
         .row {
@@ -54,4 +63,4 @@
 }
 agm-map {
     height: 300px;
-  }
+}

@@ -1,26 +1,31 @@
 <div class="wrapper">
     <div class="container-fluid">
-        <h2 class="page-title"><b>Shops</b></h2>
+        <div class="title row" style="margin-bottom:20px;">
+            <div class="col-sm-6">
+                <h2 class="page-title"><b>Shops</b></h2>
+            </div>
+            <div class="col-sm-6">
+                <div class="card-normal" style="float:right;padding:0;">
+                    <div class="buttons">
+                        <button type="button" class="btn btn-outline-success btn-sm" style="width: 100%;"
+                            (click)="openCreateModal(content)">ADD NEW SHOP</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="shops">
             <ul>
-                <li style="width: 300px;">
-                    <div class="card-normal">
-                        <div class="shops">
-                            <i class="fa fa-plus-square-o fa-5x" style="font-size:10rem;" aria-hidden="true"></i>
-                            <div class="buttons">
-                                <button type="button" class="btn btn-outline-success btn-sm"
-                                    (click)="openCreateModal(content)">Add</button>
-                            </div>
-                        </div>
-                    </div>
-                </li>
                 <li *ngFor="let shop of shops;" style="width: 300px;">
                     <div class="card-normal">
                         <div class="shops">
-                            <img width="120" src="assets/img/faces/clem-onojeghuo-3.jpg" alt="Rounded Image"
+                            <img *ngIf="shop.file" width="120" [src]="imagePath+shop.file.location" alt="Shop Image"
                                 class="img-thumbnail img-responsive">
-                            <p><b>{{shop.name|titlecase}}</b></p>
-                            <p>{{shop.address|titlecase}}, {{shop.city.name|titlecase}}</p>
+                            <img *ngIf="!shop.file" width="120" src="assets/img/default-shop.png" alt="Shop Image"
+                                class="img-thumbnail img-responsive">
+                            <p><b>{{shop.name|titlecase}}</b></p><br>
+                            <p>{{shop.address|titlecase}}</p>
+                            <p>{{shop.city.name|titlecase}}</p>
                             <div class="buttons">
                                 <button type="button" class="btn btn-outline-info btn-sm"
                                     (click)="openEditModal(content)">Edit</button>
@@ -76,17 +81,31 @@
                     placeholder="Enter 10 digits phone number">
             </div>
             <div class="form-group">
-                <label>Website</label>
-                <input type="text" class="form-control" formControlName="website">
-            </div>
-            <div class="form-group">
-                <label>Select location</label>
+                <label>Select location (Drag and drop the red marker <i style="color: red;"
+                        class="fa fa-map-marker"></i> on your location)</label>
                 <agm-map [latitude]="lat" [longitude]="lng" [zoom]="zoom" [disableDefaultUI]="false"
-                    [zoomControl]="true">
+                    [zoomControl]="true" [scrollwheel]="null" [gestureHandling]="'cooperative'">
                     <agm-marker [latitude]="lat" [longitude]="lng" [markerDraggable]="true"
                         (dragEnd)="markerDragEnd($event)">
                     </agm-marker>
                 </agm-map>
+            </div>
+            <div class="form-group">
+                <label>Select image for the shop</label>
+                <br>
+                <input type="file" accept="image/*" (change)="fileChangeEvent($event)" />
+                <br>
+                <div style="margin-top: 10px;">
+                    <div>
+                        <image-cropper [imageChangedEvent]="imageChangedEvent" [maintainAspectRatio]="true"
+                            [containWithinAspectRatio]="containWithinAspectRatio" [aspectRatio]="4/3"
+                            [resizeToWidth]="500" [cropperMinWidth]="128" [onlyScaleDown]="true" [roundCropper]="false"
+                            [alignImage]="'left'" [style.display]="showCropper ? null : 'none'" format="png"
+                            (imageCropped)="imageCropped($event)" (imageLoaded)="imageLoaded()"></image-cropper>
+                    </div>
+                    <img [src]="croppedImage" style="max-width:100%;"
+                        [style.border]="croppedImage ? '1px solid black' : 'none'" />
+                </div>
             </div>
         </form>
     </div>

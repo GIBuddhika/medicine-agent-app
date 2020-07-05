@@ -9,6 +9,11 @@ import { MetaService } from 'app/services/meta.service';
 import { AgmMap } from '@agm/core';
 import { ValidationMessagesHelper } from 'app/helpers/validation-messages.helper';
 import { MouseEvent as AGMMouseEvent } from '@agm/core';
+import { ShopsService } from 'app/services/shops.service';
+import { ImageCroppedEvent } from 'ngx-image-cropper';
+import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service';
+import Swal from 'sweetalert2'
+
 
 @Component({
     selector: 'app-my-shops',
@@ -19,11 +24,11 @@ import { MouseEvent as AGMMouseEvent } from '@agm/core';
 export class MyShopsComponent implements OnInit, OnDestroy {
     private destroy$: Subject<any> = new Subject();
 
-    @ViewChild(AgmMap, { static: false }) map: AgmMap;
-
-    zoom: number = 8;
-    lat: number = 6.932942971060562;
-    lng: number = 79.84612573779296;
+    url: any;
+    imageChangedEvent: any = '';
+    showCropper = false;
+    croppedImage: any;
+    fileName: string = "";
 
     modalRef: any;
     errorMessage: any;
@@ -33,12 +38,16 @@ export class MyShopsComponent implements OnInit, OnDestroy {
     submitting: boolean = false;
     isDistrictError: boolean = false;
     isCityError: boolean = false;
+    imagePath: string = "";
 
+    @ViewChild(AgmMap, { static: false }) map: AgmMap;
+    zoom: number = 8;
+    lat: number = 6.932942971060562;
+    lng: number = 79.84612573779296;
     cities: any = [];
     cityName: string;
     cityId: number;
     cityNames: any = [];
-
     districts = JSON.parse(localStorage.getItem('districts'));
     districtNames = [];
     districtName: string;
@@ -56,14 +65,33 @@ export class MyShopsComponent implements OnInit, OnDestroy {
         private usersService: UsersService,
         private modalService: NgbModal,
         private metaService: MetaService,
+        private shopsService: ShopsService,
         private validationMessagesHelper: ValidationMessagesHelper,
+        private envLoader: RuntimeEnvLoaderService,
     ) {
+        this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
         this.districts.forEach(district => {
             this.districtNames.push(district.name);
         });
     }
 
     ngOnInit() {
+        // const Toast = Swal.mixin({
+        //     toast: true,
+        //     position: 'top-end',
+        //     showConfirmButton: false,
+        //     timer: 3000,
+        //     timerProgressBar: true,
+        //     onOpen: (toast) => {
+        //         toast.addEventListener('mouseenter', Swal.stopTimer)
+        //         toast.addEventListener('mouseleave', Swal.resumeTimer)
+        //     }
+        // })
+
+        // Toast.fire({
+        //     icon: 'success',
+        //     title: 'Signed in successfully'
+        // })
         this.getMainData();
     }
 
@@ -122,7 +150,7 @@ export class MyShopsComponent implements OnInit, OnDestroy {
     }
 
     focusOut(event) {
-        if (this.districtNames.filter(v => v.toLowerCase() == this.districtName.toLowerCase()).length == 1) {
+        if (this.districtName != undefined && this.districtNames.filter(v => v.toLowerCase() == this.districtName.toLowerCase()).length == 1) {
             this.isDistrictError = false;
             var districtObj = this.districts.filter(v => v.name.toLowerCase() == this.districtName.toLowerCase());
             this.getCities(districtObj[0].id);
@@ -177,19 +205,82 @@ export class MyShopsComponent implements OnInit, OnDestroy {
             });
     }
 
-    createShop() {
-        this.isSubmitted = true;
-        this.validationMessagesHelper.showErrorMessages(this.createShopForm);
-        if (!this.createShopForm.valid) {
-            console.log(this.createShopForm);
-            return false;
-        }
-    }
-
     markerDragEnd(event: AGMMouseEvent) {
         this.lat = event.coords.lat;
         this.lng = event.coords.lng;
-        console.log(this.lat);
-        console.log(this.lng);
+    }
+
+    createShop() {
+        this.isCityError = false;
+        this.isDistrictError = false;
+        this.isSubmitted = true;
+        var hasError = false;
+        this.validationMessagesHelper.showErrorMessages(this.createShopForm);
+        if (!this.createShopForm.valid) {
+            hasError = true;
+        }
+        if (this.districtName == undefined) {
+            this.isDistrictError = true;
+            hasError = true;
+        }
+        if (this.cityName == undefined) {
+            this.isCityError = true;
+            hasError = true;
+        }
+        if (hasError) {
+            return false;
+        }
+        const data = {
+            name: this.createShopForm.value.name,
+            city_id: this.cities.filter(v => v.name == this.cityName)[0].id,
+            address: this.createShopForm.value.address,
+            phone: this.createShopForm.value.phone,
+            website: this.createShopForm.value.website,
+            latitude: this.lat,
+            longitude: this.lng,
+            image: this.croppedImage,
+            image_name: this.fileName
+        };
+        this.shopsService.create(data)
+            .pipe(take(1))
+            .subscribe(response => {
+                Swal.fire(
+                    'Success',
+                    'New shop created.',
+                    'success'
+                );
+                this.modalRef.close();
+                this.getMainData();
+            }, error => {
+                Swal.fire(
+                    'Sorry',
+                    'Something went wrong, Please try again.',
+                    'error'
+                );
+                this.modalRef.close();
+            });
+    }
+
+    onSelectFile(event) {
+        if (event.target.files && event.target.files[0]) {
+            var reader = new FileReader();
+            reader.readAsDataURL(event.target.files[0]);
+            reader.onload = (event) => {
+                this.url = event.target.result;
+            }
+        }
+    }
+
+    fileChangeEvent(event: any): void {
+        this.imageChangedEvent = event;
+        this.fileName = event.target.files[0].name;
+    }
+
+    imageLoaded() {
+        this.showCropper = true;
+    }
+
+    imageCropped(event: ImageCroppedEvent) {
+        this.croppedImage = event.base64;
     }
 }

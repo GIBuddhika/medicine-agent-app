@@ -9,7 +9,7 @@ import { HandleErrorsService } from "./handle-errors.service";
 @Injectable({
   providedIn: "root"
 })
-export class UsersService {
+export class ShopsService {
   private loggedUser: Subject<any> = new Subject<any>();
 
   basePath: string;
@@ -30,23 +30,11 @@ export class UsersService {
     this.userId = localStorage.getItem("userId");
   }
 
-  getShops(): Observable<any> {
+  create(data): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
-      .get<any>(this.basePath + "/users/" + this.userId + "/shops", {
+      .post<any>(this.basePath + "/shops", data, {
         headers
-      })
-      .pipe(
-        map(response => {
-          return response;
-        }),
-        catchError(this.handleErrorsService.handle)
-      );
-  }
-
-  getCoordinatesByAddress(address): Observable<any> {
-    return this.http
-      .get<any>("https://maps.google.com/maps/api/geocode/json?address=" + address + "&key=" + this.envLoader.config.GOOGLE_MAP_API_KEY, {
       })
       .pipe(
         map(response => {
