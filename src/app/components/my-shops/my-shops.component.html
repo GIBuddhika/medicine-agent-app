@@ -1,0 +1,129 @@
+<div class="wrapper">
+    <div class="container-fluid">
+        <div class="title row" style="margin-bottom:20px;">
+            <div class="col-sm-6">
+                <h2 class="page-title"><b>Shops</b></h2>
+            </div>
+            <div class="col-sm-6">
+                <div class="card-normal" style="float:right;padding:0;">
+                    <div class="buttons">
+                        <button type="button" class="btn btn-outline-success btn-sm" style="width: 100%;"
+                            (click)="openCreateModal(content)">ADD NEW SHOP</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="shops">
+            <div *ngIf="isLoading">Loading...</div>
+            <div *ngIf="shops.length==0 && !isLoading">No shops found.</div>
+            <ul *ngIf="shops.length>0 && !isLoading">
+                <li *ngFor="let shop of shops;" style="width: 300px;">
+                    <div class="card-normal">
+                        <div class="shops">
+                            <img *ngIf="shop.file" width="120" [src]="imagePath+shop.file.location" alt="Shop Image"
+                                class="img-thumbnail img-responsive">
+                            <img *ngIf="!shop.file" width="120" src="assets/img/default-shop.png" alt="Shop Image"
+                                class="img-thumbnail img-responsive">
+                            <p><b>{{shop.name|titlecase}}</b></p><br>
+                            <p>{{shop.address|titlecase}}</p>
+                            <p>{{shop.city.name|titlecase}}</p>
+                            <div class="buttons">
+                                <button type="button" class="btn btn-outline-info btn-sm"
+                                    (click)="openEditModal(content,shop)">Edit</button>
+                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                    (click)="deleteShop(shop.id)">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<ng-template #content let-modal>
+    <div class="modal-header">
+        <h5 class="modal-title text-center" *ngIf="isCreatingProcess">Create new shop</h5>
+        <h5 class="modal-title text-center" *ngIf="!isCreatingProcess">Update shop</h5>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-danger" *ngIf="errorMessages" [innerHtml]="errorMessages"></div>
+        <form [formGroup]="shopForm" (ngSubmit)="onSubmit()">
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" ngbAutofocus class="form-control" formControlName="name" id="name">
+            </div>
+            <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
+                <label>District</label>
+                <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="districtName"
+                    [ngModelOptions]="{standalone: true}" (selectItem)="selectedDistrict($event)"
+                    [ngbTypeahead]="searchDistricts" (focus)="focus$.next($any($event).target.value)"
+                    (click)="click$.next($any($event).target.value)" #instance="ngbTypeahead"
+                    (focusout)="focusOut($event)" />
+                <div class="form-control-feedback" *ngIf="isDistrictError">No district selected. Please select one.
+                </div>
+            </div>
+            <div class="form-group" [ngClass]="{'has-danger':isCityError}">
+                <label>Cities</label>
+                <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="cityName"
+                    disabled="{{cities.length==0}}" [ngModelOptions]="{standalone: true}"
+                    (selectItem)="selectedCity($event)" [ngbTypeahead]="searchCities"
+                    (focus)="focusCities$.next($any($event).target.value)"
+                    (click)="clickCities$.next($any($event).target.value)" #instance="ngbTypeahead"
+                    (focusout)="focusOutCities($event)" />
+                <div class="form-control-feedback" *ngIf="isCityError">No city selected. Please select one.</div>
+            </div>
+            <div class="form-group">
+                <label>Address</label>
+                <input type="text" class="form-control" formControlName="address" id="address">
+            </div>
+            <div class="form-group">
+                <label>Phone</label>
+                <input type="text" class="form-control" formControlName="phone" id="phone"
+                    placeholder="Enter 10 digits phone number">
+            </div>
+            <div class="form-group">
+                <label>Select location (Drag and drop the red marker <i style="color: red;"
+                        class="fa fa-map-marker"></i> on your location)</label>
+                <agm-map [latitude]="lat" [longitude]="lng" [zoom]="zoom" [disableDefaultUI]="false"
+                    [zoomControl]="true" [scrollwheel]="null" [gestureHandling]="'cooperative'">
+                    <agm-marker [latitude]="lat" [longitude]="lng" [markerDraggable]="true"
+                        (dragEnd)="markerDragEnd($event)">
+                    </agm-marker>
+                </agm-map>
+            </div>
+            <div class="form-group">
+                <label>Select image for the shop</label>
+                <br>
+                <input type="file" accept="image/*" (change)="fileChangeEvent($event)" />
+                <br>
+                <div style="margin-top: 10px;" *ngIf="fileName">
+                    <div>
+                        <image-cropper [imageChangedEvent]="imageChangedEvent" [maintainAspectRatio]="true"
+                            [containWithinAspectRatio]="containWithinAspectRatio" [aspectRatio]="4/3"
+                            [resizeToWidth]="500" [cropperMinWidth]="128" [onlyScaleDown]="true" [roundCropper]="false"
+                            [alignImage]="'left'" [style.display]="showCropper ? null : 'none'" format="png"
+                            (imageCropped)="imageCropped($event)" (imageLoaded)="imageLoaded()"></image-cropper>
+                    </div>
+                    <img [src]="croppedImage" style="max-width:100%;"
+                        [style.border]="croppedImage ? '1px solid black' : 'none'" />
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <div class="left-side">
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Cancel</button>
+        </div>
+        <div class="divider"></div>
+        <div class="right-side">
+            <button type="button" class="btn btn-success btn-link" (click)="createShop()" *ngIf="isCreatingProcess"
+                replaceText="Submitting" [spinnerButton]="isSubmitting">Submit</button>
+            <button type="button" class="btn btn-success btn-link" (click)="updateShop()" *ngIf="!isCreatingProcess"
+                replaceText="Updating" [spinnerButton]="isUpdating">Update</button>
+        </div>
+    </div>
+</ng-template>

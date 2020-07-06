@@ -1,0 +1,71 @@
+.shops {
+    text-align: center;
+    ul {
+        list-style: none;
+        -ms-box-orient: horizontal;
+        display: -webkit-box;
+        display: -moz-box;
+        display: -ms-flexbox;
+        display: -moz-flex;
+        display: -webkit-flex;
+        display: flex;
+        -webkit-flex-wrap: wrap;
+        flex-wrap: wrap;
+        padding: 0;
+        justify-content: center;
+
+        li {
+            margin-right: 10px;
+            margin-bottom: 10px;
+
+            img {
+                margin-bottom: 10px;
+            }
+            .card-normal {
+                min-height: 260px;
+                height: auto;
+
+                .fa-plus-square-o.fa-5x {
+                    font-size: 10rem;
+                    width: 100%;
+                    color: #6bd098;
+                }
+            }
+        }
+    }
+}
+.custom-class {
+    .dropdown-menu.show {
+        max-height: 300px;
+        overflow-y: auto;
+    }
+    @media (max-width: 767px) {
+        .form-control + .form-control-feedback {
+            margin-top: 0;
+        }
+    }
+}
+@media (max-width: 575px) {
+    .title {
+        .card-normal {
+            float: none !important;
+            width: 150px;
+            margin: 0 auto;
+        }
+    }
+    .shops {
+        ul li {
+            margin-right: 0;
+        }
+    }
+}
+@media (max-width: 767px) {
+    .shops {
+        .row {
+            text-align: center;
+        }
+    }
+}
+agm-map {
+    height: 300px;
+}

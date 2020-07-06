@@ -4,6 +4,8 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
 import { RouterModule } from '@angular/router';
 import { AppRoutingModule } from './app.routing';
+import { AgmCoreModule, GoogleMapsAPIWrapper } from '@agm/core';
+import { ImageCropperModule } from 'ngx-image-cropper';
 
 import { AppComponent } from './app.component';
 import { NavbarComponent } from './shared/navbar/navbar.component';
@@ -16,6 +18,7 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { SpinnerButtonDirective } from './directives/spinner-button/spinner-button.directive';
 import { LoginComponent } from './components/Auth/login/login.component';
+import { MyShopsComponent } from './components/my-shops/my-shops.component';
 
 const appInitializerFn = (envLoader: RuntimeEnvLoaderService) => {
   return () => {
@@ -34,6 +37,7 @@ const DIRECTIVES = [
     FooterComponent,
     SignupComponent,
     LoginComponent,
+    MyShopsComponent,
     ...DIRECTIVES,
   ],
   imports: [
@@ -45,10 +49,16 @@ const DIRECTIVES = [
     ComponentsModule,
     AppRoutingModule,
     HttpClientModule,
+    ImageCropperModule,
+    AgmCoreModule.forRoot({
+      apiKey: 'AIzaSyD7MA9r-hE1xk2ddbASxB17DYAllSOOeYY',
+      libraries: ['places']
+    })
   ],
   exports: [...DIRECTIVES],
   providers: [
     RuntimeEnvLoaderService,
+    GoogleMapsAPIWrapper,
     {
       provide: APP_INITIALIZER,
       useFactory: appInitializerFn,

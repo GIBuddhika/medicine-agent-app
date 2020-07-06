@@ -1,4 +1,4 @@
-import { Component, OnInit, Inject, Renderer2, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, Inject, Renderer2, ElementRef, ViewChild, HostListener, AfterViewInit } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/add/operator/filter';
@@ -6,6 +6,8 @@ import { DOCUMENT } from '@angular/common';
 import { LocationStrategy, PlatformLocation, Location } from '@angular/common';
 import { NavbarComponent } from './shared/navbar/navbar.component';
 import { UpdateMainViewSharedService } from './shared-services/update-main-view.service';
+import { MetaService } from './services/meta.service';
+import { stringify } from 'querystring';
 
 @Component({
     selector: 'app-root',
@@ -18,17 +20,30 @@ export class AppComponent implements OnInit {
     showFooter: boolean = true;
     @ViewChild(NavbarComponent) navbar: NavbarComponent;
 
+    @HostListener("window:scroll", ["$event"])
+    onWindowScroll() {
+        let pos = (document.documentElement.scrollTop || document.body.scrollTop) + document.documentElement.offsetHeight;
+        let max = document.documentElement.scrollHeight;
+        if (pos == max) {
+            this.renderer.addClass(document.getElementById('navBarDiv'), "top");
+        } else {
+            this.renderer.removeClass(document.getElementById('navBarDiv'), "top");
+        }
+    }
+
     constructor(
         private renderer: Renderer2,
         private router: Router,
         @Inject(DOCUMENT) private document: any,
         private element: ElementRef,
         public location: Location,
-        private updateMainViewSharedService: UpdateMainViewSharedService
+        private updateMainViewSharedService: UpdateMainViewSharedService,
+        private metaService: MetaService,
     ) {
 
     }
     ngOnInit() {
+        this.getMainData();
         this.showHeader = true;
         this.showFooter = true;
         this.updateMainViewSharedService.updateMainViewData.subscribe(response => {
@@ -64,7 +79,6 @@ export class AppComponent implements OnInit {
             body.classList.add('ie-background');
 
         }
-
     }
     removeFooter() {
         var titlee = this.location.prepareExternalUrl(this.location.path());
@@ -74,6 +88,20 @@ export class AppComponent implements OnInit {
         }
         else {
             return true;
+        }
+    }
+    
+    getMainData() {
+        if (localStorage.getItem('districts') === null) {
+            this.metaService.getDistricts()
+                .subscribe(response => {
+                    console.log(response);
+                    var districts = [];
+                    response.forEach(district => {
+                        districts.push({ id: district.id, name: district.name });
+                    });
+                    localStorage.setItem("districts", JSON.stringify(districts));
+                });
         }
     }
 }

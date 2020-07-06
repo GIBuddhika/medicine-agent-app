@@ -1,3 +1,5 @@
 {
-  "API_BASE_URL": ""
+  "API_BASE_URL": "",
+  "GOOGLE_MAP_API_KEY":"",
+  "IMAGE_BASE_URL": ""
 }

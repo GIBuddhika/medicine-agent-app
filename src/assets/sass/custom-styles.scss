@@ -1,0 +1,72 @@
+.wrapper {
+    margin-top: 100px;
+}
+h1,
+.h1,
+h2,
+.h2,
+h3,
+.h3,
+h4,
+.h4 {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+.img-thumbnail {
+    margin-bottom: 0;
+}
+.card-normal {
+    background-color: #fff;
+    border-radius: 8px;
+    color: #000;
+    border: 1px solid #eee;
+    padding: 20px;
+    z-index: 1;
+    box-shadow: 0 6px 10px -4px rgba(0, 0, 0, 0.15);
+}
+.form-control + .form-control-feedback {
+    position: relative;
+}
+.margin-b-0 {
+    margin-bottom: 0;
+}
+.alert.alert-danger {
+    border-radius: 5px;
+    ul {
+        margin: 0;
+        padding-left: 10px;
+    }
+}
+@media (max-width: 767px) {
+    .modal-body {
+        padding: 20px 20px;
+    }
+}
+//START: override sweetalert button styles
+button.swal2-cancel.swal2-styled,
+button.swal2-confirm.swal2-styled {
+    background-color: #fff !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-family: "Montserrat", "Helvetica", Arial, sans-serif;
+    transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out,
+        box-shadow 0.15s ease-in-out;
+}
+button.swal2-confirm.swal2-styled {
+    border: 2px solid #51bcda !important;
+    color: #51bcda;
+    background-image: none;
+}
+button.swal2-confirm.swal2-styled:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+    background-color: #51bcda !important;
+}
+button.swal2-cancel.swal2-styled {
+    border: 2px solid #f5593d;
+    color: #f5593d;
+}
+button.swal2-cancel.swal2-styled:hover {
+    color: rgba(255, 255, 255, 0.8) !important;
+    background-color: #f5593d !important;
+}
+//END: override sweetalert button styles
