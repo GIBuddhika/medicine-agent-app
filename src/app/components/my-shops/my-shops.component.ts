@@ -1,6 +1,6 @@
-import { Component, OnInit, OnDestroy, ViewChild, ViewEncapsulation } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ViewEncapsulation, ElementRef, AfterViewInit } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, Observable, merge, pipe } from 'rxjs';
 import { take, debounceTime, distinctUntilChanged, filter, map, takeUntil, finalize } from 'rxjs/operators';
 import { NgbModal, NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
@@ -9,12 +9,12 @@ import { MouseEvent as AGMMouseEvent } from '@agm/core';
 import { ImageCroppedEvent } from 'ngx-image-cropper';
 import Swal from 'sweetalert2'
 
-import { APIValidationMessagesHelper } from 'app/helpers/api-validation-messages.helper';
-import { MetaService } from 'app/services/meta.service';
-import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service';
-import { ShopsService } from 'app/services/shops.service';
-import { UsersService } from 'app/services/users.service';
-import { ValidationMessagesHelper } from 'app/helpers/validation-messages.helper';
+import { APIValidationMessagesHelper } from '../../helpers/api-validation-messages.helper';
+import { MetaService } from '../../services/meta.service';
+import { RuntimeEnvLoaderService } from '../../services/runtime-env-loader.service';
+import { ShopsService } from '../../services/shops.service';
+import { UsersService } from '../../services/users.service';
+import { ValidationMessagesHelper } from '../../helpers/validation-messages.helper';
 
 @Component({
     selector: 'app-my-shops',
@@ -22,8 +22,9 @@ import { ValidationMessagesHelper } from 'app/helpers/validation-messages.helper
     encapsulation: ViewEncapsulation.None,
     styleUrls: ['./my-shops.component.scss']
 })
-export class MyShopsComponent implements OnInit, OnDestroy {
+export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
     private destroy$: Subject<any> = new Subject();
+    @ViewChild('openCreateModalId') openCreateModalId: ElementRef<HTMLElement>;
 
     croppedImage: any;
     errorMessage: any;
@@ -50,7 +51,6 @@ export class MyShopsComponent implements OnInit, OnDestroy {
     lng: number = 79.84612573779296;
     cities: any = [];
     cityName: string;
-    cityId: number;
     cityNames: any = [];
     districts = JSON.parse(localStorage.getItem('districts'));
     districtNames = [];
@@ -73,6 +73,7 @@ export class MyShopsComponent implements OnInit, OnDestroy {
         private validationMessagesHelper: ValidationMessagesHelper,
         private APIValidationMessagesHelper: APIValidationMessagesHelper,
         private envLoader: RuntimeEnvLoaderService,
+        private activatedRoute: ActivatedRoute,
     ) {
         this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
         this.districts.forEach(district => {
@@ -82,6 +83,15 @@ export class MyShopsComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.getMainData();
+    }
+
+    ngAfterViewInit() {
+        this.activatedRoute.queryParams.subscribe(params => {
+            if (params['action'] == "add") {
+                let el: HTMLElement = this.openCreateModalId.nativeElement;
+                el.click();
+            }
+        });
     }
 
     ngOnDestroy(): void {

@@ -11,12 +11,14 @@ import { SignupComponent } from './components/Auth/signup/signup.component';
 import { LoginComponent } from './components/Auth/login/login.component';
 import { HomeComponent } from './components/home/home.component';
 import { MyShopsComponent } from './components/my-shops/my-shops.component';
+import { MyProductsComponent } from './components/my-products/my-products.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
   { path: 'signup', component: SignupComponent },
   { path: 'login', component: LoginComponent },
   { path: 'my-shops', component: MyShopsComponent },
+  { path: 'my-products', component: MyProductsComponent },
 
   { path: 'home', component: ComponentsComponent },
   { path: 'user-profile', component: ProfileComponent },

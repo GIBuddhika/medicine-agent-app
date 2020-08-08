@@ -1,6 +1,6 @@
 import { Injectable } from "@angular/core";
 import { Subject, Observable, throwError } from "rxjs";
-import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from "@angular/common/http";
+import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
 import { map, catchError } from "rxjs/operators";
 import { RuntimeEnvLoaderService } from "./runtime-env-loader.service";
 import { HandleErrorsService } from "./handle-errors.service";
@@ -9,7 +9,7 @@ import { HandleErrorsService } from "./handle-errors.service";
 @Injectable({
   providedIn: "root"
 })
-export class UsersService {
+export class ProductsService {
   private loggedUser: Subject<any> = new Subject<any>();
 
   basePath: string;
@@ -30,10 +30,10 @@ export class UsersService {
     this.userId = localStorage.getItem("userId");
   }
 
-  getShops(): Observable<any> {
+  create(data): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
-      .get<any>(this.basePath + "/users/" + this.userId + "/shops", {
+      .post<any>(this.basePath + "/items", data, {
         headers
       })
       .pipe(
@@ -44,9 +44,11 @@ export class UsersService {
       );
   }
 
-  getCoordinatesByAddress(address): Observable<any> {
+  update(id, data): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
-      .get<any>("https://maps.google.com/maps/api/geocode/json?address=" + address + "&key=" + this.envLoader.config.GOOGLE_MAP_API_KEY, {
+      .patch<any>(this.basePath + "/shops/" + id, data, {
+        headers
       })
       .pipe(
         map(response => {
@@ -56,20 +58,15 @@ export class UsersService {
       );
   }
 
-  getProducts(page = 1, perPage = 10): Observable<any> {
+  delete(id): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
-      .get<any>(this.basePath + "/users/" + this.userId + "/items?page=" + page + "&per_page=" + perPage,
-        {
-          observe: 'response',
-          headers: headers
-        })
+      .delete<any>(this.basePath + "/shops/" + id, {
+        headers
+      })
       .pipe(
-        map((response) => {
-          return {
-            data: response.body,
-            total_count: response.headers.get('App-Content-Full-Count')
-          };
+        map(response => {
+          return response;
         }),
         catchError(this.handleErrorsService.handle)
       );

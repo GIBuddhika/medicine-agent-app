@@ -19,6 +19,7 @@ import { HttpClientModule } from '@angular/common/http';
 import { SpinnerButtonDirective } from './directives/spinner-button/spinner-button.directive';
 import { LoginComponent } from './components/Auth/login/login.component';
 import { MyShopsComponent } from './components/my-shops/my-shops.component';
+import { MyProductsComponent } from './components/my-products/my-products.component';
 
 const appInitializerFn = (envLoader: RuntimeEnvLoaderService) => {
   return () => {
@@ -38,6 +39,7 @@ const DIRECTIVES = [
     SignupComponent,
     LoginComponent,
     MyShopsComponent,
+    MyProductsComponent,
     ...DIRECTIVES,
   ],
   imports: [

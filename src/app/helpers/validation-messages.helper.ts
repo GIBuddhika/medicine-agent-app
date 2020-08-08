@@ -66,6 +66,6 @@ export class ValidationMessagesHelper {
         if (element) {
             element.parentNode.classList.add("has-danger", "margin-b-0");
         }
-        element.insertAdjacentHTML('afterend', "<p class='invalid-" + id + " form-control-feedback'>" + errorText + "</p>");
+        element.insertAdjacentHTML('afterend', "<p class='invalid-input invalid-" + id + " form-control-feedback'>" + errorText + "</p>");
     }
 }

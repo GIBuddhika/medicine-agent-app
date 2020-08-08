@@ -70,3 +70,29 @@ button.swal2-cancel.swal2-styled:hover {
     background-color: #f5593d !important;
 }
 //END: override sweetalert button styles
+
+.p-l-0 {
+    padding-left: 0 !important;
+}
+.p-r-0 {
+    padding-right: 0 !important;
+}
+.radio label {
+    cursor: pointer;
+}
+.no-border {
+    border: none !important;
+}
+.img-thumbnail {
+    border-radius: 0.2rem !important;
+}
+.shadow {
+    //add shadow like cards
+    box-shadow: 0 6px 10px -4px rgba(0, 0, 0, 0.15);
+}
+.pointer {
+    cursor: pointer;
+}
+.pagination {
+    margin-top: 15px;
+}

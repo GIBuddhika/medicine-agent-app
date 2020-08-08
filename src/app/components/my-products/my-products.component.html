@@ -1,0 +1,285 @@
+<div class="wrapper">
+    <div class="container-fluid">
+        <div class="title row" style="margin-bottom:20px;">
+            <div class="col-sm-6">
+                <h2 class="page-title"><b>Products</b></h2>
+            </div>
+            <div class="col-sm-6">
+                <div class="card-normal" style="float:right;padding:0;">
+                    <div class="buttons">
+                        <button type="button" class="btn btn-outline-success btn-sm" style="width: 100%;"
+                            (click)="openCreateModal(content)">ADD NEW PRODUCT</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="shops">
+            <div class="table-responsive shadow">
+                <table class="table table-striped">
+                    <thead class="shadow">
+                        <tr>
+                            <th>Name</th>
+                            <th>Category</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Wholesale min. qty.</th>
+                            <th>Wholesale price</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr *ngIf="isLoading">
+                            <td colspan="100%">Loading...</td>
+                        </tr>
+                        <tr *ngIf="!isLoading && products.length==0">
+                            <td colspan="100%">No products found.</td>
+                        </tr>
+                        <ng-container *ngIf="!isLoading && products.length>0">
+                            <tr *ngFor="let product of products">
+                                <td>{{product.name}}</td>
+                                <td>{{product.category_id==1?'Sell':'Rent'}}</td>
+                                <td>{{product.quantity|number}}</td>
+                                <td>{{product.category_id==1?product.sellable_item.retail_price:(product.rentable_item.price_per_month+' Per month')}}
+                                </td>
+                                <td>{{product.category_id==1?product.sellable_item.wholesale_minimum_quantity:''|number}}
+                                </td>
+                                <td>{{product.category_id==1?product.sellable_item.wholesale_price:''}}</td>
+                                <td>
+                                    <span class="text text-warning pointer" title="Edit"><i
+                                            class="fa fa-pencil-square-o"></i></span>
+                                    <span class="text text-danger pointer" title="Delete"><i
+                                            class="fa fa-trash-o"></i></span>
+                                </td>
+                            </tr>
+                        </ng-container>
+                    </tbody>
+                </table>
+            </div>
+            <div class="pagination">
+                <ngb-pagination [collectionSize]="totalCount" [pageSize]="pageSize" [(page)]="page"
+                    (pageChange)="loadPage($event)" [rotate]="true"></ngb-pagination>
+            </div>
+        </div>
+    </div>
+</div>
+<ng-template #content let-modal>
+    <div class="modal-header">
+        <h5 class="modal-title text-center" *ngIf="isCreatingProcess">Add new product</h5>
+        <h5 class="modal-title text-center" *ngIf="!isCreatingProcess">Update product</h5>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-danger" *ngIf="errorMessages" [innerHtml]="errorMessages"></div>
+        <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
+            <div class="form-group radio-group">
+                <div class="form-control no-border" id="listingCategory">
+                    <div class="row">
+                        <div class="col-sm-5 radio">
+                            <div class="form-check-radio">
+                                <label class="form-check-label">
+                                    <input class="form-check-input form-control" type="radio" [value]="true"
+                                        formControlName="listingCategory" [(ngModel)]="isAShopListing"
+                                        (change)="onChangeListingMethod($event)" [ngModelOptions]="{standalone: true}">
+                                    Shop listing
+                                    <span class="form-check-sign"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-6 radio">
+                            <div class="form-check-radio">
+                                <label class="form-check-label">
+                                    <input class="form-check-input form-control" type="radio" [value]="false"
+                                        formControlName="listingCategory" [(ngModel)]="isAShopListing"
+                                        [ngModelOptions]="{standalone: true}" (change)="onChangeListingMethod($event)">
+                                    Personal listing
+                                    <span class="form-check-sign"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" *ngIf="isAShopListing==true && shops.length==0">
+                No shops found. <a href="javascript:void(0)" class="text text-primary" (click)="addShop()">Add a
+                    shop</a>
+            </div>
+            <div class="form-group" *ngIf="isAShopListing==true && shops.length>0">
+                <label>Select a Shop</label>
+                <select class="browser-default custom-select form-control" formControlName="shopId" id="shopId">
+                    <option selected disabled value="null">Select option</option>
+                    <option *ngFor="let shop of shops" value="{{shop.id}}">
+                        {{shop.name|titlecase}},&nbsp;{{shop.city.name}}
+                    </option>
+                </select>
+            </div>
+            <div *ngIf="isAShopListing==false">
+                <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
+                    <label>District</label>
+                    <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="districtName"
+                        [ngModelOptions]="{standalone: true}" (selectItem)="selectedDistrict($event)"
+                        [ngbTypeahead]="searchDistricts" (focus)="focus$.next($any($event).target.value)"
+                        (click)="click$.next($any($event).target.value)" #instance="ngbTypeahead"
+                        (focusout)="focusOut($event)" />
+                    <div class="form-control-feedback" *ngIf="isDistrictError">No district selected. Please select one.
+                    </div>
+                </div>
+                <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
+                    <label>Cities</label>
+                    <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="cityName"
+                        disabled="{{cities.length==0}}" [ngModelOptions]="{standalone: true}"
+                        (selectItem)="selectedCity($event)" [ngbTypeahead]="searchCities"
+                        (focus)="focusCities$.next($any($event).target.value)"
+                        (click)="clickCities$.next($any($event).target.value)" #instance="ngbTypeahead"
+                        (focusout)="focusOutCities($event)" />
+                    <div class="form-control-feedback" *ngIf="isCityError">No city selected. Please select one.</div>
+                </div>
+                <div class="form-group">
+                    <label>Address</label>
+                    <input type="text" class="form-control" formControlName="address" id="address">
+                </div>
+                <div class="form-group">
+                    <label>Phone</label>
+                    <input type="text" class="form-control" formControlName="phone" id="phone"
+                        placeholder="Enter 10 digits phone number">
+                </div>
+                <div class="form-group">
+                    <label>Select location (Drag and drop the red marker <i style="color: red;"
+                            class="fa fa-map-marker"></i> on your location)</label>
+                    <agm-map [latitude]="lat" [longitude]="lng" [zoom]="zoom" [disableDefaultUI]="false"
+                        [zoomControl]="true" [scrollwheel]="null" [gestureHandling]="'cooperative'">
+                        <agm-marker [latitude]="lat" [longitude]="lng" [markerDraggable]="true"
+                            (dragEnd)="markerDragEnd($event)">
+                        </agm-marker>
+                    </agm-map>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Name</label>
+                <input type="text" ngbAutofocus class="form-control" formControlName="name" id="name">
+            </div>
+            <div class="form-group">
+                <label>Description</label>
+                <textarea type="text" class="form-control" formControlName="description" id="description"
+                    (keyup)="expandTextarea()"></textarea>
+            </div>
+            <div class="form-group radio-group">
+                <div class="form-control no-border" id="pricingCategory">
+                    <div class="row">
+                        <div class="col-sm-2 radio">
+                            <div class="form-check-radio">
+                                <label class="form-check-label">
+                                    <input class="form-check-input form-control" type="radio" value="sell"
+                                        formControlName="pricingCategory" [(ngModel)]="pricingCategory"
+                                        (change)="onChangePricingCategory()" [ngModelOptions]="{standalone: true}">
+                                    Sell
+                                    <span class="form-check-sign"></span>
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-sm-2 radio">
+                            <div class="form-check-radio">
+                                <label class="form-check-label">
+                                    <input class="form-check-input form-control" type="radio" value="rent"
+                                        formControlName="pricingCategory" [(ngModel)]="pricingCategory"
+                                        [ngModelOptions]="{standalone: true}" (change)="onChangePricingCategory()">
+                                    Rent
+                                    <span class="form-check-sign"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="row">
+                    <div class="col-5 p-r-0">
+                        <div class="form-group">
+                            <label>Quantity</label>
+                            <input type="number" step="0.01" ngbAutofocus class="form-control"
+                                formControlName="quantity" id="quantity">
+                        </div>
+                    </div>
+                    <div class="col-7 p-l-0">
+                        <div class="form-group">
+                            <label *ngIf="pricingCategory=='rent'">Price per month (per item)</label>
+                            <label *ngIf="pricingCategory=='sell'">Retail Price (per item)</label>
+                            <input type="number" step="0.01" class="form-control" formControlName="price" id="price">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group" *ngIf="pricingCategory=='sell'">
+                <div class="form-check">
+                    <label class="form-check-label">
+                        <input class="form-check-input" type="checkbox" [value]="true"
+                            [(ngModel)]="isWholesalePricingEnabled" [ngModelOptions]="{standalone: true}"
+                            (change)="onChangeWholesaleAvailability()">
+                        Enable wholesale selling
+                        <span class="form-check-sign"></span>
+                    </label>
+                </div>
+            </div>
+            <div *ngIf="pricingCategory=='sell' && isWholesalePricingEnabled==1">
+                <div class="form-group">
+                    <div class="form-group">
+                        <label>Minimum quantity for wholesale pricing</label>
+                        <input type="number" step="0.01" ngbAutofocus class="form-control"
+                            formControlName="min_quantity" id="min_quantity">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="form-group">
+                        <label>Wholesale price (per item)</label>
+                        <input type="number" step="0.01" class="form-control" formControlName="wholesale_price"
+                            id="wholesale_price">
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Select main image for the product</label>
+                <br>
+                <input type="file" accept="image/*" (change)="fileChangeEvent($event)" />
+                <br>
+                <div style="margin-top: 10px;" *ngIf="fileName">
+                    <div>
+                        <image-cropper [imageChangedEvent]="imageChangedEvent" [maintainAspectRatio]="true"
+                            [containWithinAspectRatio]="containWithinAspectRatio" [aspectRatio]="4/3"
+                            [resizeToWidth]="500" [cropperMinWidth]="128" [onlyScaleDown]="true" [roundCropper]="false"
+                            [alignImage]="'left'" [style.display]="showCropper ? null : 'none'" format="png"
+                            (imageCropped)="imageCropped($event)" (imageLoaded)="imageLoaded()"></image-cropper>
+                    </div>
+                    <img [src]="croppedImage" style="max-width:100%;"
+                        [style.border]="croppedImage ? '1px solid black' : 'none'" />
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Add sub images for the product. (Max 5 images)</label>
+                <br>
+                <input type="file" accept="image/*" (change)="fileChangeEventSubImage($event)" />
+                <br>
+                <span class="text text-danger" [innerHtml]="showSubImagesError"></span>
+                <div class="subImagesList" style="margin-top: 10px;">
+                    <div class="" *ngFor="let image of subImagesList; let i = index">
+                        <img [src]="image.data" width="200">
+                        <span (click)="deleteSubImage(i)" title="Remove"><i class="fa fa-trash"></i></span>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="modal-footer">
+        <div class="left-side">
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Cancel</button>
+        </div>
+        <div class="divider"></div>
+        <div class="right-side">
+            <button type="button" class="btn btn-success btn-link" (click)="createProduct()" *ngIf="isCreatingProcess"
+                replaceText="Submitting" [spinnerButton]="isSubmitting">Submit</button>
+            <button type="button" class="btn btn-success btn-link" (click)="updateProduct()" *ngIf="!isCreatingProcess"
+                replaceText="Updating" [spinnerButton]="isUpdating">Update</button>
+        </div>
+    </div>
+</ng-template>

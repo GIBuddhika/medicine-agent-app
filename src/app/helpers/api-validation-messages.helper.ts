@@ -16,12 +16,16 @@ export class APIValidationMessagesHelper {
         must_be_url: 'Should be a valid url.',
     };
 
-    showErrorMessages(errors) {
+    showErrorMessages(errors, errorNamesForAPI = {}) {
         var errorHtml = "<ul>";
         for (let key in errors) {
+            let name = key;
+            if (errorNamesForAPI[key] != undefined) {
+                name = errorNamesForAPI[key];
+            }
             let errorMessages = errors[key];
             errorMessages.forEach(errorMessage => {
-                errorHtml = errorHtml.concat("<li>" + this.capitalizeFirstLetter(key) + ": " + this.formattedErrorMesssages[errorMessage] + "</li>");
+                errorHtml = errorHtml.concat("<li>" + this.capitalizeFirstLetter(name) + ": " + this.formattedErrorMesssages[errorMessage] + "</li>");
             });
         }
         return errorHtml;
