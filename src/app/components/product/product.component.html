@@ -2,9 +2,7 @@
     <div class="container">
         <div class="row">
             <div class="col-md-4">
-                <div class="card-normal" style="min-height: 200px;">
-                    Search filters goes here...
-                </div>
+                sidebar
             </div>
             <div class="col-md-8">
                 <div class="products">
@@ -12,7 +10,7 @@
                         Loading...
                     </div>
                     <div *ngIf="!isLoading && products.length>0">
-                        <div class="card-normal no-decorations" style="margin-bottom: 10px;">
+                        <div class="map" style="margin-bottom: 10px;">
                             <agm-map [latitude]="lat" [longitude]="lng" [zoom]="12" [disableDefaultUI]="false"
                                 [zoomControl]="true" [scrollwheel]="null" [gestureHandling]="'cooperative'"
                                 (mapClick)="mapClick($event)">
@@ -20,22 +18,16 @@
                                     [longitude]="location.lng" (markerClick)=markerClick(infoWindow,location)>
                                     <agm-info-window #infoWindow>
                                         <p [innerHTML]="infoWindowData"></p>
-                                        <div *ngFor="let product of infoWindowProducts;let last=last">
-                                            <p><b>{{product.name|titlecase}} {{(product.shopName)}}</b></p>
-                                            <p>{{product.price}}</p>
-                                            <a [routerLink]="['/products',product.slug]">More...</a>
-                                            <hr *ngIf="!last">
-                                        </div>
                                     </agm-info-window>
                                 </agm-marker>
                             </agm-map>
                         </div>
                         <ng-container *ngFor="let product of products">
-                            <div class="card-normal" [routerLink]="['/products',product.slug]">
+                            <div class="card-normal">
                                 <div class="row">
                                     <div class="col-sm-4">
-                                        <img width="170" [src]="product.image_url" alt="product Image"
-                                            class="img-thumbnail img-responsive">
+                                        <img *ngIf="product.image_id" width="170" [src]="product.image_url"
+                                            alt="product Image" class="img-thumbnail img-responsive">
                                     </div>
                                     <div class="col-sm-8">
                                         <p><b>{{product.name|titlecase}}</b></p>
@@ -48,10 +40,6 @@
                                 </div>
                             </div>
                         </ng-container>
-                        <div class="pagination">
-                            <ngb-pagination [collectionSize]="totalCount" [pageSize]="pageSize" [(page)]="page"
-                                (pageChange)="paginate($event)" [rotate]="true"></ngb-pagination>
-                        </div>
                     </div>
                 </div>
             </div>

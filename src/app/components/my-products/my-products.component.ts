@@ -72,9 +72,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     clickCities$ = new Subject<string>();
 
     pageSize = 10;
-    userPageNo: number;
     totalCount: any;
-
     page = 1;
 
     constructor(
@@ -432,9 +430,8 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             });
     }
 
-    loadPage(event) {
+    paginate(event) {
         this.isLoading = true;
-        console.log(event);
         this.usersService.getProducts(event, this.pageSize)
             .pipe(take(1))
             .pipe(finalize(() => {

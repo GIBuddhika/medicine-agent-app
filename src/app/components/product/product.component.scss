@@ -6,9 +6,6 @@
     &:hover {
         background-color: #eee;
     }
-    &.no-decorations:hover {
-        background-color: #fff;
-    }
     .img-thumbnail {
         box-shadow: none !important;
         max-height: 130px;
@@ -21,12 +18,4 @@
 }
 agm-map {
     height: 300px;
-
-    p,
-    a {
-        font-size: 12px;
-    }
-    hr {
-        margin: 5px 0 !important;
-    }
 }

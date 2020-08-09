@@ -20,6 +20,8 @@ import { SpinnerButtonDirective } from './directives/spinner-button/spinner-butt
 import { LoginComponent } from './components/Auth/login/login.component';
 import { MyShopsComponent } from './components/my-shops/my-shops.component';
 import { MyProductsComponent } from './components/my-products/my-products.component';
+import { HomeComponent } from './components/home/home.component';
+import { ProductComponent } from './components/product/product.component';
 
 const appInitializerFn = (envLoader: RuntimeEnvLoaderService) => {
   return () => {
@@ -40,6 +42,8 @@ const DIRECTIVES = [
     LoginComponent,
     MyShopsComponent,
     MyProductsComponent,
+    HomeComponent,
+    ProductComponent,
     ...DIRECTIVES,
   ],
   imports: [

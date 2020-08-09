@@ -58,7 +58,7 @@
             </div>
             <div class="pagination">
                 <ngb-pagination [collectionSize]="totalCount" [pageSize]="pageSize" [(page)]="page"
-                    (pageChange)="loadPage($event)" [rotate]="true"></ngb-pagination>
+                    (pageChange)="paginate($event)" [rotate]="true"></ngb-pagination>
             </div>
         </div>
     </div>

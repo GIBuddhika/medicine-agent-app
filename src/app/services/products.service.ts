@@ -71,4 +71,21 @@ export class ProductsService {
         catchError(this.handleErrorsService.handle)
       );
   }
+
+  all(page = 1, perPage = 10, searchData = []): Observable<any> {
+    return this.http
+      .get<any>(this.basePath + "/items?page=" + page + "&per_page=" + perPage,
+        {
+          observe: 'response',
+        })
+      .pipe(
+        map((response) => {
+          return {
+            data: response.body,
+            total_count: response.headers.get('App-Content-Full-Count')
+          };
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
 }
