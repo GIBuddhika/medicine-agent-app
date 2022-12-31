@@ -4,7 +4,7 @@ import { AuthService } from 'app/services/auth/auth.service';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { UpdateMainViewSharedService } from 'app/shared-services/update-main-view.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
     selector: 'app-login',
@@ -18,6 +18,7 @@ export class LoginComponent implements OnInit, OnDestroy {
     isSubmitted: boolean = false;
     loginForm: FormGroup;
     submitting: boolean = false;
+    redirect: string = "";
 
     focus;
     focus1;
@@ -27,9 +28,22 @@ export class LoginComponent implements OnInit, OnDestroy {
         private authService: AuthService,
         private updateMainViewSharedService: UpdateMainViewSharedService,
         private router: Router,
+        private route: ActivatedRoute,
     ) {
+        this.route.queryParams.subscribe((params) => {
+            this.redirect = params['redirect'];
+        });
         if (localStorage.getItem("token")) {
-            this.router.navigate(['home']);
+            if (this.redirect) {
+                this.router.navigate([this.redirect]);
+            } else {
+                if (localStorage.getItem("first_time_login") == "true") {
+                    localStorage.removeItem("first_time_login")
+                    this.router.navigate(['/']);
+                } else {
+                    this.updateMainViewSharedService.updateMainView("login");
+                }
+            }
         } else {
             this.updateMainViewSharedService.updateMainView("login");
         }
@@ -58,6 +72,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         var submitData = {
             email: this.loginForm.controls.email.value,
             password: this.loginForm.controls.password.value,
+            isAdmin: 0
         };
 
         this.authService.login(submitData)
@@ -66,11 +81,11 @@ export class LoginComponent implements OnInit, OnDestroy {
                 this.submitting = false;
             }))
             .subscribe(response => {
-                console.log(response);
-
                 localStorage.setItem("token", response["token"]);
                 localStorage.setItem("userId", response["user_id"]);
-                this.router.navigate(['home']);
+                localStorage.setItem("is_admin", "0");
+                localStorage.setItem("first_time_login", "true");
+                window.location.reload();
             }, errors => {
                 this.errorMessage = '<div class="text-center">Email or password invalid.</div>';
             });

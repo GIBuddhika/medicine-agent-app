@@ -1,1 +1,93 @@
-home
+<div class="wrapper">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card-normal no-decorations" style="min-height: 200px;">
+                    <h3>Find your product</h3>
+                    <form [formGroup]="searchForm" (ngSubmit)="searchItems()">
+                        <div class="form-group">
+                            <label class="form-check-label">Search</label>
+                            <input type="text" class="form-control" formControlName="searchTerm" id="searchTerm"
+                                placeholder="Item name">
+                            <img src="../../../assets/img/close.png" width="20" class="input-img"
+                                (click)="clearSearchTerm()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-check-label">District</label>
+                            <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="districtName"
+                                [ngModelOptions]="{standalone: true}" (selectItem)="selectedDistrict($event)"
+                                [ngbTypeahead]="searchDistricts" (focus)="focus$.next($any($event).target.value)"
+                                (click)="click$.next($any($event).target.value)" #instance="ngbTypeahead" />
+                            <img src="../../../assets/img/close.png" width="20" class="input-img"
+                                (click)="clearDistrict()">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-check-label">City</label>
+                            <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="cityName"
+                                disabled="{{cities.length==0}}" [ngModelOptions]="{standalone: true}"
+                                (selectItem)="selectedCity($event)" [ngbTypeahead]="searchCities"
+                                (focus)="focusCities$.next($any($event).target.value)"
+                                (click)="clickCities$.next($any($event).target.value)" #instance="ngbTypeahead" />
+                            <img src="../../../assets/img/close.png" width="20" class="input-img" (click)="clearCity()">
+                        </div>
+
+                        <button class="btn btn-outline-success btn-sm">Search</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="products">
+                    <div *ngIf="isLoading">
+                        Loading...
+                    </div>
+                    <div *ngIf="!isLoading && products.length>0">
+                        <div class="card-normal no-decorations" style="margin-bottom: 10px;">
+                            <agm-map [latitude]="lat" [longitude]="lng" [zoom]="12" [disableDefaultUI]="false"
+                                [zoomControl]="true" [scrollwheel]="null" [gestureHandling]="'cooperative'"
+                                (mapClick)="mapClick($event)">
+                                <agm-marker *ngFor="let location of locations; let i = index" [latitude]="location.lat"
+                                    [longitude]="location.lng" (markerClick)=markerClick(infoWindow,location)>
+                                    <agm-info-window #infoWindow>
+                                        <p [innerHTML]="infoWindowData"></p>
+                                        <div *ngFor="let product of infoWindowProducts;let last=last">
+                                            <p><b>{{product.name|titlecase}} {{(product.shopName)}}</b></p>
+                                            <p>{{product.price}}</p>
+                                            <a [routerLink]="['/products',product.slug]">More...</a>
+                                            <hr *ngIf="!last">
+                                        </div>
+                                    </agm-info-window>
+                                </agm-marker>
+                            </agm-map>
+                        </div>
+                        <ng-container *ngFor="let product of products">
+                            <div class="card-normal" [routerLink]="['/products',product.slug]">
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <img width="170" [src]="product.image_url" alt="product Image"
+                                            class="img-thumbnail img-responsive">
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <p><b>{{product.name|titlecase}}</b></p>
+                                        <p class="price">Rs.
+                                            {{product.category_id==1?(product.sellable_item.retail_price|currency:'':''):((product.rentable_item.price_per_month|currency:'':'')+'
+                                            Per month')}}
+                                        </p>
+                                        <p *ngIf="product.category_id==1">{{product.shop.name|titlecase}}</p>
+                                        <p>{{product.shop.address|titlecase}}, {{product.shop.city.name|titlecase}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-container>
+                        <div class="pagination">
+                            <ngb-pagination [collectionSize]="totalCount" [pageSize]="pageSize" [(page)]="page"
+                                (pageChange)="paginate($event)" [rotate]="true"></ngb-pagination>
+                        </div>
+                    </div>
+                    <div *ngIf="!isLoading && products.length==0">
+                        <p class="no-products">Sorry, there're no items found for your search.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

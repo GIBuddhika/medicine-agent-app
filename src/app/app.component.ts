@@ -1,5 +1,5 @@
 import { Component, OnInit, Inject, Renderer2, ElementRef, ViewChild, HostListener, AfterViewInit } from '@angular/core';
-import { Router, NavigationEnd } from '@angular/router';
+import { Router, NavigationEnd, ActivatedRoute } from '@angular/router';
 import { Subscription } from 'rxjs/Subscription';
 import 'rxjs/add/operator/filter';
 import { DOCUMENT } from '@angular/common';
@@ -18,16 +18,19 @@ export class AppComponent implements OnInit {
     private _router: Subscription;
     showHeader: boolean = true;
     showFooter: boolean = true;
+
     @ViewChild(NavbarComponent) navbar: NavbarComponent;
 
     @HostListener("window:scroll", ["$event"])
     onWindowScroll() {
         let pos = (document.documentElement.scrollTop || document.body.scrollTop) + document.documentElement.offsetHeight;
         let max = document.documentElement.scrollHeight;
-        if (pos == max) {
-            this.renderer.addClass(document.getElementById('navBarDiv'), "top");
-        } else {
-            this.renderer.removeClass(document.getElementById('navBarDiv'), "top");
+        if (document.getElementById('navBarDiv')) {
+            if (pos == max) {
+                this.renderer.addClass(document.getElementById('navBarDiv'), "top");
+            } else {
+                this.renderer.removeClass(document.getElementById('navBarDiv'), "top");
+            }
         }
     }
 
@@ -40,23 +43,18 @@ export class AppComponent implements OnInit {
         private updateMainViewSharedService: UpdateMainViewSharedService,
         private metaService: MetaService,
     ) {
-
     }
     ngOnInit() {
         this.getMainData();
         this.showHeader = true;
         this.showFooter = true;
         this.updateMainViewSharedService.updateMainViewData.subscribe(response => {
-            if (response == 'sign-up' || response == 'login') {
+            if (response == 'sign-up' || response == 'login' || response == 'password-reset-request') {
                 this.showHeader = false;
-                this.showFooter = false;
             } else {
                 this.showHeader = true;
-                this.showFooter = true;
             }
         });
-
-        var navbar: HTMLElement = this.element.nativeElement.children[0].children[0];
 
         this._router = this.router.events.filter(event => event instanceof NavigationEnd).subscribe((event: NavigationEnd) => {
             if (window.outerWidth > 991) {
@@ -64,7 +62,6 @@ export class AppComponent implements OnInit {
             } else {
                 window.document.activeElement.scrollTop = 0;
             }
-            this.navbar.sidebarClose();
         });
 
         var ua = window.navigator.userAgent;
@@ -90,12 +87,11 @@ export class AppComponent implements OnInit {
             return true;
         }
     }
-    
+
     getMainData() {
         if (localStorage.getItem('districts') === null) {
             this.metaService.getDistricts()
                 .subscribe(response => {
-                    console.log(response);
                     var districts = [];
                     response.forEach(district => {
                         districts.push({ id: district.id, name: district.name });

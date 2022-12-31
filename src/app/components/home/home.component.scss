@@ -1,0 +1,42 @@
+.card-normal {
+    cursor: pointer;
+    padding: 10px !important;
+    margin-bottom: 10px;
+
+    &:hover {
+        background-color: #eee;
+    }
+
+    &.no-decorations:hover {
+        background-color: #fff;
+    }
+
+    .img-thumbnail {
+        box-shadow: none !important;
+        max-height: 130px;
+    }
+}
+
+agm-map {
+    height: 300px;
+
+    p,
+    a {
+        font-size: 12px;
+    }
+
+    hr {
+        margin: 5px 0 !important;
+    }
+}
+
+.no-products {
+    text-align: center;
+    margin-top: 200px;
+}
+
+.input-img {
+    position: absolute;
+    right: 7px;
+    bottom: 10px;
+}

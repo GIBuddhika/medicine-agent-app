@@ -1,0 +1,152 @@
+<div class="wrapper">
+    <div class="container">
+        <div *ngIf="isLoading">
+            Loading...
+        </div>
+        <div *ngIf="!isLoading">
+            <!-- <div class="row">
+                <div class="col-md-12">
+                    
+                </div>
+            </div> -->
+
+            <div class="card-normal no-decorations">
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="slider">
+                            <div *ngFor="let file of product.files;" class="mySlides">
+                                <div style="background-image: url('{{imagePath + file.location}}');
+                            background-repeat: no-repeat;
+                            background-position: center;
+                            background-size: cover;
+                            width: 100%;height: 300px;">
+                                </div>
+                                <a class="prev" (click)="plusSlides(-1)">❮</a>
+                                <a class="next" (click)="plusSlides(1)">❯</a>
+                            </div>
+                            <div class="slider-row">
+                                <div *ngFor="let file of product.files; let i = index" class="column">
+                                    <div style="background-image: url('{{imagePath + file.location}}');
+                                    background-repeat: no-repeat;
+                                    background-position: center;
+                                    background-size: cover;
+                                    height: 75px;" class="demo cursor" (click)="currentSlide(i+1)">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-5">
+                        <h2>{{product.name|titlecase}}</h2>
+                        <hr>
+                        <p>{{product.description|titlecase}}</p>
+                        <br>
+                        <div class="flex">
+                            <h2 class="price margin-b-0">{{price}}</h2>
+                            &nbsp;&nbsp;
+                            <h5 class="price margin-b-0">{{product.rentable_item? 'Per month':''}}</h5>
+                        </div>
+                        <strong>(Available Quantity: {{product.quantity}})</strong>
+                        <br>
+                        <br>
+                        <div class="wholesale" *ngIf="product.sellable_item?.wholesale_minimum_quantity">
+                            <p>Wholesale price: Rs. {{product.sellable_item.wholesale_price}} (min. quantity:
+                                {{wholesaleMinimumQuantity}})</p>
+
+                        </div>
+                        <div class="quantity-selector">
+                            Quantity
+                            &nbsp;&nbsp;&nbsp;
+                            <div class="value-button" id="decrease" (click)="decreaseValue()" value="Decrease Value">-
+                            </div>
+                            <input type="number" min="1" step="1" id="number" max="{{product.quantity}}"
+                                [(ngModel)]="quantity" />
+                            <div class="value-button" id="increase" (click)="increaseValue()" value="Increase Value">+
+                            </div>
+                        </div>
+                        <br>
+                        <div class="quantity-selector" *ngIf="product.rentable_item">
+                            Duration(months)
+                            &nbsp;&nbsp;&nbsp;
+                            <div class="value-button" id="decrease" (click)="decreaseValueDuration()"
+                                value="Decrease Value">-
+                            </div>
+                            <input type="number" min="1" step="1" id="number" max="24" [(ngModel)]="duration" />
+                            <div class="value-button" id="increase" (click)="increaseValueDuration()"
+                                value="Increase Value">+
+                            </div>
+                        </div>
+                        <br>
+                        <div class="flex float-right">
+                            <a *ngIf="quantityAlreadyInCart" href="/cart">
+                                <u>{{quantityAlreadyInCart}} items already in the cart.</u>
+                            </a>
+                            <button type="button" class="btn btn-outline-warning btn-sm float-right ml-10"
+                                (click)="addToCart()">
+                                Add to cart
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="flex mb-10">
+                            <i _ngcontent-uob-c127="" class="nc-icon nc-shop"></i>
+                            <div class="ml-10">
+                                <h4 class="m-0"><b class="cursor-pointer"
+                                        [routerLink]="['/shops',product.shop.slug]">{{product.is_a_shop_listing?product.shop.name:product.user.name}}</b>
+                                </h4>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="flex mb-10">
+                            <i _ngcontent-uob-c127="" class="nc-icon nc-mobile"></i>
+                            <div class="ml-10">
+                                <p class="m-0">
+                                    <a href="tel:{{product.is_a_shop_listing?product.shop.phone:product.user.phone}}"
+                                        target="_blank">
+                                        {{product.is_a_shop_listing?product.shop.phone:product.user.phone}}</a>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex mb-10">
+                            <img src="../../../assets/img/WhatsApp.png" width="20">
+                            <div>
+                                <p class="m-0">
+                                    &nbsp;<a
+                                        href="https://wa.me/+94{{product.is_a_shop_listing?product.shop.phone:product.user.phone}}"
+                                        target="_blank">
+                                        {{product.is_a_shop_listing?product.shop.phone:product.user.phone}}
+                                    </a>
+                                </p>
+                            </div>
+                        </div>
+                        <div class="flex mb-10">
+                            <i _ngcontent-uob-c127="" class="nc-icon nc-pin-3"></i>
+                            <div class="ml-10">
+                                <p class="m-0">{{product.shop.address + ', ' + product.shop.city.name}}</p>
+                            </div>
+                        </div>
+                        <a href="https://www.google.com/maps/dir/{{lat}},{{lng}}" target="_blank">
+                            <button type="button" class="btn btn-outline-info btn-sm">
+                                Open item location in Google map
+                            </button>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="products">
+                        <div class="map" style="margin-bottom: 10px;">
+                            <agm-map [latitude]="lat" [longitude]="lng" [zoom]="12" [disableDefaultUI]="false"
+                                [zoomControl]="true" [scrollwheel]="null" [gestureHandling]="'cooperative'"
+                                (mapClick)="mapClick($event)">
+                                <agm-marker [latitude]="lat" [longitude]="lng"></agm-marker>
+                            </agm-map>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>

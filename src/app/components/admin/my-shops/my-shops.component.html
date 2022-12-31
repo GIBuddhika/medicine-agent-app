@@ -21,7 +21,7 @@
                 <li *ngFor="let shop of shops;" style="width: 300px;">
                     <div class="card-normal">
                         <div class="shops">
-                            <img *ngIf="shop.file" width="120" [src]="imagePath+shop.file.location" alt="Shop Image"
+                            <img *ngIf="shop.file" width="100%" [src]="imagePath+shop.file.location" alt="Shop Image"
                                 class="img-thumbnail img-responsive">
                             <img *ngIf="!shop.file" width="120" src="assets/img/default-shop.png" alt="Shop Image"
                                 class="img-thumbnail img-responsive">
@@ -81,9 +81,16 @@
                 <input type="text" class="form-control" formControlName="address" id="address">
             </div>
             <div class="form-group">
-                <label>Phone</label>
-                <input type="text" class="form-control" formControlName="phone" id="phone"
-                    placeholder="Enter 10 digits phone number">
+                <label>WhatsApp number <img src="../../../assets/img/WhatsApp.png" width="25">
+                    <p class="font-s-10">(Enter 9 numbers without 0. Ex: 710422547)</p>
+                </label>
+                <div class="flex">
+                    +94&nbsp;
+                    <div style="width: 100%;">
+                        <input type="text" class="form-control" formControlName="phone" id="phone"
+                            placeholder="Enter 9 digits phone number">
+                    </div>
+                </div>
             </div>
             <div class="form-group">
                 <label>Select location (Drag and drop the red marker <i style="color: red;"

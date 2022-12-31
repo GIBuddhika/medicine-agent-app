@@ -1,7 +1,7 @@
 <nav class="navbar navbar-expand-lg fixed-top top" color-on-scroll="500" id="navBarDiv">
     <div class="container">
         <div class="navbar-translate">
-            <a routerLink="/home"> <img src="assets/img/logo-big.png" width="200px" class="navbar-brand"></a>
+            <a routerLink="/"> <img src="assets/img/logo-big.png" width="200px" class="navbar-brand"></a>
             <button class="navbar-toggler navbar-burger" type="button" data-toggle="collapse"
                 data-target="#navbarToggler" aria-controls="navbarTogglerDemo02" aria-expanded="false"
                 aria-label="Toggle navigation" (click)="sidebarToggle()">
@@ -13,22 +13,29 @@
         <div class="navbar-collapse" id="navbarToggler">
             <ul class="navbar-nav ml-auto">
                 <li class="nav-item" *ngIf="!isLoggedInUser">
-                    <a routerLink="/login" class="nav-link"> Login</a>
+                    <a (click)="openPath('/login')" class="nav-link"> Login</a>
                 </li>
                 <li class="nav-item" *ngIf="!isLoggedInUser">
-                    <a routerLink="/signup" class="nav-link"> Register</a>
+                    <a (click)="openPath('/signup')" class="nav-link"> Register</a>
                 </li>
-                <li class="nav-item" *ngIf="isLoggedInUser">
-                    <a routerLink="/my-shops" class="nav-link">
+                <li class="nav-item" *ngIf="!isLoggedInUser">
+                    <a (click)="openPath('/admin/login')" class="nav-link">
+                        <i class="nc-icon nc-globe"></i> Sell Now</a>
+                </li>
+                <li class="nav-item" *ngIf="isLoggedInUser && isAdmin">
+                    <a routerLink="/admin/my-shops" class="nav-link">
                         <i class="nc-icon nc-shop"></i> My Shops</a>
                 </li>
-                <li class="nav-item" *ngIf="isLoggedInUser">
-                    <a routerLink="/my-products" class="nav-link">
+                <li class="nav-item" *ngIf="isLoggedInUser && isAdmin">
+                    <a routerLink="/admin/my-products" class="nav-link">
                         <i class="nc-icon nc-tile-56"></i> My Products</a>
                 </li>
-                <li class="nav-item" *ngIf="isLoggedInUser">
-                    <a routerLink="/my-shops" class="nav-link">
-                        <i class="nc-icon nc-globe"></i> Sell Now</a>
+
+                <li class="nav-item cart">
+                    <a routerLink="/cart" class="nav-link" title="Cart">
+                        <i class="nc-icon nc-cart-simple"></i>
+                        <span *ngIf="cartCount > 0">{{cartCount}}</span>
+                    </a>
                 </li>
                 <li class="nav-item" *ngIf="isLoggedInUser">
                     <div ngbDropdown class="d-inline-block dropdown">
@@ -37,7 +44,7 @@
                         </a>
                         <div ngbDropdownMenu aria-labelledby="dropdownBasic1" class="dropdown-primary">
                             <a class="dropdown-item">Update profile</a>
-                            <a class="dropdown-item">Logout</a>
+                            <a class="dropdown-item" (click)="logout()">Logout</a>
                         </div>
                     </div>
                 </li>

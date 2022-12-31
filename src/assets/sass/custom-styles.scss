@@ -1,6 +1,32 @@
-.wrapper {
-    // margin-top: 100px;
+.outer-wrapper {
+    max-width: 1140px;
+    margin: 0 auto;
 }
+
+.container {
+    padding: 0;
+}
+
+@media (max-width: 992px) {
+    .container {
+        max-width: 100%;
+    }
+}
+
+.wrapper {
+    margin-top: 100px;
+}
+
+@media (max-width: 768px) {
+    .row {
+        margin: 0 !important;
+    }
+}
+
+button {
+    white-space: break-spaces !important;
+}
+
 h1,
 .h1,
 h2,
@@ -12,36 +38,48 @@ h4,
     margin-top: 0;
     margin-bottom: 20px;
 }
+
 .img-thumbnail {
     margin-bottom: 0;
 }
+
 .card-normal {
     background-color: #fff;
-    border-radius: 8px;
+    border-radius: 0.2rem !important;
     color: #000;
     border: 1px solid #eee;
     padding: 20px;
     z-index: 1;
     box-shadow: 0 6px 10px -4px rgba(0, 0, 0, 0.15);
+
+    &.no-decorations:hover {
+        background-color: #fff;
+    }
 }
-.form-control + .form-control-feedback {
+
+.form-control+.form-control-feedback {
     position: relative;
 }
+
 .margin-b-0 {
     margin-bottom: 0;
 }
+
 .alert.alert-danger {
     border-radius: 5px;
+
     ul {
         margin: 0;
         padding-left: 10px;
     }
 }
+
 @media (max-width: 767px) {
     .modal-body {
         padding: 20px 20px;
     }
 }
+
 //START: override sweetalert button styles
 button.swal2-cancel.swal2-styled,
 button.swal2-confirm.swal2-styled {
@@ -52,47 +90,151 @@ button.swal2-confirm.swal2-styled {
     transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out,
         box-shadow 0.15s ease-in-out;
 }
+
 button.swal2-confirm.swal2-styled {
     border: 2px solid #51bcda !important;
     color: #51bcda;
     background-image: none;
 }
+
 button.swal2-confirm.swal2-styled:hover {
     color: rgba(255, 255, 255, 0.8) !important;
     background-color: #51bcda !important;
 }
+
 button.swal2-cancel.swal2-styled {
     border: 2px solid #f5593d;
     color: #f5593d;
 }
+
 button.swal2-cancel.swal2-styled:hover {
     color: rgba(255, 255, 255, 0.8) !important;
     background-color: #f5593d !important;
 }
+
 //END: override sweetalert button styles
 
 .p-l-0 {
     padding-left: 0 !important;
 }
+
 .p-r-0 {
     padding-right: 0 !important;
 }
+
 .radio label {
     cursor: pointer;
 }
+
 .no-border {
     border: none !important;
 }
+
 .img-thumbnail {
     border-radius: 0.2rem !important;
 }
+
 .shadow {
     //add shadow like cards
     box-shadow: 0 6px 10px -4px rgba(0, 0, 0, 0.15);
 }
+
 .pointer {
     cursor: pointer;
 }
+
 .pagination {
     margin-top: 15px;
+}
+
+.card-register {
+    background-color: #16d2be;
+    margin: 50px 0;
+
+    label {
+        font-weight: bold;
+    }
+}
+
+.card-admin {
+    background-color: steelblue;
+
+    label {
+        font-weight: bold;
+    }
+
+    .form-error {
+        text-align: right;
+        font-weight: 500;
+        color: gold;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 767px) {
+    .card-register {
+        margin: 50px auto;
+        padding: 30px 15px;
+    }
+}
+
+.flex {
+    display: flex;
+    align-items: center;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.m-0 {
+    margin: 0;
+}
+
+.ml-10 {
+    margin-left: 10px;
+}
+
+.mb-10 {
+    margin-bottom: 10px;
+}
+
+.font-s-10 {
+    font-size: 10px;
+}
+
+.price {
+    color: rgb(0, 212, 162);
+    font-weight: bold;
+}
+
+.color-grey {
+    color: #808080;
+}
+
+.full-width {
+    width: 100%;
+}
+
+.form-error {
+    text-align: right;
+    font-weight: 500;
+    color: #ff3300;
+    font-size: 12px;
+}
+
+.nav-item.cart span {
+    background: red;
+    padding: 2px 7px;
+    border-radius: 24px;
+    color: white;
+}
+
+.navbar .navbar-nav .nav-item .nav-link {
+    display: flex;
+}
+
+.dropup .dropdown-toggle:after,
+.dropdown .dropdown-toggle:after {
+    margin-top: 7px;
 }

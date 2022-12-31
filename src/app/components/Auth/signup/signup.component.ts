@@ -39,6 +39,8 @@ export class SignupComponent implements OnInit, OnDestroy {
 
     ngOnInit() {
         this.signUpForm = this.formBuilder.group({
+            name: new FormControl('', [Validators.required]),
+            phone: new FormControl('', [Validators.required, Validators.pattern('\\d{2}[- ]?\\d{3}[- ]?\\d{4}')]),
             email: new FormControl('', [Validators.required, Validators.email]),
             password: new FormControl('', [Validators.required]),
             confirmPassword: new FormControl('', [Validators.required]),
@@ -71,9 +73,12 @@ export class SignupComponent implements OnInit, OnDestroy {
         this.submitting = true;
 
         var submitData = {
+            name: this.signUpForm.controls.name.value,
+            phone: this.signUpForm.controls.phone.value,
             email: this.signUpForm.controls.email.value,
             password: this.signUpForm.controls.password.value,
             confirmPassword: this.signUpForm.controls.confirmPassword.value,
+            isAdmin: 0
         };
 
         this.authService.signup(submitData)
@@ -84,7 +89,7 @@ export class SignupComponent implements OnInit, OnDestroy {
             .subscribe(response => {
                 localStorage.setItem("token", response["token"]);
                 localStorage.setItem("userId", response["user_id"]);
-                this.router.navigate(['home']);
+                window.location.reload();
             }, errors => {
                 if (errors.code == 400) {
                     for (let key in errors.errors) {

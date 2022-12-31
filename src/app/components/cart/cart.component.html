@@ -1,0 +1,146 @@
+<div class="wrapper">
+    <div class="container cart">
+        <h2 class="page-title"><b>Cart</b></h2>
+        <div *ngIf="products.length > 0 && isLoaded">
+            <div class="row">
+                <div class="col-md-8">
+                    <div class="card-normal no-decorations">
+                        <div *ngFor="let product of products; let i = index">
+                            <div class="row product">
+                                <div class="col-md-3 cursor-pointer" [routerLink]="['/products',product.slug]">
+                                    <div style="background-image: url('{{imagePath + product.data.files[0].location}}');
+                            background-repeat: no-repeat;
+                            background-position: center;
+                            background-size: cover;
+                            width: 100%;height: 100px;">
+                                    </div>
+                                </div>
+                                <!-- <div id="card-element"></div> -->
+
+                                <div class="col-md-4 cursor-pointer" [routerLink]="['/products',product.slug]">
+                                    <h5><b>{{product.data.name | titlecase}}</b></h5>
+                                    <p>{{product.data.description}}</p>
+                                    <p class="color-grey">
+                                        <i _ngcontent-uob-c127="" class="nc-icon nc-shop"></i>&nbsp;
+                                        {{product.data.is_a_shop_listing?product.data.shop.name:product.data.user.name}}
+                                    </p>
+                                </div>
+                                <div class="col-md-2">
+                                    <p class="price">{{product.price}}</p>
+                                </div>
+                                <div class="col-md-3" style="padding-bottom: 50px;">
+                                    <span>Quantity</span>
+                                    <div class="quantity-selector mb-10">
+                                        <div class="value-button" id="decrease" (click)="decreaseValue(product)"
+                                            value="Decrease Value">-
+                                        </div>
+                                        <input type="number" min="1" step="1" id="number"
+                                            max="{{product.data.quantity}}" [(ngModel)]="product.quantity" readonly />
+                                        <div class="value-button" id="increase" (click)="increaseValue(product)"
+                                            value="Increase Value">+
+                                        </div>
+                                    </div>
+                                    <div *ngIf="product.data.rentable_item">
+                                        <span>Duration(months)</span>
+                                        <div class="quantity-selector" *ngIf="product.data.rentable_item">
+                                            <div class="value-button" id="decrease" (click)="decreaseValueDuration()"
+                                                value="Decrease Value">-
+                                            </div>
+                                            <input type="number" min="1" step="1" id="number" max="24"
+                                                [(ngModel)]="product.duration" />
+                                            <div class="value-button" id="increase" (click)="increaseValueDuration()"
+                                                value="Increase Value">+
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <span title="Delete" class="text text-danger pointer delete"
+                                        (click)="removeProduct(product)">
+                                        <i class="fa fa-2x fa-trash-o"></i></span>
+                                </div>
+                            </div>
+                            <hr *ngIf="i+1 != products.length">
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card-normal no-decorations">
+                        <h3>Order Summary</h3>
+                        <div class="flex">
+                            <h4 class="price m-0 ">Total</h4>
+                            <h4 class="m-0 price float-right" style="width: -webkit-fill-available;text-align: right;">
+                                Rs. {{total | currency:'':''}}</h4>
+                        </div>
+                        <br>
+                        <button *ngIf="isLoggedInUser" class="btn btn-outline-warning btn-sm full-width"
+                            #openPaymentModalId (click)="openPaymentModal(content)">Checkout</button>
+                        <br>
+                        <button *ngIf="!isLoggedInUser" class="btn btn-outline-warning btn-sm full-width"
+                            routerLink="/login" [queryParams]="{redirect: 'cart'}">Login before checkout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div *ngIf="products.length == 0">
+            There're no products in your cart. <a href="/">Shop now.</a>
+        </div>
+    </div>
+</div>
+<ng-template #content2 let-modal>
+    <div class="modal-header">
+        <h5 class="modal-title text-center">Create</h5>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p>Please note that we are not delivering medicine or medical equipment due to health and security issues. You
+            can reserve
+            your product by paying now and collect later at the shop.</p>
+        <br>
+        <stripe-card #stripeCard (catch)="onStripeError($event)" [(complete)]="cardDetailsFilledOut"
+            [(invalid)]="invalidError" (cardMounted)="cardCaptureReady = 1"
+            (paymentMethodChange)="setPaymentMethod($event)" (tokenChange)="setStripeToken($event)"
+            (sourceChange)="setStripeSource($event)"></stripe-card>
+        <img src="../../../assets/img/payment-logo.png" width="250">
+    </div>
+    <div class="modal-footer">
+        <div class="left-side">
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Cancel</button>
+        </div>
+        <div class="divider"></div>
+        <div class="right-side">
+            <button type="button" class="btn btn-success btn-link" replaceText="Processing..."
+                [spinnerButton]="isProcessing">Pay</button>
+        </div>
+    </div>
+</ng-template>
+<ng-template #content let-modal>
+    <div class="modal-header">
+        <h5 class="modal-title text-center">Pay now</h5>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p>Please note that we are not delivering medicines or medical equipments due to health issues. You can reserve
+            your product by paying and collect later at the shop.</p>
+        <br>
+        <!-- <stripe-card #stripeCard (catch)="onStripeError($event)" [(complete)]="cardDetailsFilledOut"
+            [(invalid)]="invalidError" (cardMounted)="cardCaptureReady = 1"
+            (paymentMethodChange)="setPaymentMethod($event)" (tokenChange)="setStripeToken($event)"
+            (sourceChange)="setStripeSource($event)"></stripe-card> -->
+        <div id="card-element"></div>
+        <div id="card-errors" role="alert"></div>
+        <img src="../../../assets/img/payment-logo.png" width="250">
+    </div>
+    <div class="modal-footer">
+        <div class="left-side">
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Cancel</button>
+        </div>
+        <div class="divider"></div>
+        <div class="right-side">
+            <button type="submit" class="btn btn-success btn-link" replaceText="Processing" (click)="pay()"
+                [spinnerButton]="isProcessing">Pay</button>
+        </div>
+    </div>
+</ng-template>

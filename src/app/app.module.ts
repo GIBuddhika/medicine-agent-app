@@ -18,8 +18,21 @@ import { HttpClientModule } from '@angular/common/http';
 
 import { SpinnerButtonDirective } from './directives/spinner-button/spinner-button.directive';
 import { LoginComponent } from './components/Auth/login/login.component';
-import { MyShopsComponent } from './components/my-shops/my-shops.component';
-import { MyProductsComponent } from './components/my-products/my-products.component';
+import { MyShopsComponent } from './components/admin/my-shops/my-shops.component';
+import { MyProductsComponent } from './components/admin/my-products/my-products.component';
+import { HomeComponent } from './components/home/home.component';
+import { ProductComponent } from './components/product/product.component';
+import { CartComponent } from './components/cart/cart.component';
+import { CommonModule, CurrencyPipe } from '@angular/common';
+
+import { CanActivateRouteGuard } from './services/can-activate-route.guard';
+import { PasswordResetRequestComponent } from './components/Auth/password-reset-request/password-reset-request.component';
+import { AdminLoginComponent } from './components/Auth/admin-login/admin-login.component';
+import { AdminSignupComponent } from './components/Auth/admin-signup/admin-signup.component';
+import { NotFoundComponent } from './components/not-found/not-found.component';
+import { ResetPasswordComponent } from './components/Auth/reset-password/reset-password.component';
+import { AdminPasswordResetRequestComponent } from './components/Auth/admin-password-reset-request/admin-password-reset-request.component';
+import { AdminResetPasswordComponent } from './components/Auth/admin-reset-password/admin-reset-password.component';
 
 const appInitializerFn = (envLoader: RuntimeEnvLoaderService) => {
   return () => {
@@ -40,10 +53,21 @@ const DIRECTIVES = [
     LoginComponent,
     MyShopsComponent,
     MyProductsComponent,
+    HomeComponent,
+    ProductComponent,
     ...DIRECTIVES,
+    CartComponent,
+    PasswordResetRequestComponent,
+    AdminLoginComponent,
+    AdminSignupComponent,
+    NotFoundComponent,
+    ResetPasswordComponent,
+    AdminPasswordResetRequestComponent,
+    AdminResetPasswordComponent,
   ],
   imports: [
     BrowserModule,
+    CommonModule,
     NgbModule,
     FormsModule,
     ReactiveFormsModule,
@@ -55,12 +79,13 @@ const DIRECTIVES = [
     AgmCoreModule.forRoot({
       apiKey: 'AIzaSyD7MA9r-hE1xk2ddbASxB17DYAllSOOeYY',
       libraries: ['places']
-    })
+    }),
   ],
   exports: [...DIRECTIVES],
   providers: [
     RuntimeEnvLoaderService,
     GoogleMapsAPIWrapper,
+    CurrencyPipe,
     {
       provide: APP_INITIALIZER,
       useFactory: appInitializerFn,

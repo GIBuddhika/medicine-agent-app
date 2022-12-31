@@ -30,6 +30,20 @@ export class UsersService {
     this.userId = localStorage.getItem("userId");
   }
 
+  getCurrentUser(): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    return this.http
+      .get<any>(this.basePath + "/users/" + this.userId, {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
+
   getShops(): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
     return this.http

@@ -9,12 +9,12 @@ import { MouseEvent as AGMMouseEvent } from '@agm/core';
 import { ImageCroppedEvent } from 'ngx-image-cropper';
 import Swal from 'sweetalert2'
 
-import { APIValidationMessagesHelper } from '../../helpers/api-validation-messages.helper';
-import { MetaService } from '../../services/meta.service';
-import { RuntimeEnvLoaderService } from '../../services/runtime-env-loader.service';
-import { ShopsService } from '../../services/shops.service';
-import { UsersService } from '../../services/users.service';
-import { ValidationMessagesHelper } from '../../helpers/validation-messages.helper';
+import { APIValidationMessagesHelper } from '../../../helpers/api-validation-messages.helper';
+import { MetaService } from '../../../services/meta.service';
+import { RuntimeEnvLoaderService } from '../../../services/runtime-env-loader.service';
+import { ShopsService } from '../../../services/shops.service';
+import { UsersService } from '../../../services/users.service';
+import { ValidationMessagesHelper } from '../../../helpers/validation-messages.helper';
 
 @Component({
     selector: 'app-my-shops',
@@ -117,7 +117,7 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
         this.shopForm = this.formBuilder.group({
             name: new FormControl('', [Validators.required]),
             address: new FormControl('', [Validators.required]),
-            phone: new FormControl('', [Validators.required, Validators.pattern('\\d{3}[- ]?\\d{3}[- ]?\\d{4}')]),
+            phone: new FormControl('', [Validators.required, Validators.pattern('\\d{2}[- ]?\\d{3}[- ]?\\d{4}')]),
             website: new FormControl('', []),
         });
         this.cityName = null;
@@ -139,7 +139,7 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
             id: new FormControl(shop.id, []),
             name: new FormControl(shop.name, [Validators.required]),
             address: new FormControl(shop.address, [Validators.required]),
-            phone: new FormControl(shop.phone, [Validators.required, Validators.pattern('\\d{3}[- ]?\\d{3}[- ]?\\d{4}')]),
+            phone: new FormControl(shop.phone, [Validators.required, Validators.pattern('\\d{2}[- ]?\\d{3}[- ]?\\d{4}')]),
             website: new FormControl(shop.website, []),
         });
         this.lat = parseFloat(shop.latitude);

@@ -5,16 +5,17 @@ import { NgbModal, NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { ImageCroppedEvent } from 'ngx-image-cropper';
 import Swal from 'sweetalert2'
 
-import { APIValidationMessagesHelper } from '../../helpers/api-validation-messages.helper';
-import { ProductsService } from '../../services/products.service';
-import { MetaService } from '../../services/meta.service';
-import { RuntimeEnvLoaderService } from '../../services/runtime-env-loader.service';
-import { UsersService } from '../../services/users.service';
-import { ValidationMessagesHelper } from '../../helpers/validation-messages.helper';
+import { APIValidationMessagesHelper } from '../../../helpers/api-validation-messages.helper';
+import { ProductsService } from '../../../services/products.service';
+import { MetaService } from '../../../services/meta.service';
+import { RuntimeEnvLoaderService } from '../../../services/runtime-env-loader.service';
+import { UsersService } from '../../../services/users.service';
 import { Subject, Observable, merge, forkJoin } from 'rxjs';
 import { take, finalize, takeUntil, debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
 import { AgmMap } from '@agm/core';
 import { MouseEvent as AGMMouseEvent } from '@agm/core';
+import { typeWithParameters } from '@angular/compiler/src/render3/util';
+import { ValidationMessagesHelper } from 'app/helpers/validation-messages.helper';
 
 @Component({
     selector: 'app-my-products',
@@ -39,6 +40,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     isUpdating: boolean = false;
     modalRef: any;
     productForm: FormGroup;
+    productId: number;
     products: any = [];
     pricingCategory: string = "sell";
     shops: any = [];
@@ -50,6 +52,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     shopNames: any = [];
     isShopError: boolean = false;
     isWholesalePricingEnabled: boolean;
+    user: any = [];
 
     @ViewChild(AgmMap, { static: false }) map: AgmMap;
     zoom: number = 8;
@@ -72,9 +75,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     clickCities$ = new Subject<string>();
 
     pageSize = 10;
-    userPageNo: number;
     totalCount: any;
-
     page = 1;
 
     constructor(
@@ -105,7 +106,12 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     }
 
     getMainData() {
-        forkJoin([this.usersService.getShops(), this.usersService.getProducts(this.page, this.pageSize)])
+        forkJoin(
+            [
+                this.usersService.getShops(),
+                this.usersService.getProducts(this.page, this.pageSize),
+                this.usersService.getCurrentUser()
+            ])
             .pipe(take(1))
             .pipe(finalize(() => {
                 this.isLoading = false;
@@ -114,6 +120,9 @@ export class MyProductsComponent implements OnInit, OnDestroy {
                 this.shops = response[0];
                 this.products = response[1].data;
                 this.totalCount = response[1].total_count
+                this.user = response[2];
+                console.log(this.user);
+
             });
     }
 
@@ -128,7 +137,8 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             listingCategory: new FormControl(this.isAShopListing, [Validators.required]),
             shopId: new FormControl(shopId, []),
             address: new FormControl(localStorage.getItem('address'), []),
-            phone: new FormControl('', []),
+            user_name: new FormControl(this.user.name, []),
+            phone: new FormControl(this.user.phone, []),
             name: new FormControl('', [Validators.required]),
             description: new FormControl('', []),
             pricingCategory: new FormControl(this.pricingCategory, [Validators.required]),
@@ -308,14 +318,17 @@ export class MyProductsComponent implements OnInit, OnDestroy {
 
     onChangeListingMethod() {
         if (this.isAShopListing === true) {
+            this.productForm.controls.user_name.setValidators(null);
             this.productForm.controls.address.setValidators(null);
             this.productForm.controls.phone.setValidators(null);
             this.productForm.controls.shopId.setValidators([Validators.required]);
         } else {
             this.productForm.controls.shopId.setValidators(null);
+            this.productForm.controls.user_name.setValidators([Validators.required]);
             this.productForm.controls.address.setValidators([Validators.required]);
-            this.productForm.controls.phone.setValidators([Validators.required, Validators.pattern('\\d{3}[- ]?\\d{3}[- ]?\\d{4}')]);
+            this.productForm.controls.phone.setValidators([Validators.required, Validators.pattern('\\d{2}[- ]?\\d{3}[- ]?\\d{4}')]);
         }
+        this.productForm.controls.user_name.updateValueAndValidity();
         this.productForm.controls.address.updateValueAndValidity();
         this.productForm.controls.shopId.updateValueAndValidity();
         this.productForm.controls.phone.updateValueAndValidity();
@@ -343,7 +356,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         var hasError = false;
         this.validationMessagesHelper.showErrorMessages(this.productForm);
         if (this.isAShopListing && this.shops.length == 0) {
-            this.errorMessages = "Please add a shop beofre proceeding.";
+            this.errorMessages = "Please add a shop before proceeding.";
         }
         console.log(this.productForm);
 
@@ -380,6 +393,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         if (this.isAShopListing) {
             data.shop_id = this.productForm.value.shopId;
         } else {
+            data.user_name = this.productForm.value.user_name;
             data.city_id = this.cities.filter(v => v.name == this.cityName)[0].id;
             data.address = this.productForm.value.address;
             data.phone = this.productForm.value.phone;
@@ -407,6 +421,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
                     'New product added.',
                     'success'
                 );
+                this.modalService.dismissAll();
                 this.getMainData();
             }, error => {
                 if (error.code == 400) {
@@ -432,9 +447,8 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             });
     }
 
-    loadPage(event) {
+    paginate(event) {
         this.isLoading = true;
-        console.log(event);
         this.usersService.getProducts(event, this.pageSize)
             .pipe(take(1))
             .pipe(finalize(() => {
@@ -444,5 +458,170 @@ export class MyProductsComponent implements OnInit, OnDestroy {
                 this.products = response.data;
                 this.totalCount = response.total_count;
             });
+    }
+
+    openEditModal(content, product) {
+        this.productId = product.id;
+        this.getCities(product.shop.city.district_id);
+        this.errorMessages = null;
+        this.isCreatingProcess = false;
+        this.pricingCategory = product.sellable_item ? 'sell' : 'rent';
+        this.isAShopListing = product.is_a_shop_listing ? true : false;
+        this.districtName = this.districts.filter(dis => dis.id == product.shop.city.district_id)[0].name;
+        this.cityName = product.shop.city.name;
+        this.lat = parseFloat(product.shop.latitude);
+        this.lng = parseFloat(product.shop.longitude);
+        let address = product.shop.address;
+        let shopId = product.shop.id;
+        let price = product.sellable_item ? product.sellable_item.retail_price : product.rentable_item.retail_price;
+        let wholesalePrice = product.sellable_item ? product.sellable_item.wholesale_price : product.rentable_item.wholesale_price;
+        let wholesaleMinQuantity = product.sellable_item ? product.sellable_item.wholesale_minimum_quantity : product.rentable_item.wholesale_minimum_quantity;
+        this.isWholesalePricingEnabled = wholesalePrice ? true : false;
+
+        this.productForm = this.formBuilder.group({
+            listingCategory: new FormControl('', [Validators.required]),
+            shopId: new FormControl(shopId, []),
+            address: new FormControl(address, []),
+            user_name: new FormControl(this.user.name, []),
+            phone: new FormControl(this.user.phone, []),
+            name: new FormControl(product.name, [Validators.required]),
+            description: new FormControl(product.description, []),
+            pricingCategory: new FormControl(this.pricingCategory, [Validators.required]),
+            price: new FormControl(price, [Validators.required]),
+            quantity: new FormControl(product.quantity, [Validators.required]),
+            wholesale_price: new FormControl(wholesalePrice, this.isWholesalePricingEnabled ? [Validators.required] : []),
+            min_quantity: new FormControl(wholesaleMinQuantity, this.isWholesalePricingEnabled ? [Validators.required] : []),
+        });
+        this.onChangeListingMethod();
+        this.modalRef = this.modalService.open(content, { windowClass: 'custom-class' });
+        this.productForm.valueChanges
+            .pipe(takeUntil(this.destroy$)) //should takeUntil because else the method not keep calling while change the inputs
+            .subscribe(data => {
+                if (this.isSubmitted) {
+                    this.validationMessagesHelper.showErrorMessages(this.productForm);
+                }
+            });
+    }
+
+    updateProduct() {
+        this.isCityError = false;
+        this.isDistrictError = false;
+        this.isSubmitted = true;
+        var hasError = false;
+        this.validationMessagesHelper.showErrorMessages(this.productForm);
+        if (this.isAShopListing && this.shops.length == 0) {
+            this.errorMessages = "Please add a shop before proceeding.";
+        }
+
+        if (!this.productForm.valid) {
+            hasError = true;
+        }
+        if (!this.isAShopListing) {
+            if (this.districtName == undefined || this.districts.filter(v => v.name == this.districtName).length == 0) {
+                this.isDistrictError = true;
+                hasError = true;
+            }
+            if (this.cityName == undefined || this.cities.filter(v => v.name == this.cityName).length == 0) {
+                this.isCityError = true;
+                hasError = true;
+            }
+        }
+        if (hasError) {
+            this.scrollToTop();
+            return false;
+        }
+        this.isSubmitting = true;
+        const data: any = {
+            is_a_shop_listing: this.productForm.value.listingCategory,
+            name: this.productForm.value.name,
+            description: this.productForm.value.description,
+            quantity: this.productForm.value.quantity,
+            pricing_category: this.productForm.value.pricingCategory,
+            price: this.productForm.value.price,
+            image: this.croppedImage,
+            image_name: this.fileName,
+            sub_images: this.subImagesList,
+            is_wholesale_pricing_enabled: this.isWholesalePricingEnabled
+        };
+        if (this.isAShopListing) {
+            data.shop_id = this.productForm.value.shopId;
+        } else {
+            data.user_name = this.productForm.value.user_name;
+            data.city_id = this.cities.filter(v => v.name == this.cityName)[0].id;
+            data.address = this.productForm.value.address;
+            data.phone = this.productForm.value.phone;
+            data.latitude = this.lat;
+            data.longitude = this.lng;
+        }
+        if (this.isWholesalePricingEnabled) {
+            data.min_quantity = this.productForm.value.min_quantity;
+            data.wholesale_price = this.productForm.value.wholesale_price;
+        }
+
+        this.productsService.update(this.productId, data)
+            .pipe(take(1))
+            .pipe(finalize(() => {
+                this.isSubmitting = false;
+            }))
+            .subscribe(response => {
+                Swal.fire(
+                    'Success',
+                    'Product updated.',
+                    'success'
+                );
+                this.modalService.dismissAll();
+                this.getMainData();
+            }, error => {
+                if (error.code == 400) {
+                    var errorNamesForAPI = {
+                        'is_a_shop_listing': 'Listing Category',
+                        'shop_id': 'Shop',
+                        'pricing_category': 'Pricing category',
+                        'min_quantity': 'Minimum quantity',
+                        'wholesale_price': 'Wholesale price',
+                        'sub_images': 'Sub images',
+                        'image_name': 'Image name',
+                        'city_id': 'City',
+                    };
+                    this.errorMessages = this.APIValidationMessagesHelper.showErrorMessages(error.errors, errorNamesForAPI);
+                    this.scrollToTop();
+                } else {
+                    Swal.fire(
+                        'Sorry',
+                        'Something went wrong, Please try again.',
+                        'error'
+                    );
+                }
+            });
+    }
+
+    deleteItem(productId) {
+        Swal.fire({
+            title: 'Are you sure?',
+            text: "This will delete the product.",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Yes, delete it!',
+            reverseButtons: true,
+            focusCancel: true
+        }).then((result) => {
+            if (result.value) {
+                this.productsService.delete(productId)
+                    .subscribe(response => {
+                        this.getMainData();
+                        Swal.fire(
+                            'Deleted!',
+                            'Product has been deleted.',
+                            'success'
+                        );
+                    }, error => {
+                        Swal.fire(
+                            'Error!',
+                            'Something went wrong. Please try again.',
+                            'error'
+                        );
+                    });
+            }
+        })
     }
 }

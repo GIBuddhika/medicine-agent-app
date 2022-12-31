@@ -1,0 +1,183 @@
+.card-normal {
+    padding: 10px !important;
+    margin-bottom: 10px;
+
+    .img-thumbnail {
+        box-shadow: none !important;
+        max-height: 130px;
+    }
+
+    .price {
+        color: rgb(0, 212, 162);
+        font-weight: bold;
+    }
+}
+
+@media (max-width: 768px) {
+    .card-normal {
+        padding: 0 !important;
+    }
+
+    .col-md-4 {
+        margin-bottom: 30px;
+    }
+}
+
+agm-map {
+    height: 300px;
+
+    p,
+    a {
+        font-size: 12px;
+    }
+
+    hr {
+        margin: 5px 0 !important;
+    }
+}
+
+body {
+    font-family: Arial;
+    margin: 0;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+img {
+    vertical-align: middle;
+}
+
+/* Position the image container (needed to position the left and right arrows) */
+.slider {
+    position: relative;
+}
+
+/* Hide the images by default */
+.mySlides {
+    display: none;
+}
+
+/* Add a pointer when hovering over the thumbnail images */
+.cursor {
+    cursor: pointer;
+}
+
+/* Next & previous buttons */
+.prev,
+.next {
+    cursor: pointer;
+    position: absolute;
+    top: 40%;
+    width: auto;
+    padding: 16px;
+    margin-top: -50px;
+    color: white;
+    font-weight: bold;
+    font-size: 20px;
+    border-radius: 0 3px 3px 0;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* Position the "next button" to the right */
+.next {
+    right: 0;
+    border-radius: 3px 0 0 3px;
+}
+
+/* On hover, add a black background color with a little bit see-through */
+.prev:hover,
+.next:hover {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.slider-row {
+    background-color: white;
+}
+
+.slider-row:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+/* Six columns side by side */
+.column {
+    float: left;
+    width: 20%;
+}
+
+/* Add a transparency effect for thumnbail images */
+.demo {
+    opacity: 0.6;
+}
+
+.active,
+.demo:hover {
+    opacity: 1;
+}
+
+.quantity-selector {
+    display: flex;
+    align-items: center;
+}
+
+.quantity-selector .value-button {
+    display: inline-block;
+    border: 1px solid #ddd;
+    margin: 0px;
+    width: 40px;
+    height: 40px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 30px;
+    padding: 0;
+    line-height: 40px;
+    background: #eee;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.quantity-selector .value-button:hover {
+    cursor: pointer;
+}
+
+.quantity-selector #decrease {
+    border-radius: 8px 0 0 8px;
+    line-height: 35px;
+}
+
+.quantity-selector #increase {
+    border-radius: 0 8px 8px 0;
+}
+
+.quantity-selector #input-wrap {
+    margin: 0px;
+    padding: 0px;
+}
+
+input#number {
+    text-align: center;
+    border: none;
+    border-top: 1px solid #ddd;
+    border-bottom: 1px solid #ddd;
+    margin: 0;
+    width: 70px;
+    height: 40px;
+}
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+input#number:focus-visible {
+    outline: none;
+}

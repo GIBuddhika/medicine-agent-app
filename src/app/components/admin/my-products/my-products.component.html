@@ -40,16 +40,18 @@
                                 <td>{{product.name}}</td>
                                 <td>{{product.category_id==1?'Sell':'Rent'}}</td>
                                 <td>{{product.quantity|number}}</td>
-                                <td>{{product.category_id==1?product.sellable_item.retail_price:(product.rentable_item.price_per_month+' Per month')}}
+                                <td>{{product.category_id==1?product.sellable_item.retail_price:(product.rentable_item.price_per_month+'
+                                    Per month')}}
                                 </td>
                                 <td>{{product.category_id==1?product.sellable_item.wholesale_minimum_quantity:''|number}}
                                 </td>
                                 <td>{{product.category_id==1?product.sellable_item.wholesale_price:''}}</td>
                                 <td>
-                                    <span class="text text-warning pointer" title="Edit"><i
-                                            class="fa fa-pencil-square-o"></i></span>
-                                    <span class="text text-danger pointer" title="Delete"><i
-                                            class="fa fa-trash-o"></i></span>
+                                    <span class="text text-warning pointer" title="Edit"
+                                        (click)="openEditModal(content,product)"><i
+                                            class="fa fa-2x fa-pencil-square-o"></i></span>
+                                    <span class="text text-danger pointer ml-10" (click)="deleteItem(product.id)"
+                                        title="Delete"><i class="fa fa-2x fa-trash-o"></i></span>
                                 </td>
                             </tr>
                         </ng-container>
@@ -58,7 +60,7 @@
             </div>
             <div class="pagination">
                 <ngb-pagination [collectionSize]="totalCount" [pageSize]="pageSize" [(page)]="page"
-                    (pageChange)="loadPage($event)" [rotate]="true"></ngb-pagination>
+                    (pageChange)="paginate($event)" [rotate]="true"></ngb-pagination>
             </div>
         </div>
     </div>
@@ -81,6 +83,7 @@
                             <div class="form-check-radio">
                                 <label class="form-check-label">
                                     <input class="form-check-input form-control" type="radio" [value]="true"
+                                        [attr.disabled]="!isCreatingProcess?true: null"
                                         formControlName="listingCategory" [(ngModel)]="isAShopListing"
                                         (change)="onChangeListingMethod($event)" [ngModelOptions]="{standalone: true}">
                                     Shop listing
@@ -92,6 +95,7 @@
                             <div class="form-check-radio">
                                 <label class="form-check-label">
                                     <input class="form-check-input form-control" type="radio" [value]="false"
+                                        [attr.disabled]="!isCreatingProcess?true: null"
                                         formControlName="listingCategory" [(ngModel)]="isAShopListing"
                                         [ngModelOptions]="{standalone: true}" (change)="onChangeListingMethod($event)">
                                     Personal listing
@@ -116,6 +120,11 @@
                 </select>
             </div>
             <div *ngIf="isAShopListing==false">
+                <div class="form-group">
+                    <label>Your name</label>
+                    <input type="text" class="form-control" formControlName="user_name" id="user_name"
+                        [readonly]="user.name">
+                </div>
                 <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
                     <label>District</label>
                     <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="districtName"
@@ -127,7 +136,7 @@
                     </div>
                 </div>
                 <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
-                    <label>Cities</label>
+                    <label>City</label>
                     <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="cityName"
                         disabled="{{cities.length==0}}" [ngModelOptions]="{standalone: true}"
                         (selectItem)="selectedCity($event)" [ngbTypeahead]="searchCities"
@@ -141,9 +150,16 @@
                     <input type="text" class="form-control" formControlName="address" id="address">
                 </div>
                 <div class="form-group">
-                    <label>Phone</label>
-                    <input type="text" class="form-control" formControlName="phone" id="phone"
-                        placeholder="Enter 10 digits phone number">
+                    <label>WhatsApp number <img src="../../../assets/img/WhatsApp.png" width="25">
+                        <p class="font-s-10">(Enter 9 numbers without 0. Ex: 710422547)</p>
+                    </label>
+                    <div class="flex">
+                        +94&nbsp;
+                        <div style="width: 100%;">
+                            <input type="text" class="form-control" formControlName="phone" id="phone"
+                                placeholder="Enter 9 digits phone number" [readonly]="user.phone">
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>Select location (Drag and drop the red marker <i style="color: red;"
@@ -157,7 +173,7 @@
                 </div>
             </div>
             <div class="form-group">
-                <label>Name</label>
+                <label>Product name</label>
                 <input type="text" ngbAutofocus class="form-control" formControlName="name" id="name">
             </div>
             <div class="form-group">
