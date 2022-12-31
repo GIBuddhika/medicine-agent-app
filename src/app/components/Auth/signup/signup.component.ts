@@ -59,7 +59,7 @@ export class SignupComponent implements OnInit, OnDestroy {
         let confirmPass = group.get('confirmPassword').value;
         if (pass && confirmPass) {
             return pass === confirmPass ? null : { notSame: true }
-        }
+        }        
     }
 
     onSubmit() {

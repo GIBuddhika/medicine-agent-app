@@ -52,7 +52,7 @@ export class ValidationMessagesHelper {
 
                         case 'pattern':
                             let errorPattern = element.getAttribute('data-error-pattern');
-                            errorPattern = errorPattern ? errorPattern : 'Should be valid phone number. Ex: 071 123 1234';
+                            errorPattern = errorPattern ? errorPattern : 'Should be valid phone number. Ex: 71222333';
                             this.showError(element, i, errorPattern);
                         default:
                             break;

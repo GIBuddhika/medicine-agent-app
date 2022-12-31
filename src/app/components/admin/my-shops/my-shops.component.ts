@@ -16,6 +16,7 @@ import { ShopsService } from '../../../services/shops.service';
 import { UsersService } from '../../../services/users.service';
 import { ValidationMessagesHelper } from '../../../helpers/validation-messages.helper';
 import { LoginComponent } from 'app/components/Auth/login/login.component';
+import { PhoneValidator } from 'app/validators/phone.validator';
 
 @Component({
     selector: 'app-my-shops',
@@ -41,6 +42,7 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
     isSubmitting: boolean = false;
     isUpdating: boolean = false;
     modalRef: any;
+    phone: number;
     shopForm: FormGroup;
     shops: any = [];
     showCropper = false;
@@ -109,6 +111,12 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
             .subscribe(response => {
                 this.shops = response;
             });
+
+        this.usersService.getCurrentUser()
+            .pipe(take(1))
+            .subscribe(response => {
+                this.phone = response.phone;
+            });
     }
 
     openCreateModal(content) {
@@ -118,7 +126,7 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
         this.shopForm = this.formBuilder.group({
             name: new FormControl('', [Validators.required]),
             address: new FormControl('', [Validators.required]),
-            phone: new FormControl('', [Validators.required, Validators.pattern('\\d{2}[- ]?\\d{3}[- ]?\\d{4}')]),
+            phone: new FormControl(this.phone, [Validators.required, PhoneValidator]),
             website: new FormControl('', []),
         });
         this.cityName = null;
@@ -140,7 +148,7 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
             id: new FormControl(shop.id, []),
             name: new FormControl(shop.name, [Validators.required]),
             address: new FormControl(shop.address, [Validators.required]),
-            phone: new FormControl(shop.phone, [Validators.required, Validators.pattern('\\d{2}[- ]?\\d{3}[- ]?\\d{4}')]),
+            phone: new FormControl(shop.phone, [Validators.required, PhoneValidator]),
             website: new FormControl(shop.website, []),
         });
         this.lat = parseFloat(shop.latitude);
@@ -186,11 +194,9 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
         );
     }
 
-    focusOut(event) {
+    focusOut() {
         if (this.districtName != undefined && this.districtNames.filter(v => v.toLowerCase() == this.districtName.toLowerCase()).length == 1) {
             this.isDistrictError = false;
-            var districtObj = this.districts.filter(v => v.name.toLowerCase() == this.districtName.toLowerCase());
-            this.getCities(districtObj[0].id);
         } else {
             this.isDistrictError = true;
         }
@@ -263,7 +269,8 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
                 } else {
                     this.cityName = this.districtName;
                 }
-                this.focusOutCities();
+                // this.focusOutCities();
+                this.focusOut();
             });
         });
     }
