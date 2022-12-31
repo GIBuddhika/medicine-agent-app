@@ -4,6 +4,10 @@ export function PhoneValidator(
 ): { [key: string]: boolean } | null {
     let value = control.value;
 
+    if (value == "") {
+        return { pattern: true };
+    }
+
     let regexp = new RegExp('^[0-9]*$');
     if (!regexp.test(value)) {
         return { pattern: false };
@@ -13,7 +17,7 @@ export function PhoneValidator(
         return { pattern: false };
     }
 
-    if (!['70', '71', '72', '74', '75', '76', '77', '77'].includes(value.substring(0, 2))) {
+    if (!['70', '71', '72', '74', '75', '76', '77', '78'].includes(value.substring(0, 2))) {
         return { pattern: false };
     }
     return null;

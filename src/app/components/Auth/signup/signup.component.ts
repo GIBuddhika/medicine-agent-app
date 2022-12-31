@@ -1,11 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
-import { ValidationMessagesHelper } from 'app/helpers/validation-messages.helper';
 import { AuthService } from 'app/services/auth/auth.service';
 import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { UpdateMainViewSharedService } from 'app/shared-services/update-main-view.service';
 import { Router } from '@angular/router';
+import { PhoneValidator } from 'app/validators/phone.validator';
 
 @Component({
     selector: 'app-signup',
@@ -24,7 +24,6 @@ export class SignupComponent implements OnInit, OnDestroy {
     focus1;
 
     constructor(
-        private validationMessagesHelper: ValidationMessagesHelper,
         private formBuilder: FormBuilder,
         private authService: AuthService,
         private updateMainViewSharedService: UpdateMainViewSharedService,
@@ -40,7 +39,7 @@ export class SignupComponent implements OnInit, OnDestroy {
     ngOnInit() {
         this.signUpForm = this.formBuilder.group({
             name: new FormControl('', [Validators.required]),
-            phone: new FormControl('', [Validators.required, Validators.pattern('\\d{2}[- ]?\\d{3}[- ]?\\d{4}')]),
+            phone: new FormControl('', [Validators.required, PhoneValidator]),
             email: new FormControl('', [Validators.required, Validators.email]),
             password: new FormControl('', [Validators.required]),
             confirmPassword: new FormControl('', [Validators.required]),
@@ -59,12 +58,10 @@ export class SignupComponent implements OnInit, OnDestroy {
         let confirmPass = group.get('confirmPassword').value;
         if (pass && confirmPass) {
             return pass === confirmPass ? null : { notSame: true }
-        }        
+        }
     }
 
     onSubmit() {
-        console.log(1);
-
         this.errorsList = [];
         this.isSubmitted = true;
         if (!this.signUpForm.valid) {

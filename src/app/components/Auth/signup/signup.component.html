@@ -32,8 +32,8 @@
                             <p *ngIf="signUpForm.controls.name.errors.required" class="form-error">
                                 Required</p>
                         </div>
-                        <label>WhatsApp number <img src="../../../assets/img/WhatsApp.png" width="25">
-                            <p class="font-s-10">(Enter 9 numbers without 0. Ex: 710422547)</p>
+                        <label>WhatsApp<img src="../../../assets/img/WhatsApp.png" width="25"> or phone number
+                            <p class="font-s-10 font-bold">(Enter 9 numbers without 0. Ex: 710422547)</p>
                         </label>
                         <div class="flex">
                             +94&nbsp;
@@ -45,7 +45,7 @@
                         <div *ngIf="isSubmitted && signUpForm.controls.phone.errors">
                             <p *ngIf="signUpForm.controls.phone.errors.required" class="form-error">
                                 Required</p>
-                            <p *ngIf="signUpForm.controls.phone.errors.pattern" class="form-error">
+                            <p *ngIf="!signUpForm.controls.phone.errors.pattern" class="form-error">
                                 Phone number format invalid</p>
                         </div>
                         <label>Email</label>
