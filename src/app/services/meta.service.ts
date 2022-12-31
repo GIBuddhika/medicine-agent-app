@@ -18,12 +18,14 @@ export class MetaService {
   userRoleNameAdmin: string;
   userRoleNameShipReceive: any;
   userId: string;
+  googleMapApiKey: string;
 
   constructor(
     private http: HttpClient,
     private envLoader: RuntimeEnvLoaderService
   ) {
     this.basePath = envLoader.config.API_BASE_URL;
+    this.googleMapApiKey = envLoader.config.GOOGLE_MAP_API_KEY;
   }
 
   getDistricts(): Observable<any> {
@@ -40,6 +42,17 @@ export class MetaService {
   getCities(cityId: number): Observable<any> {
     return this.http
       .get<any>(this.basePath + "/districts/" + cityId + "/cities")
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleError)
+      );
+  }
+
+  getAddressFromGoogleMap(lat: number, lng: number): Observable<any> {
+    return this.http
+      .get<any>("https://maps.googleapis.com/maps/api/geocode/json?latlng=" + lat + "," + lng + "&key=" + this.googleMapApiKey)
       .pipe(
         map(response => {
           return response;

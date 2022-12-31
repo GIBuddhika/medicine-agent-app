@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy, ViewChild, ViewEncapsulation, ElementRef,
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 import { Router, ActivatedRoute } from '@angular/router';
 import { Subject, Observable, merge, pipe } from 'rxjs';
-import { take, debounceTime, distinctUntilChanged, filter, map, takeUntil, finalize } from 'rxjs/operators';
+import { take, debounceTime, distinctUntilChanged, filter, map, takeUntil, finalize, isEmpty } from 'rxjs/operators';
 import { NgbModal, NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { AgmMap } from '@agm/core';
 import { MouseEvent as AGMMouseEvent } from '@agm/core';
@@ -15,6 +15,7 @@ import { RuntimeEnvLoaderService } from '../../../services/runtime-env-loader.se
 import { ShopsService } from '../../../services/shops.service';
 import { UsersService } from '../../../services/users.service';
 import { ValidationMessagesHelper } from '../../../helpers/validation-messages.helper';
+import { LoginComponent } from 'app/components/Auth/login/login.component';
 
 @Component({
     selector: 'app-my-shops',
@@ -198,7 +199,6 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
     focusOutCities() {
         if (this.cityName && this.cityNames.filter(v => v.toLowerCase() == this.cityName.toLowerCase()).length == 1) {
             this.isCityError = false;
-            this.getCoordinatesOfCity();
         } else {
             this.isCityError = true;
         }
@@ -214,36 +214,83 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
     selectedCity(event) {
         this.cityName = event.item;
         this.isCityError = false;
-        this.getCoordinatesOfCity();
-    }
-
-    getCoordinatesOfCity() {
-        this.usersService.getCoordinatesByAddress(this.cityName + "+" + this.districtName)
-            .pipe(take(1))
-            .subscribe(response => {
-                this.lat = response.results[0].geometry.location.lat;
-                this.lng = response.results[0].geometry.location.lng;
-                this.zoom = 12;
-            });
     }
 
     getCities(districtId) {
         this.cityNames = [];
         this.cities = [];
         this.cityName = null;
-        this.metaService.getCities(districtId)
-            .pipe(take(1))
-            .subscribe(response => {
-                this.cities = response;
-                this.cities.forEach(city => {
-                    this.cityNames.push(city.name);
+        return new Promise((resolve, reject) => {
+            return this.metaService.getCities(districtId)
+                .pipe(take(1))
+                .subscribe(response => {
+                    this.cities = response;
+                    this.cities.forEach(city => {
+                        this.cityNames.push(city.name);
+                    });
+                    resolve(this.cityNames);
                 });
-            });
+        }
+        );
     }
 
-    markerDragEnd(event: AGMMouseEvent) {
+    async markerDragEnd(event: AGMMouseEvent) {
         this.lat = event.coords.lat;
         this.lng = event.coords.lng;
+
+        this.metaService.getAddressFromGoogleMap(this.lat, this.lng).subscribe(res => {
+            let streetAddress = this.getAddress(res, "street_address");
+            let route = this.getAddress(res, "route");
+            let town = this.getAddress(res, "administrative_area_level_4");
+            let city = this.getAddress(res, "administrative_area_level_3");
+            let district = this.getAddress(res, "administrative_area_level_2");
+
+            let fullAddress = (streetAddress ? (streetAddress + ", ") : "")
+                + (route ? (route + ", ") : "")
+                + (town ? (town + ", ") : "")
+                + (city ? (city + ", ") : "")
+                ;
+
+            this.shopForm.get('address').setValue(fullAddress);
+
+            this.districtName = district;
+            let districtObj = this.districts.find(dis => dis.name == district)
+
+            this.getCities(districtObj.id).then(res => {
+                let cityName = this.cityNames.find(cityItem => cityItem == city);
+                if (cityName) {
+                    this.cityName = cityName;
+                } else {
+                    this.cityName = this.districtName;
+                }
+                this.focusOutCities();
+            });
+        });
+    }
+
+    getAddress(addressData, searchBy) {
+        let address = addressData.results.find(function (address) {
+            let b = address.types.filter(function (type) {
+                if (type == searchBy) {
+                    return address;
+                }
+            });
+            if (Object.keys(b).length > 0) {
+                return b;
+            }
+        });
+        if (address && !(address.formatted_address.split(",")[0]).includes("Unnamed")) {
+            return address.formatted_address.split(",")[0];
+
+        } else {
+            return false;
+        }
+    }
+
+    mapClicked(event) {
+        this.lat = event.coords.lat;
+        this.lng = event.coords.lng;
+        this.markerDragEnd(event);
     }
 
     createShop() {
@@ -420,3 +467,4 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
         })
     }
 }
+
