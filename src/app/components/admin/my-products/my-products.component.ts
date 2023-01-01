@@ -35,11 +35,13 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     isAShopListing: boolean;
     isCreatingProcess: boolean;
     isLoading: boolean = true;
+    isSearching: boolean = false;
     isSubmitted: boolean = false;
     isSubmitting: boolean = false;
     isUpdating: boolean = false;
     modalRef: any;
     productForm: FormGroup;
+    productSearchForm: FormGroup;
     productId: number;
     products: any = [];
     pricingCategory: string = "sell";
@@ -94,6 +96,10 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         });
         this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
         this.isAShopListing = JSON.parse(localStorage.getItem('isAShopListing'));
+        this.productSearchForm = this.formBuilder.group({
+            searchTerm: new FormControl('', []),
+            shopId: new FormControl('', []),
+        });
     }
 
     ngOnInit() {
@@ -121,7 +127,6 @@ export class MyProductsComponent implements OnInit, OnDestroy {
                 this.products = response[1].data;
                 this.totalCount = response[1].total_count
                 this.user = response[2];
-                console.log(this.user);
 
             });
     }
@@ -129,19 +134,18 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     openCreateModal(content) {
         this.errorMessages = null;
         this.isCreatingProcess = true;
+        this.croppedImage = null;
         this.pricingCategory = localStorage.getItem('pricingCategory') ? localStorage.getItem('pricingCategory') : 'sell';
         this.isAShopListing = localStorage.getItem('isAShopListing') ? JSON.parse(localStorage.getItem('isAShopListing')) : true;
         var shopId = localStorage.getItem('shopId') ? JSON.parse(localStorage.getItem('shopId')) : '';
 
         this.productForm = this.formBuilder.group({
-            listingCategory: new FormControl(this.isAShopListing, [Validators.required]),
             shopId: new FormControl(shopId, []),
             address: new FormControl(localStorage.getItem('address'), []),
             user_name: new FormControl(this.user.name, []),
             phone: new FormControl(this.user.phone, []),
             name: new FormControl('', [Validators.required]),
             description: new FormControl('', []),
-            pricingCategory: new FormControl(this.pricingCategory, [Validators.required]),
             price: new FormControl('', [Validators.required]),
             quantity: new FormControl('', [Validators.required]),
             wholesale_price: new FormControl('', []),
@@ -306,7 +310,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
 
     addShop() {
         this.modalService.dismissAll();
-        this.router.navigate(['/my-shops'], { queryParams: { 'action': 'add' } });
+        this.router.navigate(['/admin/my-shops'], { queryParams: { 'action': 'add' } });
     }
 
     onChangePricingCategory() {
@@ -354,7 +358,9 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         this.isDistrictError = false;
         this.isSubmitted = true;
         var hasError = false;
+        console.log(this.productForm);
         this.validationMessagesHelper.showErrorMessages(this.productForm);
+
         if (this.isAShopListing && this.shops.length == 0) {
             this.errorMessages = "Please add a shop before proceeding.";
         }
@@ -379,11 +385,11 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         }
         this.isSubmitting = true;
         const data: any = {
-            is_a_shop_listing: this.productForm.value.listingCategory,
+            is_a_shop_listing: this.isAShopListing,
+            pricing_category: this.pricingCategory,
             name: this.productForm.value.name,
             description: this.productForm.value.description,
             quantity: this.productForm.value.quantity,
-            pricing_category: this.productForm.value.pricingCategory,
             price: this.productForm.value.price,
             image: this.croppedImage,
             image_name: this.fileName,
@@ -473,20 +479,18 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         this.lng = parseFloat(product.shop.longitude);
         let address = product.shop.address;
         let shopId = product.shop.id;
-        let price = product.sellable_item ? product.sellable_item.retail_price : product.rentable_item.retail_price;
+        let price = product.sellable_item ? product.sellable_item.retail_price : product.rentable_item.price_per_month;
         let wholesalePrice = product.sellable_item ? product.sellable_item.wholesale_price : product.rentable_item.wholesale_price;
         let wholesaleMinQuantity = product.sellable_item ? product.sellable_item.wholesale_minimum_quantity : product.rentable_item.wholesale_minimum_quantity;
         this.isWholesalePricingEnabled = wholesalePrice ? true : false;
 
         this.productForm = this.formBuilder.group({
-            listingCategory: new FormControl('', [Validators.required]),
             shopId: new FormControl(shopId, []),
             address: new FormControl(address, []),
             user_name: new FormControl(this.user.name, []),
             phone: new FormControl(this.user.phone, []),
             name: new FormControl(product.name, [Validators.required]),
             description: new FormControl(product.description, []),
-            pricingCategory: new FormControl(this.pricingCategory, [Validators.required]),
             price: new FormControl(price, [Validators.required]),
             quantity: new FormControl(product.quantity, [Validators.required]),
             wholesale_price: new FormControl(wholesalePrice, this.isWholesalePricingEnabled ? [Validators.required] : []),
@@ -536,7 +540,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             name: this.productForm.value.name,
             description: this.productForm.value.description,
             quantity: this.productForm.value.quantity,
-            pricing_category: this.productForm.value.pricingCategory,
+            pricing_category: this.pricingCategory,
             price: this.productForm.value.price,
             image: this.croppedImage,
             image_name: this.fileName,
@@ -623,5 +627,25 @@ export class MyProductsComponent implements OnInit, OnDestroy {
                     });
             }
         })
+    }
+
+    search() {
+        this.isSearching = true;
+        console.log(this.productSearchForm.controls);
+
+        let data = {
+            searchTerm: this.productSearchForm.controls.searchTerm.value,
+            shopId: this.productSearchForm.controls.shopId.value,
+        }
+
+        this.usersService.getProducts(1, this.pageSize, data).subscribe(res => {
+            this.products = res.data;
+            this.totalCount = res.total_count
+        }, error => {
+        }, () => {
+            this.isSearching = false;
+        });
+
+
     }
 }

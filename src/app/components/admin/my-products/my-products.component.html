@@ -13,13 +13,53 @@
                 </div>
             </div>
         </div>
+        <div class="container">
+            <div class="row">
+                <div class="col-sm-12">
+                    <form [formGroup]="productSearchForm">
+                        <div class="row">
+                            <div class="col-sm-4 col-xs-12">
+                                <label>Name or description</label>
+                                <input class=" form-control" type="text" placeholder="Name or Description"
+                                    formControlName="searchTerm">
+                            </div>
+                            <div class="col-sm-4 col-xs-12">
+                                <label>Shop</label>
+                                <select class="browser-default custom-select form-control" formControlName="shopId"
+                                    id="shopId">
+                                    <option selected value="">Select option</option>
+                                    <option *ngFor="let shop of shops" value="{{shop.id}}">
+                                        {{shop.name|titlecase}},&nbsp;{{shop.city.name}}
+                                    </option>
+                                </select>
+                            </div>
+                            <div class="col-sm-4 col-xs-12">
+                                <!-- <input class="form-control" type="text" placeholder="Name or Description"> -->
 
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <br>
+        <div style="display: block;">
+            <div class="row">
+                <div class="col-sm-12">
+
+                    <button type="button" class="btn btn-warning btn float-right" (click)="search()"
+                        replaceText="Searching" [spinnerButton]="isSearching">Search</button>
+                </div>
+            </div>
+        </div>
+        <br>
         <div class="shops">
             <div class="table-responsive shadow">
                 <table class="table table-striped">
                     <thead class="shadow">
                         <tr>
                             <th>Name</th>
+                            <th>Shop</th>
                             <th>Category</th>
                             <th>Quantity</th>
                             <th>Price</th>
@@ -38,6 +78,7 @@
                         <ng-container *ngIf="!isLoading && products.length>0">
                             <tr *ngFor="let product of products">
                                 <td>{{product.name}}</td>
+                                <td>{{product.shop.name}}</td>
                                 <td>{{product.category_id==1?'Sell':'Rent'}}</td>
                                 <td>{{product.quantity|number}}</td>
                                 <td>{{product.category_id==1?product.sellable_item.retail_price:(product.rentable_item.price_per_month+'
@@ -83,8 +124,7 @@
                             <div class="form-check-radio">
                                 <label class="form-check-label">
                                     <input class="form-check-input form-control" type="radio" [value]="true"
-                                        [attr.disabled]="!isCreatingProcess?true: null"
-                                        formControlName="listingCategory" [(ngModel)]="isAShopListing"
+                                        [attr.disabled]="!isCreatingProcess?true: null" [(ngModel)]="isAShopListing"
                                         (change)="onChangeListingMethod($event)" [ngModelOptions]="{standalone: true}">
                                     Shop listing
                                     <span class="form-check-sign"></span>
@@ -95,8 +135,7 @@
                             <div class="form-check-radio">
                                 <label class="form-check-label">
                                     <input class="form-check-input form-control" type="radio" [value]="false"
-                                        [attr.disabled]="!isCreatingProcess?true: null"
-                                        formControlName="listingCategory" [(ngModel)]="isAShopListing"
+                                        [attr.disabled]="!isCreatingProcess?true: null" [(ngModel)]="isAShopListing"
                                         [ngModelOptions]="{standalone: true}" (change)="onChangeListingMethod($event)">
                                     Personal listing
                                     <span class="form-check-sign"></span>
@@ -188,7 +227,7 @@
                             <div class="form-check-radio">
                                 <label class="form-check-label">
                                     <input class="form-check-input form-control" type="radio" value="sell"
-                                        formControlName="pricingCategory" [(ngModel)]="pricingCategory"
+                                        [(ngModel)]="pricingCategory"
                                         (change)="onChangePricingCategory()" [ngModelOptions]="{standalone: true}">
                                     Sell
                                     <span class="form-check-sign"></span>
@@ -199,7 +238,7 @@
                             <div class="form-check-radio">
                                 <label class="form-check-label">
                                     <input class="form-check-input form-control" type="radio" value="rent"
-                                        formControlName="pricingCategory" [(ngModel)]="pricingCategory"
+                                        [(ngModel)]="pricingCategory"
                                         [ngModelOptions]="{standalone: true}" (change)="onChangePricingCategory()">
                                     Rent
                                     <span class="form-check-sign"></span>

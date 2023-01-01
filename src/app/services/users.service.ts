@@ -4,6 +4,7 @@ import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from "@angular/comm
 import { map, catchError } from "rxjs/operators";
 import { RuntimeEnvLoaderService } from "./runtime-env-loader.service";
 import { HandleErrorsService } from "./handle-errors.service";
+import { Router, UrlSerializer } from "@angular/router";
 
 
 @Injectable({
@@ -23,7 +24,9 @@ export class UsersService {
   constructor(
     private http: HttpClient,
     private envLoader: RuntimeEnvLoaderService,
-    private handleErrorsService: HandleErrorsService
+    private handleErrorsService: HandleErrorsService,
+    private router: Router,
+    private serializer: UrlSerializer,
   ) {
     this.basePath = envLoader.config.API_BASE_URL;
     this.token = localStorage.getItem("token");
@@ -70,10 +73,19 @@ export class UsersService {
       );
   }
 
-  getProducts(page = 1, perPage = 10): Observable<any> {
+  getProducts(page = 1, perPage = 10, searchData = {}): Observable<any> {
+
+    var params = {
+      page: page,
+      per_page: perPage,
+      ...searchData
+    };
+
+    const urlParams = this.router.createUrlTree(["users/" + this.userId + "/items"], { queryParams: params });
     const headers = new HttpHeaders().set("security-token", this.token);
+
     return this.http
-      .get<any>(this.basePath + "/users/" + this.userId + "/items?page=" + page + "&per_page=" + perPage,
+      .get<any>(this.basePath + this.serializer.serialize(urlParams),
         {
           observe: 'response',
           headers: headers

@@ -25,7 +25,8 @@ export class ValidationMessagesHelper {
                 elements[0].parentNode.removeChild(elements[0]);
             }
             if (element) {
-                element.closest(".form-group").classList.remove("has-danger", "margin-b-0");
+                element.classList.remove("has-danger", "margin-b-0");
+                element.closest(".form-group")?.classList.remove("has-danger", "margin-b-0");
             }
             /*end - remove previous errors from control*/
 
