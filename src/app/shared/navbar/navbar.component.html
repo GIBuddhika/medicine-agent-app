@@ -22,14 +22,30 @@
                     <a (click)="openPath('/admin/login')" class="nav-link">
                         <i class="nc-icon nc-globe"></i> Sell Now</a>
                 </li>
-                <li class="nav-item" *ngIf="isLoggedInUser && isAdmin">
-                    <a routerLink="/admin/my-shops" class="nav-link">
+
+                <!-- admin only pages -->
+                <li class="nav-item" *ngIf="isLoggedInUser && (isAdmin || isShopAdmin)">
+                    <a routerLink="/admin/shops" class="nav-link">
                         <i class="nc-icon nc-shop"></i> My Shops</a>
                 </li>
-                <li class="nav-item" *ngIf="isLoggedInUser && isAdmin">
-                    <a routerLink="/admin/my-products" class="nav-link">
-                        <i class="nc-icon nc-tile-56"></i> My Products</a>
+                <li class="nav-item" *ngIf="isLoggedInUser && (isAdmin || isShopAdmin)">
+                    <div ngbDropdown class="d-inline-block dropdown">
+                        <a class="nav-link" id="dropdownBasic1" ngbDropdownToggle>
+                            <i class="nc-icon nc-tile-56"></i> My products
+                        </a>
+                        <div ngbDropdownMenu aria-labelledby="dropdownBasic1" class="dropdown-primary">
+                            <a href="/admin/products?type=shop" class="dropdown-item">Shop listings</a>
+                            <a *ngIf="isAdmin" href="/admin/products?type=personal" class="dropdown-item">
+                                Personal listings</a>
+                        </div>
+                    </div>
                 </li>
+
+                <li class="nav-item" *ngIf="isLoggedInUser && isAdmin">
+                    <a routerLink="/admin/shop-admins" class="nav-link">
+                        <i class="nc-icon nc-user-run"></i> Shop Admins</a>
+                </li>
+                <!-- end - admin only pages -->
 
                 <li class="nav-item cart">
                     <a routerLink="/cart" class="nav-link" title="Cart">

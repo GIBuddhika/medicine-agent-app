@@ -22,6 +22,8 @@ import { NotFoundComponent } from './components/not-found/not-found.component';
 import { ResetPasswordComponent } from './components/Auth/reset-password/reset-password.component';
 import { AdminPasswordResetRequestComponent } from './components/Auth/admin-password-reset-request/admin-password-reset-request.component';
 import { AdminResetPasswordComponent } from './components/Auth/admin-reset-password/admin-reset-password.component';
+import { ShopAdminsComponent } from './components/admin/shop-admins/shop-admins.component';
+import { UserRolesConstants } from './constants/user-roles';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -44,10 +46,18 @@ const routes: Routes = [
   {
     path: 'admin',
     children: [
-      { path: 'my-shops', component: MyShopsComponent, canActivate: [CanActivateRouteGuard] },
-      { path: 'my-products', component: MyProductsComponent, canActivate: [CanActivateRouteGuard] },
+      { path: 'shops', component: MyShopsComponent, canActivate: [CanActivateRouteGuard] },
+      { path: 'products', component: MyProductsComponent, canActivate: [CanActivateRouteGuard] },
     ],
-    data: { roles: ['admin'] }
+    data: { roles: [UserRolesConstants.ADMIN, UserRolesConstants.SHOP_ADMIN] }
+  },
+
+  {
+    path: 'admin',
+    children: [
+      { path: 'shop-admins', component: ShopAdminsComponent, canActivate: [CanActivateRouteGuard] },
+    ],
+    data: { roles: [UserRolesConstants.ADMIN] }
   },
 
   { path: 'products/:slug', component: ProductComponent },

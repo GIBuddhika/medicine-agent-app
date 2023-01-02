@@ -1,0 +1,163 @@
+<div class="wrapper">
+    <div class="container-fluid">
+        <div class="title row" style="margin-bottom:20px;">
+            <div class="col-sm-6">
+                <h2 class="page-title"><b>Shop Admins</b></h2>
+            </div>
+            <div class="col-sm-6">
+                <div class="card-normal" style="float:right;padding:0;">
+                    <div class="buttons">
+                        <button type="button" class="btn btn-outline-success btn-sm" style="width: 100%;"
+                            #openCreateModalId (click)="openCreateModal(content)">ADD NEW SHOP ADMIN</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="shops">
+            <div *ngIf="isLoading">Loading...</div>
+            <div *ngIf="shopAdmins.length==0 && !isLoading">No shop admins found.</div>
+            <ul *ngIf="shopAdmins.length>0 && !isLoading">
+                <li *ngFor="let shopAdmin of shopAdmins;" style="width: 300px;">
+                    <div class="card-normal">
+                        <div class="shops">
+                            <img *ngIf="shopAdmin.file" width="100%" [src]="imagePath+shopAdmin.file.location"
+                                alt="Shop admin Image" class="img-thumbnail img-responsive">
+                            <img *ngIf="!shopAdmin.file" width="120" src="assets/img/default-user.jpg"
+                                alt="Shop admin Image" class="img-thumbnail img-responsive">
+                            <p><b>{{shopAdmin.name|titlecase}}</b></p>
+                            <p>{{shopAdmin.email}}</p>
+                            <p>{{shopAdmin.phone}}</p>
+                            <div class="text-left" *ngIf="shopAdmin.shops.length>0">
+                                <hr>
+                                <p><b>Assigned Shops</b></p>
+                                <ul class="block">
+                                    <li class="margin-b-0" *ngFor="let shop of shopAdmin.shops">{{shop.name}}</li>
+                                </ul>
+                                <br>
+                            </div>
+                            <div class="buttons">
+                                <button type="button" class="btn btn-outline-info btn-sm"
+                                    (click)="openEditModal(content,shopAdmin)">Edit</button>
+                                <button type="button" class="btn btn-outline-danger btn-sm"
+                                    (click)="deleteShopAdmin(shopAdmin.id)">Delete</button>
+                            </div>
+                        </div>
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </div>
+</div>
+<ng-template #content let-modal>
+    <div class="modal-header">
+        <h5 class="modal-title text-center" *ngIf="isCreatingProcess">Create new shop admin</h5>
+        <h5 class="modal-title text-center" *ngIf="!isCreatingProcess">Update shop admin</h5>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="alert alert-danger" *ngIf="errorMessages" [innerHtml]="errorMessages"></div>
+        <form [formGroup]="shopAdminForm" (ngSubmit)="onSubmit()">
+            <label>Name</label>
+            <div class="input-group form-group-no-border" [ngClass]="{'input-group-focus':focus===true}">
+                <input type="text" id="name" class="form-control" placeholder="Name" (focus)="focus=true"
+                    (blur)="focus=false" formControlName="name">
+            </div>
+            <div *ngIf="isSubmitted && shopAdminForm.controls.name.errors">
+                <p *ngIf="shopAdminForm.controls.name.errors.required" class="form-error">
+                    Required</p>
+            </div>
+            <label>WhatsApp<img src="../../../assets/img/WhatsApp.png" width="25"> or phone number
+                <p class="font-s-10 font-bold">(Enter 9 numbers without 0. Ex: 710422547)</p>
+            </label>
+            <div class="flex">
+                +94&nbsp;
+                <div style="width: 100%;">
+                    <input type="text" class="form-control" formControlName="phone" id="phone"
+                        placeholder="Enter 9 digits phone number">
+                </div>
+            </div>
+            <div *ngIf="isSubmitted && shopAdminForm.controls.phone.errors">
+                <p *ngIf="shopAdminForm.controls.phone.errors.required" class="form-error">
+                    Required</p>
+                <p *ngIf="!shopAdminForm.controls.phone.errors.pattern" class="form-error">
+                    Phone number format invalid</p>
+            </div>
+            <label>Email</label>
+            <div class="input-group form-group-no-border" [ngClass]="{'input-group-focus':focus===true}">
+                <input type="text" id="email" class="form-control" placeholder="Email" (focus)="focus=true"
+                    (blur)="focus=false" formControlName="email">
+            </div>
+            <div *ngIf="isSubmitted && shopAdminForm.controls.email.errors">
+                <p *ngIf="shopAdminForm.controls.email.errors.required" class="form-error">
+                    Required</p>
+                <p *ngIf="shopAdminForm.controls.email.errors.email" class="form-error">
+                    Should be a valid Email</p>
+            </div>
+
+            <label>Password</label>
+            <div class="input-group form-group-no-border" [ngClass]="{'input-group-focus':focus1===true}">
+                <input type="password" class="form-control" placeholder="Password" (focus)="focus1=true"
+                    (blur)="focus1=false" formControlName="password">
+            </div>
+            <div *ngIf="isSubmitted && shopAdminForm.controls.password.errors">
+                <p *ngIf="shopAdminForm.controls.password.errors.required" class="form-error">Required</p>
+            </div>
+
+            <label>Confirm Password</label>
+            <div class="input-group form-group-no-border" [ngClass]="{'input-group-focus':focus1===true}">
+                <input type="password" class="form-control" placeholder="Confirm Password" (focus)="focus1=true"
+                    (blur)="focus1=false" formControlName="confirmPassword">
+            </div>
+            <div *ngIf="isSubmitted && shopAdminForm.controls.confirmPassword.errors">
+                <p *ngIf="shopAdminForm.controls.confirmPassword.errors.required" class="form-error">Required
+                </p>
+            </div>
+            <p *ngIf="isSubmitted && shopAdminForm.errors && shopAdminForm.errors.notSame" class="form-error">
+                Password does not match</p>
+        </form>
+
+        <div class="assign-shops">
+            <label>Assign Shops</label>
+            <p *ngIf="shops.length==0 && selectedShopsList.length==0">
+                No shops found. <a href="/admin/shops">Create new shop</a>
+            </p>
+            <p *ngIf="shops.length==0 && selectedShopsList.length>0">
+                All shops assigned. <a href="/admin/shops">Create new shop</a>
+            </p>
+            <select *ngIf="shops.length>0" class="browser-default custom-select form-control" (change)="assignShop()"
+                id="shopId" [(ngModel)]="selectedShop">
+                <option selected value="">Select option</option>
+                <option *ngFor="let shop of shops" value="{{shop.id}}">
+                    {{shop.name|titlecase}},&nbsp;{{shop.city.name}}
+                </option>
+            </select>
+
+            <div *ngIf="selectedShopsList.length>0">
+                <label>Assigned Shops</label>
+                <ul>
+                    <li *ngFor="let shop of selectedShopsList" value="{{shop.id}}">
+                        {{shop.name|titlecase}},&nbsp;{{shop.city.name}} | <a
+                            style="color: red; cursor: pointer;text-decoration: underline;"
+                            (click)="unAssignShop(shop.id)">Remove</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+    <div class="modal-footer">
+        <div class="left-side">
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Cancel</button>
+        </div>
+        <div class="divider"></div>
+        <div class="right-side">
+            <button type="button" class="btn btn-success btn-link" (click)="createShopAdmin()" *ngIf="isCreatingProcess"
+                replaceText="Submitting" [spinnerButton]="isSubmitting">Submit</button>
+            <button type="button" class="btn btn-success btn-link" (click)="updateShopAdmin()"
+                *ngIf="!isCreatingProcess" replaceText="Updating" [spinnerButton]="isUpdating">Update</button>
+        </div>
+    </div>
+</ng-template>

@@ -2,6 +2,7 @@ import { Component, OnInit, ElementRef } from '@angular/core';
 import { Location, LocationStrategy, PathLocationStrategy } from '@angular/common';
 import { updateCartCountService } from 'app/shared-services/update-cart-count.service';
 import { Router } from '@angular/router';
+import { UserRolesConstants } from 'app/constants/user-roles';
 
 @Component({
     selector: 'app-navbar',
@@ -13,6 +14,8 @@ export class NavbarComponent implements OnInit {
     private sidebarVisible: boolean;
     isLoggedInUser: boolean = false;
     isAdmin: boolean = false;
+    isCustomer: boolean = false;
+    isShopAdmin: boolean = false;
     cartCount: number = 0;
 
     constructor(
@@ -24,8 +27,12 @@ export class NavbarComponent implements OnInit {
         if (localStorage.getItem('token')) {
             this.isLoggedInUser = true;
         }
-        if (localStorage.getItem('is_admin') == "1") {
+        if (localStorage.getItem('user_role') == UserRolesConstants.ADMIN.toString()) {
             this.isAdmin = true;
+        } else if (localStorage.getItem('user_role') == UserRolesConstants.SHOP_ADMIN.toString()) {
+            this.isShopAdmin = true;
+        } else if (localStorage.getItem('user_role') == UserRolesConstants.CUSTOMER.toString()) {
+            this.isCustomer = true;
         }
     }
 
@@ -92,6 +99,7 @@ export class NavbarComponent implements OnInit {
         localStorage.removeItem("token");
         localStorage.removeItem("userId");
         localStorage.removeItem("is_admin");
+        localStorage.removeItem("is_shop_admin");
         window.location.href = "/";
     }
 

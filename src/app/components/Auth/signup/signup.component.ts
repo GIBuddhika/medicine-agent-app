@@ -6,6 +6,7 @@ import { takeUntil, finalize } from 'rxjs/operators';
 import { UpdateMainViewSharedService } from 'app/shared-services/update-main-view.service';
 import { Router } from '@angular/router';
 import { PhoneValidator } from 'app/validators/phone.validator';
+import { UserRolesConstants } from 'app/constants/user-roles';
 
 @Component({
     selector: 'app-signup',
@@ -86,6 +87,7 @@ export class SignupComponent implements OnInit, OnDestroy {
             .subscribe(response => {
                 localStorage.setItem("token", response["token"]);
                 localStorage.setItem("userId", response["user_id"]);
+                localStorage.setItem("user_role", UserRolesConstants.CUSTOMER.toString());
                 window.location.reload();
             }, errors => {
                 if (errors.code == 400) {

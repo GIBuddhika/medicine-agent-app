@@ -1,8 +1,8 @@
-<div class="wrapper">
+<div class="wrapper products-page">
     <div class="container-fluid">
         <div class="title row" style="margin-bottom:20px;">
             <div class="col-sm-6">
-                <h2 class="page-title"><b>Products</b></h2>
+                <h2 class="page-title"><b>{{isAShopListingProduct? 'Shop listings' : 'Personal listings' }}</b></h2>
             </div>
             <div class="col-sm-6">
                 <div class="card-normal" style="float:right;padding:0;">
@@ -13,95 +13,176 @@
                 </div>
             </div>
         </div>
-        <div class="container">
-            <div class="row">
-                <div class="col-sm-12">
-                    <form [formGroup]="productSearchForm">
-                        <div class="row">
-                            <div class="col-sm-4 col-xs-12">
-                                <label>Name or description</label>
-                                <input class=" form-control" type="text" placeholder="Name or Description"
-                                    formControlName="searchTerm">
-                            </div>
-                            <div class="col-sm-4 col-xs-12">
-                                <label>Shop</label>
-                                <select class="browser-default custom-select form-control" formControlName="shopId"
-                                    id="shopId">
-                                    <option selected value="">Select option</option>
-                                    <option *ngFor="let shop of shops" value="{{shop.id}}">
-                                        {{shop.name|titlecase}},&nbsp;{{shop.city.name}}
-                                    </option>
-                                </select>
-                            </div>
-                            <div class="col-sm-4 col-xs-12">
-                                <!-- <input class="form-control" type="text" placeholder="Name or Description"> -->
+        <div *ngIf="isAShopListingProduct">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <form [formGroup]="productSearchForm">
+                            <div class="row">
+                                <div class="col-sm-4 col-xs-12">
+                                    <label>Name or description</label>
+                                    <input class=" form-control" type="text" placeholder="Name or Description"
+                                        formControlName="searchTerm">
+                                </div>
+                                <div class="col-sm-4 col-xs-12">
+                                    <label>Shop</label>
+                                    <select class="browser-default custom-select form-control" formControlName="shopId"
+                                        id="shopId">
+                                        <option selected value="">Select option</option>
+                                        <option *ngFor="let shop of shops" value="{{shop.id}}">
+                                            {{shop.name|titlecase}},&nbsp;{{shop.city.name}}
+                                        </option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-4 col-xs-12">
+                                    <!-- <input class="form-control" type="text" placeholder="Name or Description"> -->
 
+                                </div>
                             </div>
-                        </div>
-                    </form>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
-        <br>
-        <div style="display: block;">
-            <div class="row">
-                <div class="col-sm-12">
-
-                    <button type="button" class="btn btn-warning btn float-right" (click)="search()"
-                        replaceText="Searching" [spinnerButton]="isSearching">Search</button>
+            <div style="display: block;">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <button type="button" class="btn btn-warning btn float-right" (click)="search()"
+                            replaceText="Searching" [spinnerButton]="isSearching">Search</button>
+                    </div>
                 </div>
             </div>
-        </div>
-        <br>
-        <div class="shops">
-            <div class="table-responsive shadow">
-                <table class="table table-striped">
-                    <thead class="shadow">
-                        <tr>
-                            <th>Name</th>
-                            <th>Shop</th>
-                            <th>Category</th>
-                            <th>Quantity</th>
-                            <th>Price</th>
-                            <th>Wholesale min. qty.</th>
-                            <th>Wholesale price</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr *ngIf="isLoading">
-                            <td colspan="100%">Loading...</td>
-                        </tr>
-                        <tr *ngIf="!isLoading && products.length==0">
-                            <td colspan="100%">No products found.</td>
-                        </tr>
-                        <ng-container *ngIf="!isLoading && products.length>0">
-                            <tr *ngFor="let product of products">
-                                <td>{{product.name}}</td>
-                                <td>{{product.shop.name}}</td>
-                                <td>{{product.category_id==1?'Sell':'Rent'}}</td>
-                                <td>{{product.quantity|number}}</td>
-                                <td>{{product.category_id==1?product.sellable_item.retail_price:(product.rentable_item.price_per_month+'
-                                    Per month')}}
-                                </td>
-                                <td>{{product.category_id==1?product.sellable_item.wholesale_minimum_quantity:''|number}}
-                                </td>
-                                <td>{{product.category_id==1?product.sellable_item.wholesale_price:''}}</td>
-                                <td>
-                                    <span class="text text-warning pointer" title="Edit"
-                                        (click)="openEditModal(content,product)"><i
-                                            class="fa fa-2x fa-pencil-square-o"></i></span>
-                                    <span class="text text-danger pointer ml-10" (click)="deleteItem(product.id)"
-                                        title="Delete"><i class="fa fa-2x fa-trash-o"></i></span>
-                                </td>
+            <div class="shops">
+                <p *ngIf="totalCount>0" style="text-align: left;font-weight: bold;color: #f5593d;">
+                    {{totalCount}} product(s) found.</p>
+                <div class="table-responsive shadow">
+                    <table class="table table-striped">
+                        <thead class="shadow">
+                            <tr>
+                                <th>Name</th>
+                                <th>Shop</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Wholesale min. qty.</th>
+                                <th>Wholesale price</th>
+                                <th>Actions</th>
                             </tr>
-                        </ng-container>
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="isLoading">
+                                <td colspan="100%">Loading...</td>
+                            </tr>
+                            <tr *ngIf="!isLoading && products.length==0">
+                                <td colspan="100%">No products found.</td>
+                            </tr>
+                            <ng-container *ngIf="!isLoading && products.length>0">
+                                <tr *ngFor="let product of products">
+                                    <td>{{product.name}}</td>
+                                    <td>{{product.shop.name}}</td>
+                                    <td>{{product.category_id==1?'Sell':'Rent'}}</td>
+                                    <td>{{product.quantity|number}}</td>
+                                    <td>{{product.category_id==1?product.sellable_item.retail_price:(product.rentable_item.price_per_month+'
+                                        Per month')}}
+                                    </td>
+                                    <td>{{product.category_id==1?product.sellable_item.wholesale_minimum_quantity:''|number}}
+                                    </td>
+                                    <td>{{product.category_id==1?product.sellable_item.wholesale_price:''}}</td>
+                                    <td>
+                                        <span class="text text-warning pointer" title="Edit"
+                                            (click)="openEditModal(content,product)"><i
+                                                class="fa fa-2x fa-pencil-square-o"></i></span>
+                                        <span class="text text-danger pointer ml-10" (click)="deleteItem(product.id)"
+                                            title="Delete"><i class="fa fa-2x fa-trash-o"></i></span>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <ngb-pagination [collectionSize]="totalCount" [pageSize]="pageSize" [(page)]="page"
+                        (pageChange)="paginate($event)" [rotate]="true"></ngb-pagination>
+                </div>
             </div>
-            <div class="pagination">
-                <ngb-pagination [collectionSize]="totalCount" [pageSize]="pageSize" [(page)]="page"
-                    (pageChange)="paginate($event)" [rotate]="true"></ngb-pagination>
+        </div>
+        <div *ngIf="!isAShopListingProduct">
+            <div class="container">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <form [formGroup]="productSearchForm">
+                            <div class="row">
+                                <div class="col-sm-4 col-xs-12">
+                                    <label>Name or description</label>
+                                    <input class=" form-control" type="text" placeholder="Name or Description"
+                                        formControlName="searchTerm">
+                                </div>
+                                <div class="col-sm-4 col-xs-12">
+                                    <!-- <input class="form-control" type="text" placeholder="Name or Description"> -->
+
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div style="display: block;">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <button type="button" class="btn btn-warning btn float-right" (click)="search()"
+                            replaceText="Searching" [spinnerButton]="isSearching">Search</button>
+                    </div>
+                </div>
+            </div>
+            <div class="shops">
+                <p *ngIf="totalCount>0" style="text-align: left;font-weight: bold;color: #f5593d;">
+                    {{totalCount}} product(s) found.</p>
+                <div class="table-responsive shadow">
+                    <table class="table table-striped">
+                        <thead class="shadow">
+                            <tr>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Wholesale min. qty.</th>
+                                <th>Wholesale price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr *ngIf="isLoading">
+                                <td colspan="100%">Loading...</td>
+                            </tr>
+                            <tr *ngIf="!isLoading && products.length==0">
+                                <td colspan="100%">No products found.</td>
+                            </tr>
+                            <ng-container *ngIf="!isLoading && products.length>0">
+                                <tr *ngFor="let product of products">
+                                    <td>{{product.name}}</td>
+                                    <td>{{product.category_id==1?'Sell':'Rent'}}</td>
+                                    <td>{{product.quantity|number}}</td>
+                                    <td>{{product.category_id==1?product.sellable_item.retail_price:(product.rentable_item.price_per_month+'
+                                        Per month')}}
+                                    </td>
+                                    <td>{{product.category_id==1?product.sellable_item.wholesale_minimum_quantity:''|number}}
+                                    </td>
+                                    <td>{{product.category_id==1?product.sellable_item.wholesale_price:''}}</td>
+                                    <td>
+                                        <span class="text text-warning pointer" title="Edit"
+                                            (click)="openEditModal(content,product)"><i
+                                                class="fa fa-2x fa-pencil-square-o"></i></span>
+                                        <span class="text text-danger pointer ml-10" (click)="deleteItem(product.id)"
+                                            title="Delete"><i class="fa fa-2x fa-trash-o"></i></span>
+                                    </td>
+                                </tr>
+                            </ng-container>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="pagination">
+                    <ngb-pagination [collectionSize]="totalCount" [pageSize]="pageSize" [(page)]="page"
+                        (pageChange)="paginate($event)" [rotate]="true"></ngb-pagination>
+                </div>
             </div>
         </div>
     </div>
@@ -117,14 +198,14 @@
     <div class="modal-body">
         <div class="alert alert-danger" *ngIf="errorMessages" [innerHtml]="errorMessages"></div>
         <form [formGroup]="productForm" (ngSubmit)="onSubmit()">
-            <div class="form-group radio-group">
+            <!-- <div class="form-group radio-group">
                 <div class="form-control no-border" id="listingCategory">
                     <div class="row">
                         <div class="col-sm-5 radio">
                             <div class="form-check-radio">
                                 <label class="form-check-label">
                                     <input class="form-check-input form-control" type="radio" [value]="true"
-                                        [attr.disabled]="!isCreatingProcess?true: null" [(ngModel)]="isAShopListing"
+                                        [attr.disabled]="!isCreatingProcess?true: null" [(ngModel)]="isAShopListingProduct"
                                         (change)="onChangeListingMethod($event)" [ngModelOptions]="{standalone: true}">
                                     Shop listing
                                     <span class="form-check-sign"></span>
@@ -135,7 +216,7 @@
                             <div class="form-check-radio">
                                 <label class="form-check-label">
                                     <input class="form-check-input form-control" type="radio" [value]="false"
-                                        [attr.disabled]="!isCreatingProcess?true: null" [(ngModel)]="isAShopListing"
+                                        [attr.disabled]="!isCreatingProcess?true: null" [(ngModel)]="isAShopListingProduct"
                                         [ngModelOptions]="{standalone: true}" (change)="onChangeListingMethod($event)">
                                     Personal listing
                                     <span class="form-check-sign"></span>
@@ -144,12 +225,12 @@
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="form-group" *ngIf="isAShopListing==true && shops.length==0">
+            </div> -->
+            <div class="form-group" *ngIf="isAShopListingProduct==true && shops.length==0">
                 No shops found. <a href="javascript:void(0)" class="text text-primary" (click)="addShop()">Add a
                     shop</a>
             </div>
-            <div class="form-group" *ngIf="isAShopListing==true && shops.length>0">
+            <div class="form-group" *ngIf="isAShopListingProduct==true && shops.length>0">
                 <label>Select a Shop</label>
                 <select class="browser-default custom-select form-control" formControlName="shopId" id="shopId">
                     <option selected disabled value="null">Select option</option>
@@ -158,35 +239,60 @@
                     </option>
                 </select>
             </div>
-            <div *ngIf="isAShopListing==false">
-                <div class="form-group">
-                    <label>Your name</label>
-                    <input type="text" class="form-control" formControlName="user_name" id="user_name"
-                        [readonly]="user.name">
-                </div>
-                <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
-                    <label>District</label>
-                    <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="districtName"
-                        [ngModelOptions]="{standalone: true}" (selectItem)="selectedDistrict($event)"
-                        [ngbTypeahead]="searchDistricts" (focus)="focus$.next($any($event).target.value)"
-                        (click)="click$.next($any($event).target.value)" #instance="ngbTypeahead"
-                        (focusout)="focusOut($event)" />
-                    <div class="form-control-feedback" *ngIf="isDistrictError">No district selected. Please select one.
+            <div *ngIf="isAShopListingProduct==false">
+                <div *ngIf="shops.length == 0">
+                    <div class="form-group">
+                        <label>Select location (Drag and drop the red marker <i style="color: red;"
+                                class="fa fa-map-marker"></i> on your location)</label>
+                        <agm-map [latitude]="lat" [longitude]="lng" [zoom]="zoom" [disableDefaultUI]="false"
+                            [zoomControl]="true" [scrollwheel]="null" [gestureHandling]="'cooperative'"
+                            (mapClick)="mapClicked($event)">
+                            <agm-marker [latitude]="lat" [longitude]="lng" [markerDraggable]="true"
+                                (dragEnd)="markerDragEnd($event)">
+                            </agm-marker>
+                        </agm-map>
+                    </div>
+                    <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
+                        <label>District</label>
+                        <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="districtName"
+                            [ngModelOptions]="{standalone: true}" (selectItem)="selectedDistrict($event)"
+                            [ngbTypeahead]="searchDistricts" (focus)="focus$.next($any($event).target.value)"
+                            (click)="click$.next($any($event).target.value)" #instance="ngbTypeahead"
+                            (focusout)="focusOut($event)" />
+                        <div class="form-control-feedback" *ngIf="isDistrictError">No district selected. Please
+                            select one.
+                        </div>
+                    </div>
+                    <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
+                        <label>City</label>
+                        <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="cityName"
+                            disabled="{{cities.length==0}}" [ngModelOptions]="{standalone: true}"
+                            (selectItem)="selectedCity($event)" [ngbTypeahead]="searchCities"
+                            (focus)="focusCities$.next($any($event).target.value)"
+                            (click)="clickCities$.next($any($event).target.value)" #instance="ngbTypeahead"
+                            (focusout)="focusOutCities($event)" />
+                        <div class="form-control-feedback" *ngIf="isCityError">No city selected. Please select one.
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" class="form-control" formControlName="address" id="address">
                     </div>
                 </div>
-                <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
-                    <label>City</label>
-                    <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="cityName"
-                        disabled="{{cities.length==0}}" [ngModelOptions]="{standalone: true}"
-                        (selectItem)="selectedCity($event)" [ngbTypeahead]="searchCities"
-                        (focus)="focusCities$.next($any($event).target.value)"
-                        (click)="clickCities$.next($any($event).target.value)" #instance="ngbTypeahead"
-                        (focusout)="focusOutCities($event)" />
-                    <div class="form-control-feedback" *ngIf="isCityError">No city selected. Please select one.</div>
-                </div>
-                <div class="form-group">
-                    <label>Address</label>
-                    <input type="text" class="form-control" formControlName="address" id="address">
+                <div *ngIf="shops.length ==1">
+                    <div class="form-group">
+                        <label>Current location</label>
+                        <agm-map [latitude]="lat" [longitude]="lng" [zoom]="zoom" [disableDefaultUI]="false"
+                            [zoomControl]="true" [scrollwheel]="null" [gestureHandling]="'cooperative'">
+                            <agm-marker [latitude]="lat" [longitude]="lng" [markerDraggable]="false"
+                                (dragEnd)="markerDragEnd($event)">
+                            </agm-marker>
+                        </agm-map>
+                    </div>
+                    <div class="form-group">
+                        <label>Address</label>
+                        <input type="text" class="form-control" readonly formControlName="address" id="address">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label>WhatsApp number <img src="../../../assets/img/WhatsApp.png" width="25">
@@ -199,16 +305,6 @@
                                 placeholder="Enter 9 digits phone number" [readonly]="user.phone">
                         </div>
                     </div>
-                </div>
-                <div class="form-group">
-                    <label>Select location (Drag and drop the red marker <i style="color: red;"
-                            class="fa fa-map-marker"></i> on your location)</label>
-                    <agm-map [latitude]="lat" [longitude]="lng" [zoom]="zoom" [disableDefaultUI]="false"
-                        [zoomControl]="true" [scrollwheel]="null" [gestureHandling]="'cooperative'">
-                        <agm-marker [latitude]="lat" [longitude]="lng" [markerDraggable]="true"
-                            (dragEnd)="markerDragEnd($event)">
-                        </agm-marker>
-                    </agm-map>
                 </div>
             </div>
             <div class="form-group">
@@ -227,8 +323,8 @@
                             <div class="form-check-radio">
                                 <label class="form-check-label">
                                     <input class="form-check-input form-control" type="radio" value="sell"
-                                        [(ngModel)]="pricingCategory"
-                                        (change)="onChangePricingCategory()" [ngModelOptions]="{standalone: true}">
+                                        [(ngModel)]="pricingCategory" (change)="onChangePricingCategory()"
+                                        [ngModelOptions]="{standalone: true}">
                                     Sell
                                     <span class="form-check-sign"></span>
                                 </label>
@@ -238,8 +334,8 @@
                             <div class="form-check-radio">
                                 <label class="form-check-label">
                                     <input class="form-check-input form-control" type="radio" value="rent"
-                                        [(ngModel)]="pricingCategory"
-                                        [ngModelOptions]="{standalone: true}" (change)="onChangePricingCategory()">
+                                        [(ngModel)]="pricingCategory" [ngModelOptions]="{standalone: true}"
+                                        (change)="onChangePricingCategory()">
                                     Rent
                                     <span class="form-check-sign"></span>
                                 </label>

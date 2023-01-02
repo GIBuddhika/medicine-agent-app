@@ -5,6 +5,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { UpdateMainViewSharedService } from 'app/shared-services/update-main-view.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { UserRolesConstants } from 'app/constants/user-roles';
 
 @Component({
   selector: 'app-admin-login',
@@ -62,6 +63,11 @@ export class AdminLoginComponent implements OnInit, OnDestroy {
   }
 
   onSubmit() {
+    localStorage.removeItem("token");
+    localStorage.removeItem("userId");
+    localStorage.removeItem("is_admin");
+    localStorage.removeItem("is_shop_admin");
+
     this.errorMessage = '';
     this.isSubmitted = true;
     if (!this.loginForm.valid) {
@@ -81,9 +87,15 @@ export class AdminLoginComponent implements OnInit, OnDestroy {
         this.submitting = false;
       }))
       .subscribe(response => {
-        localStorage.setItem("token", response["token"]);
-        localStorage.setItem("userId", response["user_id"]);
-        localStorage.setItem("is_admin", "1");
+        localStorage.setItem("token", response.authSession.token);
+        localStorage.setItem("userId", response.user.id);
+        if (response.user.is_admin == true) {
+          if (response.user.owner_id == null) {
+            localStorage.setItem("user_role", UserRolesConstants.ADMIN.toString());
+          } else {
+            localStorage.setItem("user_role", UserRolesConstants.SHOP_ADMIN.toString());
+          }
+        }
         localStorage.setItem("first_time_login", "true");
         window.location.reload();
       }, errors => {

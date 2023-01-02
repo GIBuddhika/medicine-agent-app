@@ -62,7 +62,7 @@ h4,
 }
 
 .margin-b-0 {
-    margin-bottom: 0;
+    margin-bottom: 0 !important;
 }
 
 .alert.alert-danger {
@@ -183,6 +183,10 @@ button.swal2-cancel.swal2-styled:hover {
     align-items: center;
 }
 
+.block {
+    display: block !important;
+}
+
 .cursor-pointer {
     cursor: pointer;
 }
@@ -247,6 +251,10 @@ button.swal2-cancel.swal2-styled:hover {
     margin-left: 0;
 }
 
-.float-right{
+.float-right {
     float: right;
+}
+
+.text-left {
+    text-align: left;
 }

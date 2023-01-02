@@ -1,4 +1,4 @@
-<div class="wrapper">
+<div class="wrapper shops-page">
     <div class="container-fluid">
         <div class="title row" style="margin-bottom:20px;">
             <div class="col-sm-6">
@@ -25,15 +25,29 @@
                                 class="img-thumbnail img-responsive">
                             <img *ngIf="!shop.file" width="120" src="assets/img/default-shop.png" alt="Shop Image"
                                 class="img-thumbnail img-responsive">
-                            <p><b>{{shop.name|titlecase}}</b></p><br>
+                            <p style="margin-top: 15px;"><b>{{shop.name|titlecase}}</b></p>
                             <p>{{shop.address|titlecase}}</p>
                             <p>{{shop.city.name|titlecase}}</p>
+
+                            <div class="text-left" *ngIf="shop.shop_admins.length>0">
+                                <hr>
+                                <p><b>Assigned Shop Admins</b></p>
+                                <ul class="block">
+                                    <li class="margin-b-0" *ngFor="let shopAdmin of shop.shop_admins">
+                                        {{shopAdmin.name}}
+                                    </li>
+                                </ul>
+                            </div>
+                            <hr>
+
                             <div class="buttons">
                                 <button type="button" class="btn btn-outline-info btn-sm"
                                     (click)="openEditModal(content,shop)">Edit</button>
                                 <button type="button" class="btn btn-outline-danger btn-sm"
                                     (click)="deleteShop(shop.id)">Delete</button>
                             </div>
+                            <button type="button" class="btn btn-outline-warning btn-sm" style="margin-top: 7px;"
+                                (click)="showProducts(shop.id)">View products</button>
                         </div>
                     </div>
                 </li>
@@ -122,6 +136,34 @@
                 </div>
             </div>
         </form>
+
+        <div class="assign-shop-admins">
+            <label>Assign Shop Admins</label>
+            <p *ngIf="shopAdmins.length==0 && selectedShopAdminsList.length==0">
+                No shop admins found. <a href="/admin/shop-admins">Create new shop admin</a>
+            </p>
+            <p *ngIf="shopAdmins.length==0 && selectedShopAdminsList.length>0">
+                All shop admins assigned. <a href="/admin/shop-admins">Create new shop admin</a>
+            </p>
+            <select *ngIf="shopAdmins.length>0" class="browser-default custom-select form-control"
+                (change)="assignShopAdmin()" id="shopId" [(ngModel)]="selectedShopAdmin">
+                <option selected value="">Select option</option>
+                <option *ngFor="let shopAdmin of shopAdmins" value="{{shopAdmin.id}}">
+                    {{shopAdmin.name|titlecase}},&nbsp;{{shopAdmin.email}}
+                </option>
+            </select>
+
+            <div *ngIf="selectedShopAdminsList.length>0">
+                <label style="margin-top: 15px;">Assigned Shop Admins</label>
+                <ul>
+                    <li *ngFor="let shopAdmin of selectedShopAdminsList" value="{{shopAdmin.id}}">
+                        {{shopAdmin.name|titlecase}},&nbsp;{{shopAdmin.email}} | <a
+                            style="color: red; cursor: pointer;text-decoration: underline;"
+                            (click)="unAssignShopAdmin(shopAdmin.id)">Remove</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
     <div class="modal-footer">
         <div class="left-side">

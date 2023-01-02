@@ -1,16 +1,15 @@
 import { Injectable } from "@angular/core";
 import { Subject, Observable, throwError } from "rxjs";
-import { HttpClient, HttpHeaders, HttpParams, HttpResponse } from "@angular/common/http";
+import { HttpClient, HttpHeaders, HttpParams } from "@angular/common/http";
 import { map, catchError } from "rxjs/operators";
 import { RuntimeEnvLoaderService } from "./runtime-env-loader.service";
 import { HandleErrorsService } from "./handle-errors.service";
-import { Router, UrlSerializer } from "@angular/router";
 
 
 @Injectable({
   providedIn: "root"
 })
-export class UsersService {
+export class ShopAdminsService {
   private loggedUser: Subject<any> = new Subject<any>();
 
   basePath: string;
@@ -24,19 +23,17 @@ export class UsersService {
   constructor(
     private http: HttpClient,
     private envLoader: RuntimeEnvLoaderService,
-    private handleErrorsService: HandleErrorsService,
-    private router: Router,
-    private serializer: UrlSerializer,
+    private handleErrorsService: HandleErrorsService
   ) {
     this.basePath = envLoader.config.API_BASE_URL;
     this.token = localStorage.getItem("token");
     this.userId = localStorage.getItem("userId");
   }
 
-  getCurrentUser(): Observable<any> {
+  getAll(): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
-      .get<any>(this.basePath + "/users/" + this.userId, {
+      .get<any>(this.basePath + "/shop-admins", {
         headers
       })
       .pipe(
@@ -47,10 +44,18 @@ export class UsersService {
       );
   }
 
-  getShops(is_a_personal_listing = false): Observable<any> {
+  create(data): Observable<any> {
+    const params = new HttpParams()
+      .set("name", data["name"])
+      .set("phone", data["phone"])
+      .set("email", data["email"])
+      .set("password", data["password"])
+      .set("confirm_password", data["confirmPassword"])
+      .set("shop_ids", data["shop_ids"]);
+
     const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
-      .get<any>(this.basePath + "/users/" + this.userId + "/shops?is_a_personal_listing=" + is_a_personal_listing, {
+      .post<any>(this.basePath + "/shop-admins", params, {
         headers
       })
       .pipe(
@@ -61,9 +66,19 @@ export class UsersService {
       );
   }
 
-  getCoordinatesByAddress(address): Observable<any> {
+  update(id, data): Observable<any> {
+    const params = new HttpParams()
+      .set("name", data["name"])
+      .set("phone", data["phone"])
+      .set("email", data["email"])
+      .set("password", data["password"])
+      .set("confirm_password", data["confirmPassword"])
+      .set("shop_ids", data["shop_ids"]);
+
+    const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
-      .get<any>("https://maps.google.com/maps/api/geocode/json?address=" + address + "&key=" + this.envLoader.config.GOOGLE_MAP_API_KEY, {
+      .patch<any>(this.basePath + "/shop-admins/" + id, params, {
+        headers
       })
       .pipe(
         map(response => {
@@ -73,39 +88,10 @@ export class UsersService {
       );
   }
 
-  getProducts(page = 1, perPage = 10, searchData = {}): Observable<any> {
-
-    var params = {
-      page: page,
-      per_page: perPage,
-      ...searchData
-    };
-
-    const urlParams = this.router.createUrlTree(["users/" + this.userId + "/items"], { queryParams: params });
-    const headers = new HttpHeaders().set("security-token", this.token);
-
-    return this.http
-      .get<any>(this.basePath + this.serializer.serialize(urlParams),
-        {
-          observe: 'response',
-          headers: headers
-        })
-      .pipe(
-        map((response) => {
-          return {
-            data: response.body,
-            total_count: response.headers.get('App-Content-Full-Count')
-          };
-        }),
-        catchError(this.handleErrorsService.handle)
-      );
-  }
-
-
-  getShopAdmins(): Observable<any> {
+  delete(id): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
-      .get<any>(this.basePath + "/users/" + this.userId + "/shop-admins", {
+      .delete<any>(this.basePath + "/shop-admins/" + id, {
         headers
       })
       .pipe(

@@ -1,5 +1,6 @@
-.shops {
+.shops-page .shops {
     text-align: center;
+
     ul {
         list-style: none;
         -ms-box-orient: horizontal;
@@ -21,6 +22,7 @@
             img {
                 margin-bottom: 10px;
             }
+
             .card-normal {
                 min-height: 260px;
                 height: auto;
@@ -34,17 +36,20 @@
         }
     }
 }
+
 .custom-class {
     .dropdown-menu.show {
         max-height: 300px;
         overflow-y: auto;
     }
+
     @media (max-width: 767px) {
-        .form-control + .form-control-feedback {
+        .form-control+.form-control-feedback {
             margin-top: 0;
         }
     }
 }
+
 @media (max-width: 575px) {
     .title {
         .card-normal {
@@ -53,12 +58,14 @@
             margin: 0 auto;
         }
     }
+
     .shops {
         ul li {
             margin-right: 0;
         }
     }
 }
+
 @media (max-width: 767px) {
     .shops {
         .row {
@@ -66,6 +73,7 @@
         }
     }
 }
+
 agm-map {
     height: 300px;
 }

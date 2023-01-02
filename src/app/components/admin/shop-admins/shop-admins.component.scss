@@ -1,6 +1,5 @@
-.products-page .shops {
+.shops {
     text-align: center;
-    margin-top: 50px;
 
     ul {
         list-style: none;
@@ -44,31 +43,6 @@
         overflow-y: auto;
     }
 
-    .subImagesList {
-        margin-top: 10px;
-        width: 100%;
-
-        div {
-            text-align: center;
-            margin-bottom: 5px;
-
-            span {
-                padding: 5px;
-                background: #eee;
-                margin-left: 10px;
-                cursor: pointer;
-
-                .fa {
-                    color: #f5593d;
-                }
-            }
-
-            img {
-                margin-right: 5px;
-            }
-        }
-    }
-
     @media (max-width: 767px) {
         .form-control+.form-control-feedback {
             margin-top: 0;
@@ -80,8 +54,8 @@
     .title {
         .card-normal {
             float: none !important;
-            width: 155px;
-            margin: 0 auto;
+            width: 150px;
+            margin: 0 auto 20px auto;
         }
     }
 
@@ -100,24 +74,14 @@
     }
 }
 
-@media (max-width: 575px) {
-    .radio-group {
-        height: 70px;
-    }
-
-    .radio-group.has-danger {
-        height: 90px;
-
-        .form-control {
-            height: 70px;
-        }
-
-        .form-control-feedback {
-            top: 0 !important;
-        }
-    }
-}
-
 agm-map {
     height: 300px;
+}
+
+label {
+    margin-top: 15px;
+}
+
+input {
+    border: 1px solid #DDDDDD !important;
 }

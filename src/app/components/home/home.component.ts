@@ -152,7 +152,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             } else if (product.shop.file_id) {
                 product.image_url = this.imagePath + product.shop.file.location;
             } else {
-                product.image_url = '/assets/img/default-product.png';
+                product.image_url = '/assets/img/default-product.jpeg';
             }
             this.locations.push({
                 id: product.id,

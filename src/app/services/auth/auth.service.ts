@@ -87,8 +87,6 @@ export class AuthService {
   }
 
   validate(token, userRole): Observable<any> {
-    console.log(this.basePath + "/validate?token=" + token + "&user_role=" + userRole);
-
     return this.http
       .get<any>(this.basePath + "/validate?token=" + token + "&user_role=" + userRole)
       .pipe(

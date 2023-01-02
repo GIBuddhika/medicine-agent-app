@@ -1,6 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild, ViewEncapsulation } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal, NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { ImageCroppedEvent } from 'ngx-image-cropper';
 import Swal from 'sweetalert2'
@@ -16,9 +16,10 @@ import { AgmMap } from '@agm/core';
 import { MouseEvent as AGMMouseEvent } from '@agm/core';
 import { typeWithParameters } from '@angular/compiler/src/render3/util';
 import { ValidationMessagesHelper } from 'app/helpers/validation-messages.helper';
+import { UserRolesConstants } from 'app/constants/user-roles';
 
 @Component({
-    selector: 'app-my-products',
+    selector: 'app-products',
     templateUrl: './my-products.component.html',
     encapsulation: ViewEncapsulation.None,
     styleUrls: ['./my-products.component.scss']
@@ -32,7 +33,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     fileName: string = "";
     imageChangedEvent: any = '';
     imagePath: string = "";
-    isAShopListing: boolean;
+    isAShopListingProduct: boolean = true;
     isCreatingProcess: boolean;
     isLoading: boolean = true;
     isSearching: boolean = false;
@@ -40,6 +41,10 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     isSubmitting: boolean = false;
     isUpdating: boolean = false;
     modalRef: any;
+    params: any = {
+        searchTerm: null,
+        shopId: null,
+    };
     productForm: FormGroup;
     productSearchForm: FormGroup;
     productId: number;
@@ -57,7 +62,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     user: any = [];
 
     @ViewChild(AgmMap, { static: false }) map: AgmMap;
-    zoom: number = 8;
+    zoom: number = 12;
     lat: number = 6.932942971060562;
     lng: number = 79.84612573779296;
     cities: any = [];
@@ -83,6 +88,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     constructor(
         private formBuilder: FormBuilder,
         private router: Router,
+        private activatedRoute: ActivatedRoute,
         private usersService: UsersService,
         private modalService: NgbModal,
         private productsService: ProductsService,
@@ -95,7 +101,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             this.districtNames.push(district.name);
         });
         this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
-        this.isAShopListing = JSON.parse(localStorage.getItem('isAShopListing'));
+        // this.isAShopListingProduct = JSON.parse(localStorage.getItem('isAShopListingProduct'));
         this.productSearchForm = this.formBuilder.group({
             searchTerm: new FormControl('', []),
             shopId: new FormControl('', []),
@@ -103,7 +109,22 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.getMainData();
+        this.activatedRoute.queryParams.subscribe(params => {
+            this.params = params;
+            if (this.params.type == "personal") {
+                if (localStorage.getItem('user_role') == UserRolesConstants.SHOP_ADMIN.toString()) {
+                    window.location.href = '/admin/products?type=shop';
+                }
+                this.isAShopListingProduct = false;
+            } else if (this.params.type == "shop") {
+                this.isAShopListingProduct = true;
+            } else {
+                this.params = {
+                    type: 'shop'
+                }
+            }
+            this.getMainData();
+        });
     }
 
     ngOnDestroy(): void {
@@ -114,8 +135,8 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     getMainData() {
         forkJoin(
             [
-                this.usersService.getShops(),
-                this.usersService.getProducts(this.page, this.pageSize),
+                this.usersService.getShops(!this.isAShopListingProduct),
+                this.usersService.getProducts(this.page, this.pageSize, this.params),
                 this.usersService.getCurrentUser()
             ])
             .pipe(take(1))
@@ -124,10 +145,19 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             }))
             .subscribe(response => {
                 this.shops = response[0];
+                console.log(this.shops);
+                if (this.shops.length == 1) {
+                    this.lat = parseFloat(this.shops[0].latitude);
+                    this.lng = parseFloat(this.shops[0].longitude);
+                }
+
                 this.products = response[1].data;
                 this.totalCount = response[1].total_count
                 this.user = response[2];
+                this.isSearching = false;
 
+                this.productSearchForm.controls['searchTerm'].setValue(this.params.searchTerm);
+                this.productSearchForm.controls['shopId'].setValue(this.params.shopId);
             });
     }
 
@@ -136,13 +166,12 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         this.isCreatingProcess = true;
         this.croppedImage = null;
         this.pricingCategory = localStorage.getItem('pricingCategory') ? localStorage.getItem('pricingCategory') : 'sell';
-        this.isAShopListing = localStorage.getItem('isAShopListing') ? JSON.parse(localStorage.getItem('isAShopListing')) : true;
+        // this.isAShopListingProduct = localStorage.getItem('isAShopListingProduct') ? JSON.parse(localStorage.getItem('isAShopListingProduct')) : true;
         var shopId = localStorage.getItem('shopId') ? JSON.parse(localStorage.getItem('shopId')) : '';
 
         this.productForm = this.formBuilder.group({
             shopId: new FormControl(shopId, []),
-            address: new FormControl(localStorage.getItem('address'), []),
-            user_name: new FormControl(this.user.name, []),
+            address: new FormControl((this.shops.length == 1 ? this.shops[0].address : ''), []),
             phone: new FormControl(this.user.phone, []),
             name: new FormControl('', [Validators.required]),
             description: new FormControl('', []),
@@ -186,11 +215,9 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         );
     }
 
-    focusOut(event) {
+    focusOut() {
         if (this.districtName != undefined && this.districtNames.filter(v => v.toLowerCase() == this.districtName.toLowerCase()).length == 1) {
             this.isDistrictError = false;
-            var districtObj = this.districts.filter(v => v.name.toLowerCase() == this.districtName.toLowerCase());
-            this.getCities(districtObj[0].id);
         } else {
             this.isDistrictError = true;
         }
@@ -199,7 +226,6 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     focusOutCities() {
         if (this.cityName && this.cityNames.filter(v => v.toLowerCase() == this.cityName.toLowerCase()).length == 1) {
             this.isCityError = false;
-            this.getCoordinatesOfCity();
         } else {
             this.isCityError = true;
         }
@@ -215,36 +241,78 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     selectedCity(event) {
         this.cityName = event.item;
         this.isCityError = false;
-        this.getCoordinatesOfCity();
     }
 
-    getCoordinatesOfCity() {
-        this.usersService.getCoordinatesByAddress(this.cityName + "+" + this.districtName)
-            .pipe(take(1))
-            .subscribe(response => {
-                this.lat = response.results[0].geometry.location.lat;
-                this.lng = response.results[0].geometry.location.lng;
-                this.zoom = 12;
-            });
-    }
-
-    markerDragEnd(event: AGMMouseEvent) {
+    async markerDragEnd(event: AGMMouseEvent) {
         this.lat = event.coords.lat;
         this.lng = event.coords.lng;
+
+        this.metaService.getAddressFromGoogleMap(this.lat, this.lng).subscribe(res => {
+            let streetAddress = this.getAddress(res, "street_address");
+            let route = this.getAddress(res, "route");
+            let town = this.getAddress(res, "administrative_area_level_4");
+            let city = this.getAddress(res, "administrative_area_level_3");
+            let district = this.getAddress(res, "administrative_area_level_2");
+
+            let fullAddress = (streetAddress ? (streetAddress + ", ") : "")
+                + (route ? (route + ", ") : "")
+                + (town ? (town + ", ") : "")
+                + (city ? (city + ", ") : "")
+                ;
+
+            this.productForm.get('address').setValue(fullAddress);
+
+            this.districtName = district;
+            let districtObj = this.districts.find(dis => dis.name == district)
+
+            this.getCities(districtObj.id).then(res => {
+                let cityName = this.cityNames.find(cityItem => cityItem == city);
+                if (cityName) {
+                    this.cityName = cityName;
+                } else {
+                    this.cityName = this.districtName;
+                }
+                // this.focusOutCities();
+                this.focusOut();
+            });
+        });
+    }
+
+    getAddress(addressData, searchBy) {
+        let address = addressData.results.find(function (address) {
+            let b = address.types.filter(function (type) {
+                if (type == searchBy) {
+                    return address;
+                }
+            });
+            if (Object.keys(b).length > 0) {
+                return b;
+            }
+        });
+        if (address && !(address.formatted_address.split(",")[0]).includes("Unnamed")) {
+            return address.formatted_address.split(",")[0];
+
+        } else {
+            return false;
+        }
     }
 
     getCities(districtId) {
         this.cityNames = [];
         this.cities = [];
         this.cityName = null;
-        this.metaService.getCities(districtId)
-            .pipe(take(1))
-            .subscribe(response => {
-                this.cities = response;
-                this.cities.forEach(city => {
-                    this.cityNames.push(city.name);
+        return new Promise((resolve, reject) => {
+            return this.metaService.getCities(districtId)
+                .pipe(take(1))
+                .subscribe(response => {
+                    this.cities = response;
+                    this.cities.forEach(city => {
+                        this.cityNames.push(city.name);
+                    });
+                    resolve(this.cityNames);
                 });
-            });
+        }
+        );
     }
 
     expandTextarea() {
@@ -310,7 +378,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
 
     addShop() {
         this.modalService.dismissAll();
-        this.router.navigate(['/admin/my-shops'], { queryParams: { 'action': 'add' } });
+        this.router.navigate(['/admin/shops'], { queryParams: { 'action': 'add' } });
     }
 
     onChangePricingCategory() {
@@ -321,18 +389,17 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     }
 
     onChangeListingMethod() {
-        if (this.isAShopListing === true) {
-            this.productForm.controls.user_name.setValidators(null);
+        if (this.isAShopListingProduct === true) {
             this.productForm.controls.address.setValidators(null);
             this.productForm.controls.phone.setValidators(null);
             this.productForm.controls.shopId.setValidators([Validators.required]);
         } else {
             this.productForm.controls.shopId.setValidators(null);
-            this.productForm.controls.user_name.setValidators([Validators.required]);
-            this.productForm.controls.address.setValidators([Validators.required]);
+            if (this.shops.length == 0) {
+                this.productForm.controls.address.setValidators([Validators.required]);
+            }
             this.productForm.controls.phone.setValidators([Validators.required, Validators.pattern('\\d{2}[- ]?\\d{3}[- ]?\\d{4}')]);
         }
-        this.productForm.controls.user_name.updateValueAndValidity();
         this.productForm.controls.address.updateValueAndValidity();
         this.productForm.controls.shopId.updateValueAndValidity();
         this.productForm.controls.phone.updateValueAndValidity();
@@ -361,7 +428,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         console.log(this.productForm);
         this.validationMessagesHelper.showErrorMessages(this.productForm);
 
-        if (this.isAShopListing && this.shops.length == 0) {
+        if (this.isAShopListingProduct && this.shops.length == 0) {
             this.errorMessages = "Please add a shop before proceeding.";
         }
         console.log(this.productForm);
@@ -369,7 +436,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         if (!this.productForm.valid) {
             hasError = true;
         }
-        if (!this.isAShopListing) {
+        if (!this.isAShopListingProduct && this.shops.length == 0) {
             if (this.districtName == undefined || this.districts.filter(v => v.name == this.districtName).length == 0) {
                 this.isDistrictError = true;
                 hasError = true;
@@ -379,13 +446,15 @@ export class MyProductsComponent implements OnInit, OnDestroy {
                 hasError = true;
             }
         }
+        console.log(this.productForm.valid);
+
         if (hasError) {
             this.scrollToTop();
             return false;
         }
         this.isSubmitting = true;
         const data: any = {
-            is_a_shop_listing: this.isAShopListing,
+            is_a_shop_listing: this.isAShopListingProduct,
             pricing_category: this.pricingCategory,
             name: this.productForm.value.name,
             description: this.productForm.value.description,
@@ -396,15 +465,15 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             sub_images: this.subImagesList,
             is_wholesale_pricing_enabled: this.isWholesalePricingEnabled
         };
-        if (this.isAShopListing) {
+        if (this.isAShopListingProduct) {
             data.shop_id = this.productForm.value.shopId;
         } else {
-            data.user_name = this.productForm.value.user_name;
-            data.city_id = this.cities.filter(v => v.name == this.cityName)[0].id;
-            data.address = this.productForm.value.address;
-            data.phone = this.productForm.value.phone;
-            data.latitude = this.lat;
-            data.longitude = this.lng;
+            if (this.shops.length == 0) {
+                data.city_id = this.cities.filter(v => v.name == this.cityName)[0].id;
+                data.address = this.productForm.value.address;
+                data.latitude = this.lat;
+                data.longitude = this.lng;
+            }
         }
         if (this.isWholesalePricingEnabled) {
             data.min_quantity = this.productForm.value.min_quantity;
@@ -413,7 +482,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
 
         localStorage.setItem('shopId', this.productForm.value.shopId);
         localStorage.setItem('pricingCategory', data.pricing_category);
-        localStorage.setItem('isAShopListing', JSON.stringify(this.isAShopListing));
+        localStorage.setItem('isAShopListingProduct', JSON.stringify(this.isAShopListingProduct));
         localStorage.setItem('address', this.productForm.value.address);
 
         this.productsService.create(data)
@@ -472,7 +541,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         this.errorMessages = null;
         this.isCreatingProcess = false;
         this.pricingCategory = product.sellable_item ? 'sell' : 'rent';
-        this.isAShopListing = product.is_a_shop_listing ? true : false;
+        this.isAShopListingProduct = product.is_a_shop_listing ? true : false;
         this.districtName = this.districts.filter(dis => dis.id == product.shop.city.district_id)[0].name;
         this.cityName = product.shop.city.name;
         this.lat = parseFloat(product.shop.latitude);
@@ -486,8 +555,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
 
         this.productForm = this.formBuilder.group({
             shopId: new FormControl(shopId, []),
-            address: new FormControl(address, []),
-            user_name: new FormControl(this.user.name, []),
+            address: new FormControl(this.shops.length == 1 ? this.shops[0].address : "", []),
             phone: new FormControl(this.user.phone, []),
             name: new FormControl(product.name, [Validators.required]),
             description: new FormControl(product.description, []),
@@ -513,14 +581,14 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         this.isSubmitted = true;
         var hasError = false;
         this.validationMessagesHelper.showErrorMessages(this.productForm);
-        if (this.isAShopListing && this.shops.length == 0) {
+        if (this.isAShopListingProduct && this.shops.length == 0) {
             this.errorMessages = "Please add a shop before proceeding.";
         }
 
         if (!this.productForm.valid) {
             hasError = true;
         }
-        if (!this.isAShopListing) {
+        if (!this.isAShopListingProduct) {
             if (this.districtName == undefined || this.districts.filter(v => v.name == this.districtName).length == 0) {
                 this.isDistrictError = true;
                 hasError = true;
@@ -536,7 +604,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         }
         this.isSubmitting = true;
         const data: any = {
-            is_a_shop_listing: this.productForm.value.listingCategory,
+            is_a_shop_listing: this.isAShopListingProduct,
             name: this.productForm.value.name,
             description: this.productForm.value.description,
             quantity: this.productForm.value.quantity,
@@ -547,10 +615,9 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             sub_images: this.subImagesList,
             is_wholesale_pricing_enabled: this.isWholesalePricingEnabled
         };
-        if (this.isAShopListing) {
+        if (this.isAShopListingProduct) {
             data.shop_id = this.productForm.value.shopId;
         } else {
-            data.user_name = this.productForm.value.user_name;
             data.city_id = this.cities.filter(v => v.name == this.cityName)[0].id;
             data.address = this.productForm.value.address;
             data.phone = this.productForm.value.phone;
@@ -631,21 +698,17 @@ export class MyProductsComponent implements OnInit, OnDestroy {
 
     search() {
         this.isSearching = true;
-        console.log(this.productSearchForm.controls);
-
-        let data = {
+        this.params = {
+            type: this.params.type,
             searchTerm: this.productSearchForm.controls.searchTerm.value,
-            shopId: this.productSearchForm.controls.shopId.value,
-        }
+            shopId: this.productSearchForm.controls.shopId.value
+        };
+        this.router.navigate(['.'], { relativeTo: this.activatedRoute, queryParams: this.params });
+    }
 
-        this.usersService.getProducts(1, this.pageSize, data).subscribe(res => {
-            this.products = res.data;
-            this.totalCount = res.total_count
-        }, error => {
-        }, () => {
-            this.isSearching = false;
-        });
-
-
+    mapClicked(event) {
+        this.lat = event.coords.lat;
+        this.lng = event.coords.lng;
+        this.markerDragEnd(event);
     }
 }

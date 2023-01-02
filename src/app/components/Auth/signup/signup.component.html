@@ -45,7 +45,7 @@
                         <div *ngIf="isSubmitted && signUpForm.controls.phone.errors">
                             <p *ngIf="signUpForm.controls.phone.errors.required" class="form-error">
                                 Required</p>
-                            <p *ngIf="!signUpForm.controls.phone.errors.pattern" class="form-error">
+                            <p *ngIf="signUpForm.controls.phone.errors.pattern" class="form-error">
                                 Phone number format invalid</p>
                         </div>
                         <label>Email</label>

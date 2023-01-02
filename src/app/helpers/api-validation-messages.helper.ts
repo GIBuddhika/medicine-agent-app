@@ -7,7 +7,7 @@ import { Injectable } from '@angular/core';
 export class APIValidationMessagesHelper {
 
     formattedErrorMesssages = {
-        duplicate: 'Already exists. Try another value.',
+        duplicate: 'Already exists. Please try another.',
         invalid: 'Invalid format.',
         not_found: 'Not found.',
         required: 'Required.',

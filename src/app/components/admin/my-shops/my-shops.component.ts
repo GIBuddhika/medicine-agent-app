@@ -19,7 +19,7 @@ import { LoginComponent } from 'app/components/Auth/login/login.component';
 import { PhoneValidator } from 'app/validators/phone.validator';
 
 @Component({
-    selector: 'app-my-shops',
+    selector: 'app-shops',
     templateUrl: './my-shops.component.html',
     encapsulation: ViewEncapsulation.None,
     styleUrls: ['./my-shops.component.scss']
@@ -43,6 +43,10 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
     isUpdating: boolean = false;
     modalRef: any;
     phone: number;
+    selectedShopAdmin: any;
+    selectedShopAdminsList: any = [];
+    shopAdmins: any = [];
+    shopAdminsOriginal: any = [];
     shopForm: FormGroup;
     shops: any = [];
     showCropper = false;
@@ -117,12 +121,24 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
             .subscribe(response => {
                 this.phone = response.phone;
             });
+
+        this.usersService.getShopAdmins()
+            .pipe(take(1))
+            .subscribe(response => {
+                this.shopAdminsOriginal = response;
+            });
     }
 
     openCreateModal(content) {
         this.errorMessages = null;
         this.isCreatingProcess = true;
         this.croppedImage = null;
+        this.showCropper = false;
+        this.shopAdmins = this.shopAdminsOriginal;
+        this.selectedShopAdminsList = [];
+        this.lat = 6.932942971060562;
+        this.lng = 79.84612573779296;
+
         this.shopForm = this.formBuilder.group({
             name: new FormControl('', [Validators.required]),
             address: new FormControl('', [Validators.required]),
@@ -144,6 +160,8 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
     openEditModal(content, shop) {
         this.errorMessages = null;
         this.isCreatingProcess = false;
+        this.shopAdmins = this.shopAdminsOriginal;
+
         this.shopForm = this.formBuilder.group({
             id: new FormControl(shop.id, []),
             name: new FormControl(shop.name, [Validators.required]),
@@ -158,6 +176,13 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
         this.districtName = this.districts.filter(dis => dis.id == shop.city.district_id)[0].name;
         this.zoom = 15;
         this.croppedImage = null;
+
+
+        this.selectedShopAdminsList = shop.shop_admins;
+        let shopAdminIds = this.selectedShopAdminsList.map(shop => shop.id);
+        this.shopAdmins = this.shopAdminsOriginal.filter(shop => {
+            return !shopAdminIds.includes(shop.id);
+        });
 
         this.modalRef = this.modalService.open(content, { windowClass: 'custom-class' });
 
@@ -332,7 +357,8 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
             latitude: this.lat,
             longitude: this.lng,
             image: this.croppedImage,
-            image_name: this.fileName
+            image_name: this.fileName,
+            shop_admin_ids: JSON.stringify(this.selectedShopAdminsList.map(({ id }) => id)),
         };
         this.shopsService.create(data)
             .pipe(take(1))
@@ -395,7 +421,8 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
             latitude: this.lat,
             longitude: this.lng,
             image: this.croppedImage,
-            image_name: this.fileName
+            image_name: this.fileName,
+            shop_admin_ids: JSON.stringify(this.selectedShopAdminsList.map(({ id }) => id)),
         };
         this.shopsService.update(this.shopForm.value.id, data)
             .pipe(finalize(() => {
@@ -472,6 +499,30 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
                     });
             }
         })
+    }
+
+    assignShopAdmin() {
+        console.log(this.selectedShopAdmin);
+        console.log(this.selectedShopAdmin == "");
+        if (this.selectedShopAdmin != "") {
+            let selectedShopData = this.shopAdmins.find(shopAdmin => shopAdmin.id == this.selectedShopAdmin);
+            this.shopAdmins = this.shopAdmins.filter(shopAdmin => shopAdmin.id != this.selectedShopAdmin);
+            this.selectedShopAdminsList.push(selectedShopData);
+            console.log(this.selectedShopAdminsList);
+
+            this.selectedShopAdmin = "";
+        }
+    }
+
+    unAssignShopAdmin(shopAdminId) {
+        let selectedShopData = this.selectedShopAdminsList.find(shopAdmin => shopAdmin.id == shopAdminId);
+        this.selectedShopAdminsList = this.selectedShopAdminsList.filter(shopAdmin => shopAdmin.id != shopAdminId);
+        this.shopAdmins.push(selectedShopData);
+        this.selectedShopAdmin = "";
+    }
+
+    showProducts(shopId) {
+        this.router.navigateByUrl('/admin/products?type=shop&shopId=' + shopId);
     }
 }
 

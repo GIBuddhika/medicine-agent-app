@@ -5,6 +5,7 @@ import { Subject } from 'rxjs';
 import { takeUntil, finalize } from 'rxjs/operators';
 import { UpdateMainViewSharedService } from 'app/shared-services/update-main-view.service';
 import { ActivatedRoute, Router } from '@angular/router';
+import { UserRolesConstants } from 'app/constants/user-roles';
 
 @Component({
     selector: 'app-login',
@@ -83,7 +84,7 @@ export class LoginComponent implements OnInit, OnDestroy {
             .subscribe(response => {
                 localStorage.setItem("token", response["token"]);
                 localStorage.setItem("userId", response["user_id"]);
-                localStorage.setItem("is_admin", "0");
+                localStorage.setItem("user_role", UserRolesConstants.CUSTOMER.toString());
                 localStorage.setItem("first_time_login", "true");
                 window.location.reload();
             }, errors => {
