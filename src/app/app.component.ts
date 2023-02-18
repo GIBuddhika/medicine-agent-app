@@ -18,6 +18,7 @@ export class AppComponent implements OnInit {
     private _router: Subscription;
     showHeader: boolean = true;
     showFooter: boolean = true;
+    isDistrictsLoaded: boolean = false;
 
     @ViewChild(NavbarComponent) navbar: NavbarComponent;
 
@@ -97,7 +98,10 @@ export class AppComponent implements OnInit {
                         districts.push({ id: district.id, name: district.name });
                     });
                     localStorage.setItem("districts", JSON.stringify(districts));
+                    this.isDistrictsLoaded = true;
                 });
+        } else {
+            this.isDistrictsLoaded = true;
         }
     }
 }

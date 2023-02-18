@@ -1,16 +1,14 @@
-import { Component, OnInit, OnDestroy, ViewChild, NgZone } from '@angular/core';
-
-import { AgmMap, AgmInfoWindow, MapsAPILoader, GoogleMapsAPIWrapper } from '@agm/core';
-
+import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
+import { MapsAPILoader } from '@agm/core';
 import { ProductsService } from '../../services/products.service';
 import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { merge, Observable, Subject } from 'rxjs';
-import { take, debounceTime, distinctUntilChanged, filter, map, takeUntil, finalize } from 'rxjs/operators';
+import { take, debounceTime, distinctUntilChanged, filter, map, finalize } from 'rxjs/operators';
 import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { MetaService } from 'app/services/meta.service';
-import { CurrencyPipe } from '@angular/common';
 import { UpdateMainViewSharedService } from 'app/shared-services/update-main-view.service';
+import { Router } from '@angular/router';
 
 @Component({
     selector: 'app-home',
@@ -19,13 +17,8 @@ import { UpdateMainViewSharedService } from 'app/shared-services/update-main-vie
 })
 export class HomeComponent implements OnInit, OnDestroy {
 
-    // districts = JSON.parse(localStorage.getItem('districts'));
-    // districtNames = [];
-    // districtName: string;
-    // districtId: number;
     imagePath: string = "";
     isLoading: boolean = true;
-    locations: any = [];
     products: any = [];
     searchForm: FormGroup;
     searchData: any = {
@@ -40,8 +33,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     districtNames = [];
     districtName: string;
     districtId: number;
-    // isCityError: boolean = false;
-    // isDistrictError: boolean = false;
 
     @ViewChild('instance', { static: true }) instance: NgbTypeahead;
     focus$ = new Subject<string>();
@@ -49,14 +40,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     focusCities$ = new Subject<string>();
     clickCities$ = new Subject<string>();
 
-    @ViewChild(AgmMap, { static: false }) map: AgmMap;
     lat: number;
     lng: number;
-    infoWindowData: string;
-    currentIW: AgmInfoWindow;
-    previousIW: AgmInfoWindow;
-    infoWindowProducts: any = [];
-
     geoCoder;
     pageSize = 10;
     page = 1;
@@ -68,9 +53,8 @@ export class HomeComponent implements OnInit, OnDestroy {
         private formBuilder: FormBuilder,
         private metaService: MetaService,
         private mapsAPILoader: MapsAPILoader,
-        private ngZone: NgZone,
-        private currencyPipe: CurrencyPipe,
-        private updateMainViewSharedService: UpdateMainViewSharedService
+        private updateMainViewSharedService: UpdateMainViewSharedService,
+        private router: Router,
     ) {
         this.updateMainViewSharedService.updateMainView("home");
         this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
@@ -81,54 +65,59 @@ export class HomeComponent implements OnInit, OnDestroy {
     }
 
     ngOnInit() {
-        this.getMainData();
+        this.mapsAPILoader.load().then(() => {
+            this.geoCoder = new google.maps.Geocoder;
+            this.getMainData();
+        });
         this.searchForm = this.formBuilder.group({
             searchTerm: new FormControl('', []),
         });
-        this.mapsAPILoader.load().then(() => {
-            // this.setCurrentLocation();
-            this.geoCoder = new google.maps.Geocoder;
-        });
-        //load products near the customer. But couldn't detect the city properly.
-        // this.mapsAPILoader.load().then((res) => {
-        //     console.log(res);
-        //     navigator.geolocation.getCurrentPosition((position) => {
-        //         alert(position.coords.latitude);
-        //         alert(position.coords.longitude);
-        //         console.log(position);
-        //         this.geoCoder.geocode({ 'location': { lat: position.coords.latitude, lng: position.coords.longitude } }, (results, status) => {
-        //             console.log(results);
-        //             console.log(status);
-
-
-        //         });
-
-        //         // this.latitude = position.coords.latitude;
-        //         // this.longitude = position.coords.longitude;
-        //         // this.zoom = 8;
-        //         // this.getAddress(this.latitude, this.longitude);
-        //     });
-
-        //     // this.setCurrentLocation();
-        //     // this.geoCoder = new google.maps.Geocoder;
-        //     // console.log(new google.maps.Geocoder);
-
-        // });
     }
 
     ngOnDestroy(): void {
 
     }
 
-    getMainData() {
-        this.productsService.all(this.page, this.pageSize)
-            .pipe(take(1))
-            .pipe(finalize(() => {
-                this.isLoading = false;
-            }))
-            .subscribe(response => {
-                this.manageProperties(response);
+    async getMainData() {
+        navigator.geolocation.getCurrentPosition(async (position) => {
+            this.lat = position.coords.latitude;
+            this.lng = position.coords.longitude;
+            await this.getAddressFromGoogleMap();
+            this.searchItems();
+        }, async error => {
+            this.lat = 6.9209984;
+            this.lng = 79.8487188;
+            await this.getAddressFromGoogleMap();
+            this.searchItems();
+        });
+    }
+
+    async getAddressFromGoogleMap() {
+        return new Promise((resolve, reject) => {
+            return this.metaService.getAddressFromGoogleMap(this.lat, this.lng).subscribe(async res => {
+                let town = this.getAddress(res, "administrative_area_level_4");
+                let city = this.getAddress(res, "administrative_area_level_3");
+                let district = this.getAddress(res, "administrative_area_level_2");
+
+                this.districtName = district;
+                let districtObj = this.districts.find(dis => dis.name == district)
+
+                await this.getCities(districtObj.id);
+                let townName = this.cityNames.find(cityItem => cityItem == town);
+                if (townName) {
+                    this.cityName = town;
+                } else {
+                    let cityName = this.cityNames.find(cityItem => cityItem == city);
+                    if (cityName) {
+                        this.cityName = city;
+                    } else {
+                        //Since there are no city called `Colombo`, we take items which located in `Kollupitiya`
+                        this.cityName = this.districtName == 'Colombo' ? 'Kollupitiya' : this.districtName;
+                    }
+                }
+                resolve(this.cityName);
             });
+        });
     }
 
     manageProperties(response) {
@@ -140,10 +129,6 @@ export class HomeComponent implements OnInit, OnDestroy {
             return false;
         }
 
-        this.currentIW = null;
-        this.previousIW = null;
-        this.locations = [];
-
         this.products.forEach(product => {
             if (product.image_id) {
                 product.image_url = this.imagePath + product.files.find(file => file.id == product.image_id).location;
@@ -154,41 +139,8 @@ export class HomeComponent implements OnInit, OnDestroy {
             } else {
                 product.image_url = '/assets/img/default-product.jpeg';
             }
-            this.locations.push({
-                id: product.id,
-                lat: product.shop.latitude,
-                lng: product.shop.longitude
-            });
         });
-        this.lat = parseFloat(this.locations[0].lat);
-        this.lng = parseFloat(this.locations[0].lng);
-    }
-
-    mapClick() {
-        if (this.previousIW) {
-            this.previousIW.close();
-        }
-    }
-
-    markerClick(infoWindow, location) {
-        var products = this.products.filter(product => product.shop.latitude == location.lat && product.shop.longitude == location.lng); //there can be multiple products from same location
-        this.infoWindowProducts = [];
-        products.forEach((product) => {
-            var price = "Rs. " + (product.category_id == 1 ? this.currencyPipe.transform(product.sellable_item.retail_price, '', '') : (this.currencyPipe.transform(product.rentable_item.price_per_month, '', '') + ' Per month'));
-            var shopName = product.is_a_shop_listing == 1 ? ("(" + product.shop.name + ")") : "";
-            this.infoWindowProducts.push({
-                'name': product.name,
-                'price': price,
-                'shopName': shopName,
-                'slug': product.slug
-            });
-        });
-
-        if (this.previousIW) {
-            this.currentIW = infoWindow;
-            this.previousIW.close();
-        }
-        this.previousIW = infoWindow;
+        this.isLoading = false;
     }
 
     paginate(event) {
@@ -215,7 +167,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.cityName = null;
     }
 
-    async searchItems() {
+    async searchItems(isInitial = true) {
         this.searchData = {};
         this.page = 1;
         localStorage.setItem('current_page', this.page.toString());
@@ -233,7 +185,23 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
 
         const products = await this.productsService.all(this.page, this.pageSize, this.searchData).toPromise();
+
+        if (products.total_count == 0 && this.districtName) {
+            if (isInitial == true && this.cityName) {
+                console.log('fetch by district');
+                this.cityName = null;
+                this.searchData.cityId = null;
+                this.searchItems(false);
+            } else if (isInitial == true && !this.cityName) {
+                console.log('fetch whole country');
+                this.districtName = null;
+                this.searchData.districtId = null;
+                this.searchItems(false);
+            }
+        }
+
         this.manageProperties(products);
+        this.isLoading = false;
     }
 
     searchDistricts = (text$: Observable<string>) => {
@@ -274,13 +242,36 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.cityNames = [];
         this.cities = [];
         this.cityName = null;
-        this.metaService.getCities(districtId)
-            .pipe(take(1))
-            .subscribe(response => {
-                this.cities = response;
-                this.cities.forEach(city => {
-                    this.cityNames.push(city.name);
+
+        return new Promise((resolve, reject) => {
+            return this.metaService.getCities(districtId)
+                .pipe(take(1))
+                .subscribe(response => {
+                    this.cities = response;
+                    this.cities.forEach(city => {
+                        this.cityNames.push(city.name);
+                    });
+                    resolve(this.cityNames);
                 });
+        });
+    }
+
+    getAddress(addressData, searchBy) {
+        let address = addressData.results.find(function (address) {
+            let b = address.types.filter(function (type) {
+                if (type == searchBy) {
+                    return address;
+                }
             });
+            if (Object.keys(b).length > 0) {
+                return b;
+            }
+        });
+        if (address && !(address.formatted_address.split(",")[0]).includes("Unnamed")) {
+            return address.formatted_address.split(",")[0];
+
+        } else {
+            return false;
+        }
     }
 }
