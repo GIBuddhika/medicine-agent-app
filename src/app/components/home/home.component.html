@@ -3,42 +3,47 @@
         <div class="row">
             <div class="col-md-4">
                 <div class="card-normal no-decorations" style="min-height: 200px;">
-                    <h3>Find your product</h3>
-                    <form [formGroup]="searchForm" (ngSubmit)="searchItems(false)">
-                        <div class="form-group">
-                            <label class="form-check-label">Search</label>
-                            <input type="text" class="form-control" formControlName="searchTerm" id="searchTerm"
-                                placeholder="Item name">
-                            <img src="../../../assets/img/close.png" width="20" class="input-img"
-                                (click)="clearSearchTerm()">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-check-label">District</label>
-                            <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="districtName"
-                                [ngModelOptions]="{standalone: true}" (selectItem)="selectedDistrict($event)"
-                                [ngbTypeahead]="searchDistricts" (focus)="focus$.next($any($event).target.value)"
-                                (click)="click$.next($any($event).target.value)" #instance="ngbTypeahead" />
-                            <img src="../../../assets/img/close.png" width="20" class="input-img"
-                                (click)="clearDistrict()">
-                        </div>
-                        <div class="form-group">
-                            <label class="form-check-label">City</label>
-                            <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="cityName"
-                                disabled="{{cities.length==0}}" [ngModelOptions]="{standalone: true}"
-                                (selectItem)="selectedCity($event)" [ngbTypeahead]="searchCities"
-                                (focus)="focusCities$.next($any($event).target.value)"
-                                (click)="clickCities$.next($any($event).target.value)" #instance="ngbTypeahead" />
-                            <img src="../../../assets/img/close.png" width="20" class="input-img" (click)="clearCity()">
-                        </div>
-
-                        <button class="btn btn-outline-success btn-sm">Search</button>
-                    </form>
+                    <div class="spinner-outer" *ngIf="isLoadingPage">
+                        <img src="../../../assets/img/spinner.gif" width="100">
+                    </div>
+                    <div *ngIf="!isLoadingPage">
+                        <h3>Search products</h3>
+                        <form [formGroup]="searchForm" (ngSubmit)="onClickSearch()">
+                            <div class="form-group">
+                                <label class="form-check-label">Product name</label>
+                                <input type="text" class="form-control" formControlName="searchTerm" id="searchTerm"
+                                    placeholder="Item name">
+                                <img src="../../../assets/img/close.png" width="20" class="input-img"
+                                    (click)="clearSearchTerm()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-check-label">District</label>
+                                <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="districtName"
+                                    [ngModelOptions]="{standalone: true}" (selectItem)="selectedDistrict($event)"
+                                    [ngbTypeahead]="searchDistricts" (focus)="focus$.next($any($event).target.value)"
+                                    (click)="click$.next($any($event).target.value)" #instance="ngbTypeahead" />
+                                <img src="../../../assets/img/close.png" width="20" class="input-img"
+                                    (click)="clearDistrict()">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-check-label">City</label>
+                                <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="cityName"
+                                    disabled="{{cities.length==0}}" [ngModelOptions]="{standalone: true}"
+                                    (selectItem)="selectedCity($event)" [ngbTypeahead]="searchCities"
+                                    (focus)="focusCities$.next($any($event).target.value)"
+                                    (click)="clickCities$.next($any($event).target.value)" #instance="ngbTypeahead" />
+                                <img src="../../../assets/img/close.png" width="20" class="input-img"
+                                    (click)="clearCity()">
+                            </div>
+                            <button class="btn btn-outline-success btn-sm">Search</button>
+                        </form>
+                    </div>
                 </div>
             </div>
             <div class="col-md-8">
                 <div class="products">
-                    <div *ngIf="isLoading">
-                        Loading...
+                    <div class="spinner-outer" *ngIf="isLoading">
+                        <img src="../../../assets/img/spinner.gif" width="100">
                     </div>
                     <div *ngIf="!isLoading && products.length>0">
                         <p>{{products.length}} item(s) found.</p>
@@ -66,8 +71,8 @@
                                 (pageChange)="paginate($event)" [rotate]="true"></ngb-pagination>
                         </div>
                     </div>
-                    <div *ngIf="!isLoading && products.length==0">
-                        <p class="no-products">Sorry, there're no items found for your search.</p>
+                    <div class="no-products" *ngIf="!isLoading && products.length==0">
+                        <p>Sorry, there're no items found for your search.</p>
                     </div>
                 </div>
             </div>

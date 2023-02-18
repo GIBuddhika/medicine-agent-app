@@ -8,7 +8,7 @@ import { take, debounceTime, distinctUntilChanged, filter, map, finalize } from 
 import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { MetaService } from 'app/services/meta.service';
 import { UpdateMainViewSharedService } from 'app/shared-services/update-main-view.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Params, Router } from '@angular/router';
 
 @Component({
     selector: 'app-home',
@@ -19,6 +19,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     imagePath: string = "";
     isLoading: boolean = true;
+    isLoadingPage: boolean = true;
     products: any = [];
     searchForm: FormGroup;
     searchData: any = {
@@ -54,6 +55,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         private metaService: MetaService,
         private mapsAPILoader: MapsAPILoader,
         private updateMainViewSharedService: UpdateMainViewSharedService,
+        private route: ActivatedRoute,
         private router: Router,
     ) {
         this.updateMainViewSharedService.updateMainView("home");
@@ -64,13 +66,38 @@ export class HomeComponent implements OnInit, OnDestroy {
         });
     }
 
-    ngOnInit() {
-        this.mapsAPILoader.load().then(() => {
-            this.geoCoder = new google.maps.Geocoder;
-            this.getMainData();
-        });
-        this.searchForm = this.formBuilder.group({
-            searchTerm: new FormControl('', []),
+    async ngOnInit() {
+        this.route.queryParams.subscribe(async (param: Params) => {
+            if (param.district) {
+                let district = this.districts.find(dis => (dis.name).toLowerCase() == (param.district).toLowerCase());
+                if (district) {
+                    this.districtName = district ? district.name : null;
+                    this.searchData.districtId = district.id;
+                    this.cities = await this.getCitiesByDistrict(district.id);
+                    if (param.city) {
+                        let city = this.cities.find(city => (city.name).toLowerCase() == (param.city).toLowerCase());
+                        if (city) {
+                            this.cityName = city ? city.name : null;
+                            this.searchData.cityId = city.id;
+                        }
+                    }
+                }
+            }
+
+            this.searchData.searchTerm = param.search ?? "";
+            this.searchForm = this.formBuilder.group({
+                searchTerm: new FormControl(this.searchData.searchTerm, []),
+            });
+
+            if (param.action == null) {
+                this.mapsAPILoader.load().then(() => {
+                    this.geoCoder = new google.maps.Geocoder;
+                    this.getMainData();
+                });
+            } else {
+                this.searchItems(false);
+            }
+            this.isLoadingPage = false;
         });
     }
 
@@ -102,7 +129,7 @@ export class HomeComponent implements OnInit, OnDestroy {
                 this.districtName = district;
                 let districtObj = this.districts.find(dis => dis.name == district)
 
-                await this.getCities(districtObj.id);
+                await this.getCitiesByDistrict(districtObj.id);
                 let townName = this.cityNames.find(cityItem => cityItem == town);
                 if (townName) {
                     this.cityName = town;
@@ -122,8 +149,6 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     manageProperties(response) {
         this.products = response.data;
-        console.log(this.products);
-
         this.totalCount = response.total_count;
         if (this.totalCount == 0) {
             return false;
@@ -140,7 +165,6 @@ export class HomeComponent implements OnInit, OnDestroy {
                 product.image_url = '/assets/img/default-product.jpeg';
             }
         });
-        this.isLoading = false;
     }
 
     paginate(event) {
@@ -159,20 +183,33 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     clearSearchTerm() {
         this.searchForm.controls.searchTerm.setValue(null);
+        this.searchData.searchTerm = null;
     }
     clearDistrict() {
         this.districtName = null;
+        this.cities = [];
+        this.clearCity();
     }
     clearCity() {
         this.cityName = null;
     }
 
+    onClickSearch() {
+        this.router.navigate([], {
+            queryParams: {
+                search: this.searchForm.controls.searchTerm.value,
+                district: this.districtName,
+                city: this.cityName,
+                action: 'search'
+            }
+        });
+    }
+
     async searchItems(isInitial = true) {
+        this.isLoading = true;
         this.searchData = {};
         this.page = 1;
         localStorage.setItem('current_page', this.page.toString());
-        console.log(this.districtName);
-        console.log(this.cityName);
 
         if (this.searchForm.controls.searchTerm.value) {
             this.searchData.searchTerm = this.searchForm.controls.searchTerm.value
@@ -201,7 +238,9 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
 
         this.manageProperties(products);
-        this.isLoading = false;
+        setTimeout(() => {
+            this.isLoading = false;
+        }, 2000);
     }
 
     searchDistricts = (text$: Observable<string>) => {
@@ -231,14 +270,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     selectedDistrict(event) {
         this.districtName = event.item;
         var districtObj = this.districts.filter(v => v.name.toLowerCase() == this.districtName.toLowerCase());
-        this.getCities(districtObj[0].id);
+        this.getCitiesByDistrict(districtObj[0].id);
     }
 
     selectedCity(event) {
         this.cityName = event.item;
     }
 
-    getCities(districtId) {
+    getCitiesByDistrict(districtId) {
         this.cityNames = [];
         this.cities = [];
         this.cityName = null;
@@ -251,7 +290,7 @@ export class HomeComponent implements OnInit, OnDestroy {
                     this.cities.forEach(city => {
                         this.cityNames.push(city.name);
                     });
-                    resolve(this.cityNames);
+                    resolve(this.cities);
                 });
         });
     }
