@@ -68,33 +68,39 @@ export class HomeComponent implements OnInit, OnDestroy {
 
     async ngOnInit() {
         this.route.queryParams.subscribe(async (param: Params) => {
-            if (param.district) {
-                let district = this.districts.find(dis => (dis.name).toLowerCase() == (param.district).toLowerCase());
-                if (district) {
-                    this.districtName = district ? district.name : null;
-                    this.searchData.districtId = district.id;
-                    this.cities = await this.getCitiesByDistrict(district.id);
-                    if (param.city) {
-                        let city = this.cities.find(city => (city.name).toLowerCase() == (param.city).toLowerCase());
-                        if (city) {
-                            this.cityName = city ? city.name : null;
-                            this.searchData.cityId = city.id;
-                        }
-                    }
-                }
-            }
-
-            this.searchData.searchTerm = param.search ?? "";
-            this.searchForm = this.formBuilder.group({
-                searchTerm: new FormControl(this.searchData.searchTerm, []),
-            });
-
             if (param.action == null) {
                 this.mapsAPILoader.load().then(() => {
                     this.geoCoder = new google.maps.Geocoder;
                     this.getMainData();
                 });
+                this.searchForm = this.formBuilder.group({
+                    searchTerm: new FormControl("", []),
+                });
             } else {
+                if (param.district) {
+                    let district = this.districts.find(dis => (dis.name).toLowerCase() == (param.district).toLowerCase());
+                    if (district) {
+                        this.districtName = district ? district.name : null;
+                        this.searchData.districtId = district.id;
+                        this.cities = await this.getCitiesByDistrict(district.id);
+                        if (param.city) {
+                            let city = this.cities.find(city => (city.name).toLowerCase() == (param.city).toLowerCase());
+                            if (city) {
+                                this.cityName = city ? city.name : null;
+                                this.searchData.cityId = city.id;
+                            }
+                        }
+                    }
+                }
+
+                this.searchData.searchTerm = param.search ?? "";
+
+                this.page = param.page ?? 1;
+                this.searchData.page = this.page;
+                this.searchForm = this.formBuilder.group({
+                    searchTerm: new FormControl(this.searchData.searchTerm, []),
+                });
+
                 this.searchItems(false);
             }
             this.isLoadingPage = false;
@@ -167,20 +173,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         });
     }
 
-    paginate(event) {
-        this.page = event;
-        this.isLoading = true;
-        this.productsService.all(this.page, this.pageSize)
-            .pipe(take(1))
-            .pipe(finalize(() => {
-                localStorage.setItem('current_page', this.page.toString());
-                this.isLoading = false;
-            }))
-            .subscribe(response => {
-                this.manageProperties(response);
-            });
-    }
-
     clearSearchTerm() {
         this.searchForm.controls.searchTerm.setValue(null);
         this.searchData.searchTerm = null;
@@ -194,13 +186,15 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.cityName = null;
     }
 
-    onClickSearch() {
+    onClickSearch(page = 1) {
+        this.page = page;
         this.router.navigate([], {
             queryParams: {
                 search: this.searchForm.controls.searchTerm.value,
                 district: this.districtName,
                 city: this.cityName,
-                action: 'search'
+                action: 'search',
+                page: this.page
             }
         });
     }
@@ -208,7 +202,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     async searchItems(isInitial = true) {
         this.isLoading = true;
         this.searchData = {};
-        this.page = 1;
         localStorage.setItem('current_page', this.page.toString());
 
         if (this.searchForm.controls.searchTerm.value) {

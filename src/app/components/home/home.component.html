@@ -46,7 +46,7 @@
                         <img src="../../../assets/img/spinner.gif" width="100">
                     </div>
                     <div *ngIf="!isLoading && products.length>0">
-                        <p>{{products.length}} item(s) found.</p>
+                        <p>{{totalCount}} {{totalCount == 1 ? "item":"items"}} found.</p>
                         <ng-container *ngFor="let product of products">
                             <div class="card-normal product" [routerLink]="['/products',product.slug]">
                                 <div class="row">
@@ -55,20 +55,24 @@
                                             class="img-thumbnail img-responsive">
                                     </div>
                                     <div class="col-sm-8">
-                                        <p class="product-title"><b>{{product.name|titlecase}}</b></p>
-                                        <p *ngIf="product.category_id==1">{{product.shop.name|titlecase}}</p>
-                                        <p>{{product.shop.address|titlecase}}, {{product.shop.city.name|titlecase}}</p>
-                                        <p class="price">Rs.
-                                            {{product.category_id==1?(product.sellable_item.retail_price|currency:'':''):((product.rentable_item.price_per_month|currency:'':'')+'
-                                            Per month')}}
-                                        </p>
+                                        <div class="product-details">
+                                            <p class="product-title"><b>{{product.name|titlecase}}</b></p>
+                                            <p class="shop-name" *ngIf="product.category_id==1">
+                                                {{product.shop.name|titlecase}}</p>
+                                            <p class="shop-address">{{product.shop.address|titlecase}},
+                                                {{product.shop.city.name|titlecase}}</p>
+                                            <p class="price">Rs.
+                                                {{product.category_id==1?(product.sellable_item.retail_price|currency:'':''):((product.rentable_item.price_per_month|currency:'':'')+'
+                                                Per month')}}
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </ng-container>
                         <div class="pagination">
                             <ngb-pagination [collectionSize]="totalCount" [pageSize]="pageSize" [(page)]="page"
-                                (pageChange)="paginate($event)" [rotate]="true"></ngb-pagination>
+                                (pageChange)="onClickSearch($event)" [rotate]="true"></ngb-pagination>
                         </div>
                     </div>
                     <div class="no-products" *ngIf="!isLoading && products.length==0">
