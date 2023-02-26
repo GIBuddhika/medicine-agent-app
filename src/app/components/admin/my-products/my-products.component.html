@@ -227,8 +227,8 @@
                 </div>
             </div> -->
             <div class="form-group" *ngIf="isAShopListingProduct==true && shops.length==0">
-                No shops found. <a href="javascript:void(0)" class="text text-primary" (click)="addShop()">Add a
-                    shop</a>
+                No shops found. <a href="javascript:void(0)" class="text text-primary" (click)="addShop()">
+                    Add a shop</a>
             </div>
             <div class="form-group" *ngIf="isAShopListingProduct==true && shops.length>0">
                 <label>Select a Shop</label>
@@ -240,70 +240,54 @@
                 </select>
             </div>
             <div *ngIf="isAShopListingProduct==false">
-                <div *ngIf="shops.length == 0">
-                    <div class="form-group">
-                        <label>Select location (Drag and drop the red marker <i style="color: red;"
-                                class="fa fa-map-marker"></i> on your location)</label>
-                        <agm-map [latitude]="lat" [longitude]="lng" [zoom]="zoom" [disableDefaultUI]="false"
-                            [zoomControl]="true" [scrollwheel]="null" [gestureHandling]="'cooperative'"
-                            (mapClick)="mapClicked($event)">
-                            <agm-marker [latitude]="lat" [longitude]="lng" [markerDraggable]="true"
-                                (dragEnd)="markerDragEnd($event)">
-                            </agm-marker>
-                        </agm-map>
-                    </div>
-                    <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
-                        <label>District</label>
-                        <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="districtName"
-                            [ngModelOptions]="{standalone: true}" (selectItem)="selectedDistrict($event)"
-                            [ngbTypeahead]="searchDistricts" (focus)="focus$.next($any($event).target.value)"
-                            (click)="click$.next($any($event).target.value)" #instance="ngbTypeahead"
-                            (focusout)="focusOut($event)" />
-                        <div class="form-control-feedback" *ngIf="isDistrictError">No district selected. Please
-                            select one.
-                        </div>
-                    </div>
-                    <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
-                        <label>City</label>
-                        <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="cityName"
-                            disabled="{{cities.length==0}}" [ngModelOptions]="{standalone: true}"
-                            (selectItem)="selectedCity($event)" [ngbTypeahead]="searchCities"
-                            (focus)="focusCities$.next($any($event).target.value)"
-                            (click)="clickCities$.next($any($event).target.value)" #instance="ngbTypeahead"
-                            (focusout)="focusOutCities($event)" />
-                        <div class="form-control-feedback" *ngIf="isCityError">No city selected. Please select one.
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label>Address</label>
-                        <input type="text" class="form-control" formControlName="address" id="address">
+                <div class="form-group">
+                    <label>Select location (Drag and drop the red marker <i style="color: red;"
+                            class="fa fa-map-marker"></i> on your location)</label>
+                    1
+                    <agm-map [latitude]="lat" [longitude]="lng" [zoom]="zoom" [disableDefaultUI]="false"
+                        [zoomControl]="true" [scrollwheel]="null" [gestureHandling]="'cooperative'"
+                        (mapClick)="mapClicked($event)">
+                        <agm-marker [latitude]="lat" [longitude]="lng" [markerDraggable]="true"
+                            (dragEnd)="markerDragEnd($event)">
+                        </agm-marker>
+                    </agm-map>
+                </div>
+                <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
+                    <label>District</label>
+                    <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="districtName"
+                        [ngModelOptions]="{standalone: true}" (selectItem)="selectedDistrict($event)"
+                        [ngbTypeahead]="searchDistricts" (focus)="focus$.next($any($event).target.value)"
+                        (click)="click$.next($any($event).target.value)" #instance="ngbTypeahead"
+                        (focusout)="focusOut($event)" />
+                    <div class="form-control-feedback" *ngIf="isDistrictError">No district selected. Please
+                        select one.
                     </div>
                 </div>
-                <div *ngIf="shops.length ==1">
-                    <div class="form-group">
-                        <label>Current location</label>
-                        <agm-map [latitude]="lat" [longitude]="lng" [zoom]="zoom" [disableDefaultUI]="false"
-                            [zoomControl]="true" [scrollwheel]="null" [gestureHandling]="'cooperative'">
-                            <agm-marker [latitude]="lat" [longitude]="lng" [markerDraggable]="false"
-                                (dragEnd)="markerDragEnd($event)">
-                            </agm-marker>
-                        </agm-map>
-                    </div>
-                    <div class="form-group">
-                        <label>Address</label>
-                        <input type="text" class="form-control" readonly formControlName="address" id="address">
+                <div class="form-group" [ngClass]="{'has-danger':isDistrictError}">
+                    <label>City</label>
+                    <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="cityName"
+                        disabled="{{cities.length==0}}" [ngModelOptions]="{standalone: true}"
+                        (selectItem)="selectedCity($event)" [ngbTypeahead]="searchCities"
+                        (focus)="focusCities$.next($any($event).target.value)"
+                        (click)="clickCities$.next($any($event).target.value)" #instance="ngbTypeahead"
+                        (focusout)="focusOutCities($event)" />
+                    <div class="form-control-feedback" *ngIf="isCityError">No city selected. Please select one.
                     </div>
                 </div>
                 <div class="form-group">
-                    <label>WhatsApp number <img src="../../../assets/img/WhatsApp.png" width="25">
-                        <p class="font-s-10">(Enter 9 numbers without 0. Ex: 710422547)</p>
-                    </label>
-                    <div class="flex">
-                        +94&nbsp;
-                        <div style="width: 100%;">
-                            <input type="text" class="form-control" formControlName="phone" id="phone"
-                                placeholder="Enter 9 digits phone number" [readonly]="user.phone">
-                        </div>
+                    <label>Address</label>
+                    <input type="text" class="form-control" formControlName="address" id="address">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>WhatsApp number <img src="../../../assets/img/WhatsApp.png" width="25">
+                    <p class="font-s-10">(Enter 9 numbers without 0. Ex: 710422547)</p>
+                </label>
+                <div class="flex">
+                    +94&nbsp;
+                    <div style="width: 100%;">
+                        <input type="text" class="form-control" formControlName="phone" id="phone"
+                            placeholder="Enter 9 digits phone number">
                     </div>
                 </div>
             </div>
@@ -402,9 +386,15 @@
                             [alignImage]="'left'" [style.display]="showCropper ? null : 'none'" format="png"
                             (imageCropped)="imageCropped($event)" (imageLoaded)="imageLoaded()"></image-cropper>
                     </div>
-                    <img [src]="croppedImage" style="max-width:100%;"
-                        [style.border]="croppedImage ? '1px solid black' : 'none'" />
+                    <img *ngIf="croppedImage" [src]="croppedImage" style="max-width:100%;"
+                        [style.border]="croppedImage ? '1px solid black' : 'none'"
+                        style="margin-top:10px;width: 100%;" />
                 </div>
+                <div *ngIf="mainImage && !fileName">
+                    <img [src]="mainImage" style="max-width:100%;" style="margin-top:10px;width: 100%;" />
+                </div>
+                <p *ngIf="!fileName && isSubmitted" class="invalid-input">Required.
+                </p>
             </div>
             <div class="form-group">
                 <label>Add sub images for the product. (Max 5 images)</label>
@@ -420,6 +410,9 @@
                 </div>
             </div>
         </form>
+        <div class="alert alert-primary form-error-alert " *ngIf="hasError && isSubmitted">
+            Errors found in the form
+        </div>
     </div>
     <div class="modal-footer">
         <div class="left-side">

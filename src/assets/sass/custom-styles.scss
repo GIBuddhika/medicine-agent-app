@@ -256,3 +256,21 @@ button.swal2-cancel.swal2-styled:hover {
     height: 400px;
     overflow-y: scroll;
 }
+
+.form-error-alert {
+    background-color: khaki;
+    color: red;
+    font-weight: bold;
+    margin: 0;
+    border-radius: .2rem;
+}
+
+.invalid-input {
+    border-radius: 6px;
+    font-size: 14px;
+    color: #f5593d;
+    font-size: 0.8rem;
+    top: 100%;
+    padding-left: 12px;
+    vertical-align: middle;
+}

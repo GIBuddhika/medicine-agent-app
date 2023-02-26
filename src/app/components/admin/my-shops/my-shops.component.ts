@@ -292,9 +292,9 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
                 if (cityName) {
                     this.cityName = cityName;
                 } else {
-                    this.cityName = this.districtName;
+                    //Since there are no city called `Colombo`, we take items which located in `Kollupitiya`
+                    this.cityName = this.districtName == 'Colombo' ? 'Kollupitiya' : this.districtName;
                 }
-                // this.focusOutCities();
                 this.focusOut();
             });
         });

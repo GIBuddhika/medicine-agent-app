@@ -30,7 +30,8 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     croppedImage: any;
     errorMessage: any;
     errorMessages: string = null;
-    fileName: string = "";
+    fileName: string = null;
+    hasError: boolean = false;
     imageChangedEvent: any = '';
     imagePath: string = "";
     isAShopListingProduct: boolean = true;
@@ -40,6 +41,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     isSubmitted: boolean = false;
     isSubmitting: boolean = false;
     isUpdating: boolean = false;
+    mainImage: string = null;
     modalRef: any;
     params: any = {
         searchTerm: null,
@@ -162,6 +164,8 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     }
 
     openCreateModal(content) {
+        this.croppedImage = null;
+        this.fileName = null;
         this.errorMessages = null;
         this.isCreatingProcess = true;
         this.croppedImage = null;
@@ -270,7 +274,8 @@ export class MyProductsComponent implements OnInit, OnDestroy {
                 if (cityName) {
                     this.cityName = cityName;
                 } else {
-                    this.cityName = this.districtName;
+                    //Since there are no city called `Colombo`, we take items which located in `Kollupitiya`
+                    this.cityName = this.districtName == 'Colombo' ? 'Kollupitiya' : this.districtName;
                 }
                 // this.focusOutCities();
                 this.focusOut();
@@ -424,7 +429,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         this.isCityError = false;
         this.isDistrictError = false;
         this.isSubmitted = true;
-        var hasError = false;
+        this.hasError = false;
         console.log(this.productForm);
         this.validationMessagesHelper.showErrorMessages(this.productForm);
 
@@ -434,21 +439,21 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         console.log(this.productForm);
 
         if (!this.productForm.valid) {
-            hasError = true;
+            this.hasError = true;
         }
         if (!this.isAShopListingProduct && this.shops.length == 0) {
             if (this.districtName == undefined || this.districts.filter(v => v.name == this.districtName).length == 0) {
                 this.isDistrictError = true;
-                hasError = true;
+                this.hasError = true;
             }
             if (this.cityName == undefined || this.cities.filter(v => v.name == this.cityName).length == 0) {
                 this.isCityError = true;
-                hasError = true;
+                this.hasError = true;
             }
         }
         console.log(this.productForm.valid);
 
-        if (hasError) {
+        if (this.hasError) {
             this.scrollToTop();
             return false;
         }
@@ -460,6 +465,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             description: this.productForm.value.description,
             quantity: this.productForm.value.quantity,
             price: this.productForm.value.price,
+            phone: this.productForm.value.phone,
             image: this.croppedImage,
             image_name: this.fileName,
             sub_images: this.subImagesList,
@@ -468,12 +474,10 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         if (this.isAShopListingProduct) {
             data.shop_id = this.productForm.value.shopId;
         } else {
-            if (this.shops.length == 0) {
-                data.city_id = this.cities.filter(v => v.name == this.cityName)[0].id;
-                data.address = this.productForm.value.address;
-                data.latitude = this.lat;
-                data.longitude = this.lng;
-            }
+            data.city_id = this.cities.filter(v => v.name == this.cityName)[0].id;
+            data.address = this.productForm.value.address;
+            data.latitude = this.lat;
+            data.longitude = this.lng;
         }
         if (this.isWholesalePricingEnabled) {
             data.min_quantity = this.productForm.value.min_quantity;
@@ -489,6 +493,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             .pipe(take(1))
             .pipe(finalize(() => {
                 this.isSubmitting = false;
+                this.isSubmitted = false;
             }))
             .subscribe(response => {
                 Swal.fire(
@@ -536,6 +541,9 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     }
 
     openEditModal(content, product) {
+        console.log(product);
+        this.croppedImage = null;
+        this.fileName = null;
         this.productId = product.id;
         this.getCities(product.shop.city.district_id);
         this.errorMessages = null;
@@ -552,6 +560,11 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         let wholesalePrice = product.sellable_item ? product.sellable_item.wholesale_price : product.rentable_item.wholesale_price;
         let wholesaleMinQuantity = product.sellable_item ? product.sellable_item.wholesale_minimum_quantity : product.rentable_item.wholesale_minimum_quantity;
         this.isWholesalePricingEnabled = wholesalePrice ? true : false;
+
+        if (product.image_id) {
+            let mainFile = product.files.find(file => file.id == product.image_id);
+            this.mainImage = this.imagePath + mainFile.location;
+        }
 
         this.productForm = this.formBuilder.group({
             shopId: new FormControl(shopId, []),
@@ -579,27 +592,32 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         this.isCityError = false;
         this.isDistrictError = false;
         this.isSubmitted = true;
-        var hasError = false;
+        this.hasError = false;
         this.validationMessagesHelper.showErrorMessages(this.productForm);
         if (this.isAShopListingProduct && this.shops.length == 0) {
             this.errorMessages = "Please add a shop before proceeding.";
         }
 
         if (!this.productForm.valid) {
-            hasError = true;
+            this.hasError = true;
         }
+
+        if (!this.fileName && !this.mainImage) {
+            this.hasError = true;
+        }
+
         if (!this.isAShopListingProduct) {
             if (this.districtName == undefined || this.districts.filter(v => v.name == this.districtName).length == 0) {
                 this.isDistrictError = true;
-                hasError = true;
+                this.hasError = true;
             }
             if (this.cityName == undefined || this.cities.filter(v => v.name == this.cityName).length == 0) {
                 this.isCityError = true;
-                hasError = true;
+                this.hasError = true;
             }
         }
-        if (hasError) {
-            this.scrollToTop();
+        if (this.hasError) {
+            // this.scrollToTop();
             return false;
         }
         this.isSubmitting = true;
@@ -633,6 +651,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             .pipe(take(1))
             .pipe(finalize(() => {
                 this.isSubmitting = false;
+                this.isSubmitted = false;
             }))
             .subscribe(response => {
                 Swal.fire(

@@ -33,6 +33,7 @@ export class ProductComponent implements OnInit, OnDestroy {
     quantityAlreadyInCart: number = 0;
     wholesaleMinimumQuantity: number;
     cart = localStorage.getItem("cart") ? JSON.parse(localStorage.getItem("cart")) : [];
+    images = [];
 
 
     @ViewChild(AgmMap, { static: false }) map: AgmMap;
@@ -82,6 +83,7 @@ export class ProductComponent implements OnInit, OnDestroy {
                 this.wholesaleMinimumQuantity = Math.trunc(this.product.sellable_item?.wholesale_minimum_quantity);
                 this.lat = parseFloat(this.product.shop.latitude);
                 this.lng = parseFloat(this.product.shop.longitude);
+                this.images = this.product.files.length > 0 ? this.product.files : [this.product.shop.file];
                 this.calculateRemainingQuantity();
             });
     }
@@ -118,6 +120,9 @@ export class ProductComponent implements OnInit, OnDestroy {
         for (i = 0; i < dots.length; i++) {
             dots[i].className = dots[i].className.replace(" active", "");
         }
+        console.log(slides);
+        console.log(this.slideIndex);
+
         slides[this.slideIndex - 1].setAttribute("style", "display:block;");
         dots[this.slideIndex - 1].className += " active";
     }
