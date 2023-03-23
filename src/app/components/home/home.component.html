@@ -8,7 +8,7 @@
                     </div>
                     <div *ngIf="!isLoadingPage">
                         <h3>Search products</h3>
-                        <form [formGroup]="searchForm" (ngSubmit)="onClickSearch()">
+                        <form [formGroup]="searchForm" class="search-form" (ngSubmit)="onClickSearch()">
                             <div class="form-group">
                                 <label class="form-check-label">Product name</label>
                                 <input type="text" class="form-control" formControlName="searchTerm" id="searchTerm"
@@ -58,9 +58,11 @@
                                         <div class="product-details">
                                             <p class="product-title"><b>{{product.name|titlecase}}</b></p>
                                             <p class="shop-name" *ngIf="product.category_id==1">
-                                                {{product.shop.name|titlecase}}</p>
-                                            <p class="shop-address">{{product.shop.address|titlecase}},
-                                                {{product.shop.city.name|titlecase}}</p>
+                                                {{product.is_a_shop_listing?product.shop.name:product.personal_listing.user.name|titlecase}}
+                                            </p>
+                                            <p class="shop-address">{{product.is_a_shop_listing?product.shop.address:
+                                                product.personal_listing.address|titlecase}},
+                                                {{product.city.name|titlecase}}</p>
                                             <p class="price">Rs.
                                                 {{product.category_id==1?(product.sellable_item.retail_price|currency:'':''):((product.rentable_item.price_per_month|currency:'':'')+'
                                                 Per month')}}

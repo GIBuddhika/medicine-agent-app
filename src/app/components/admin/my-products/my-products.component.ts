@@ -28,6 +28,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     private destroy$: Subject<any> = new Subject();
 
     croppedImage: any;
+    deletedImagesList: any = [];
     errorMessage: any;
     errorMessages: string = null;
     fileName: string = null;
@@ -57,6 +58,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     showSubImagesError = null;
     url: any;
     subImagesList = [];
+    subImagesListNew = [];
     shopName: string = null;
     shopNames: any = [];
     isShopError: boolean = false;
@@ -332,24 +334,38 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         this.fileName = event.target.files[0].name;
     }
 
-    fileChangeEventSubImage(event: any) {
-        var file = event.target.files[0];
+    async fileChangeEventSubImage(event: any) {
+        var files = event.target.files;
         this.showSubImagesError = null;
-        if (this.subImagesList.filter(image => image.name == file.name).length > 0) {
-            this.showSubImagesError = "Duplicate image.";
-            return false;
-        }
-        if (this.subImagesList.length == 5) {
+
+        if ((files.length + this.subImagesListNew.length + this.subImagesList.length) > 5) {
             this.showSubImagesError = "You've reached to max images count. Please delete image(s) before upload another.";
-        } else {
-            if (file.size > 5e+6) { //5MB
-                this.showSubImagesError = "Max upload image size 5MB exceeded.";
+        }
+
+        for (let i = 0; i < files.length; i++) {
+            let file = files[i];
+            if (!this.showSubImagesError) {
+                if (this.subImagesListNew.filter(image => image.name == file.name).length > 0) {
+                    this.showSubImagesError = "Duplicate image.";
+                    return false;
+                }
+                console.log('images length');
+                console.log(this.subImagesListNew.length);
+                console.log((this.subImagesListNew.length + this.subImagesList.length));
+
+                if (file.size > 5e+6) { //5MB
+                    this.showSubImagesError = "Max upload image size 5MB exceeded.";
+                } else {
+                    console.log('testset');
+                    await this.getBase64(file).then(data => {
+                        this.subImagesListNew.push({ 'name': file.name, 'data': data })
+                    });
+                }
             } else {
-                this.getBase64(event.target.files[0]).then(data => {
-                    this.subImagesList.push({ 'name': file.name, 'data': data })
-                });
+                break;
             }
         }
+
     }
 
     imageLoaded() {
@@ -369,9 +385,18 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         });
     }
 
-    deleteSubImage(i) {
-        this.subImagesList.splice(i, 1);
-        if (this.subImagesList.length < 5) {
+    deleteSubImageNew(i) {
+        this.deletedImagesList.push(this.subImagesListNew[i].id);
+        this.subImagesListNew.splice(i, 1);
+        if ((this.subImagesListNew.length) + this.subImagesList.length < 5) {
+            this.showSubImagesError = null;
+        }
+    }
+
+    deleteSubImage(index, imageId) {
+        this.deletedImagesList.push(imageId);
+        this.subImagesList.splice(index, 1);
+        if ((this.subImagesListNew.length) + this.subImagesList.length < 5) {
             this.showSubImagesError = null;
         }
     }
@@ -398,15 +423,12 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             this.productForm.controls.address.setValidators(null);
             this.productForm.controls.phone.setValidators(null);
             this.productForm.controls.shopId.setValidators([Validators.required]);
+            this.productForm.controls.shopId.updateValueAndValidity();
         } else {
-            this.productForm.controls.shopId.setValidators(null);
-            if (this.shops.length == 0) {
-                this.productForm.controls.address.setValidators([Validators.required]);
-            }
+            this.productForm.controls.address.setValidators([Validators.required]);
             this.productForm.controls.phone.setValidators([Validators.required, Validators.pattern('\\d{2}[- ]?\\d{3}[- ]?\\d{4}')]);
         }
         this.productForm.controls.address.updateValueAndValidity();
-        this.productForm.controls.shopId.updateValueAndValidity();
         this.productForm.controls.phone.updateValueAndValidity();
     }
 
@@ -468,7 +490,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             phone: this.productForm.value.phone,
             image: this.croppedImage,
             image_name: this.fileName,
-            sub_images: this.subImagesList,
+            sub_images: this.subImagesListNew,
             is_wholesale_pricing_enabled: this.isWholesalePricingEnabled
         };
         if (this.isAShopListingProduct) {
@@ -544,32 +566,49 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         console.log(product);
         this.croppedImage = null;
         this.fileName = null;
+        this.showSubImagesError = null;
+        this.subImagesListNew = [];
+        // this.subImagesListNew = null;
         this.productId = product.id;
-        this.getCities(product.shop.city.district_id);
+        this.getCities(product.city.district_id);
         this.errorMessages = null;
         this.isCreatingProcess = false;
         this.pricingCategory = product.sellable_item ? 'sell' : 'rent';
-        this.isAShopListingProduct = product.is_a_shop_listing ? true : false;
-        this.districtName = this.districts.filter(dis => dis.id == product.shop.city.district_id)[0].name;
-        this.cityName = product.shop.city.name;
-        this.lat = parseFloat(product.shop.latitude);
-        this.lng = parseFloat(product.shop.longitude);
-        let address = product.shop.address;
-        let shopId = product.shop.id;
+        this.districtName = this.districts.filter(dis => dis.id == product.city.district_id)[0].name;
+        let shopId = null;
+        let address = null;
+        let phone = null;
+
+        if (product.is_a_shop_listing) {
+            this.isAShopListingProduct = true;
+            this.lat = parseFloat(product.shop.latitude);
+            this.lng = parseFloat(product.shop.longitude);
+            address = product.shop.address;
+            shopId = product.shop.id;
+            phone = product.shop.phone;
+        } else {
+            this.isAShopListingProduct = false;
+            this.lat = parseFloat(product.personal_listing.latitude);
+            this.lng = parseFloat(product.personal_listing.longitude);
+            address = product.personal_listing.address;
+            phone = product.personal_listing.phone;
+        }
+
+        this.cityName = product.city.name;
         let price = product.sellable_item ? product.sellable_item.retail_price : product.rentable_item.price_per_month;
         let wholesalePrice = product.sellable_item ? product.sellable_item.wholesale_price : product.rentable_item.wholesale_price;
         let wholesaleMinQuantity = product.sellable_item ? product.sellable_item.wholesale_minimum_quantity : product.rentable_item.wholesale_minimum_quantity;
         this.isWholesalePricingEnabled = wholesalePrice ? true : false;
 
-        if (product.image_id) {
-            let mainFile = product.files.find(file => file.id == product.image_id);
-            this.mainImage = this.imagePath + mainFile.location;
-        }
+        let mainFile = product.files.find(file => file.id == product.image_id);
+        this.mainImage = this.imagePath + mainFile.location;
+        this.subImagesList = product.files.filter(file => file.id != product.image_id);
+        console.log(this.subImagesList);
+
 
         this.productForm = this.formBuilder.group({
-            shopId: new FormControl(shopId, []),
-            address: new FormControl(this.shops.length == 1 ? this.shops[0].address : "", []),
-            phone: new FormControl(this.user.phone, []),
+            address: new FormControl(address, []),
+            phone: new FormControl(phone, []),
             name: new FormControl(product.name, [Validators.required]),
             description: new FormControl(product.description, []),
             price: new FormControl(price, [Validators.required]),
@@ -577,6 +616,12 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             wholesale_price: new FormControl(wholesalePrice, this.isWholesalePricingEnabled ? [Validators.required] : []),
             min_quantity: new FormControl(wholesaleMinQuantity, this.isWholesalePricingEnabled ? [Validators.required] : []),
         });
+
+        if (this.isAShopListingProduct) {
+            this.productForm.addControl('shopId', new FormControl(shopId, []));
+            this.productForm.controls.shopId.updateValueAndValidity();
+        }
+
         this.onChangeListingMethod();
         this.modalRef = this.modalService.open(content, { windowClass: 'custom-class' });
         this.productForm.valueChanges
@@ -589,6 +634,12 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     }
 
     updateProduct() {
+
+        // console.log(this.deletedImagesList);
+        // console.log(this.subImagesListNew);
+        // return false;
+
+
         this.isCityError = false;
         this.isDistrictError = false;
         this.isSubmitted = true;
@@ -630,7 +681,8 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             price: this.productForm.value.price,
             image: this.croppedImage,
             image_name: this.fileName,
-            sub_images: this.subImagesList,
+            sub_images: this.subImagesListNew,
+            deleted_sub_images: this.deletedImagesList,
             is_wholesale_pricing_enabled: this.isWholesalePricingEnabled
         };
         if (this.isAShopListingProduct) {

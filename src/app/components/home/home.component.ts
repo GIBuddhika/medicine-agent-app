@@ -161,7 +161,10 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
 
         this.products.forEach(product => {
+            console.log(product);
+
             if (product.image_id) {
+                // product.image_url = this.imagePath + product.files.find(file => file.id == product.image_id).location;
                 product.image_url = this.imagePath + product.files.find(file => file.id == product.image_id).location;
             } else if (product.files.length > 0) {
                 product.image_url = this.imagePath + product.files[0].location;
@@ -231,9 +234,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
 
         this.manageProperties(products);
-        setTimeout(() => {
-            this.isLoading = false;
-        }, 2000);
+        this.isLoading = false;
     }
 
     searchDistricts = (text$: Observable<string>) => {
