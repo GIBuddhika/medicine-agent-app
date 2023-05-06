@@ -23,38 +23,21 @@
                                     </p>
                                     <p class="price">{{product.priceInText}}</p>
                                 </div>
-                                <div class="col-md-3">
-                                    <span>Quantity</span>
-                                    <div class="quantity-selector mb-10">
-                                        <div class="value-button" id="decrease" (click)="decreaseValue(product)"
-                                            value="Decrease Value">-
-                                        </div>
-                                        <input type="number" min="1" step="1" id="number"
-                                            max="{{product.data.quantity}}" [(ngModel)]="product.quantity" readonly />
-                                        <div class="value-button" id="increase" (click)="increaseValue(product)"
-                                            value="Increase Value">+
-                                        </div>
-                                    </div>
+                                <div class="col-md-4">
+                                    <p>Quantity: {{product.quantity}}</p>
                                     <div *ngIf="product.data.rentable_item">
-                                        <span>Duration(months)</span>
-                                        <div class="quantity-selector" *ngIf="product.data.rentable_item">
-                                            <div class="value-button" id="decrease" (click)="decreaseValueDuration()"
-                                                value="Decrease Value">-
-                                            </div>
-                                            <input type="number" min="1" step="1" id="number" max="24"
-                                                [(ngModel)]="product.duration" />
-                                            <div class="value-button" id="increase" (click)="increaseValueDuration()"
-                                                value="Increase Value">+
-                                            </div>
-                                        </div>
+                                        <p>Duration: {{product.duration}} month(s)</p>
                                     </div>
-                                </div>
-                                <div class="col-md-2" style="padding-bottom: 50px;">
                                     <p class="">Sub Total:</p>
                                     <p class="price">{{product.subTotal| currency:"Rs. "}}</p>
+                                </div>
+                                <div class="col-md-1" style="padding-bottom: 50px;">
                                     <span title="Delete" class="text text-danger pointer delete"
                                         (click)="removeProduct(product)">
                                         <i class="fa fa-2x fa-trash-o"></i></span>
+                                    <span title="Edit" class="text text-warning pointer edit"
+                                        (click)="editProduct(product)">
+                                        <i class="fa fa-2x fa-pencil-square-o"></i></span>
                                 </div>
                             </div>
                             <hr *ngIf="i+1 != products.length">

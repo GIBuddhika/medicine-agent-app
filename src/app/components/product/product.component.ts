@@ -1,10 +1,6 @@
 import { Component, OnInit, OnDestroy, ViewChild } from '@angular/core';
-import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
-import { AuthService } from '../../services/auth/auth.service';
-import { Subject } from 'rxjs';
 import { take, finalize } from 'rxjs/operators';
-import { UpdateMainViewSharedService } from '../../shared-services/update-main-view.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 import { AgmMap, AgmInfoWindow } from '@agm/core';
 
@@ -19,7 +15,7 @@ import { updateCartCountService } from 'app/shared-services/update-cart-count.se
     templateUrl: './product.component.html',
     styleUrls: ['./product.component.scss']
 })
-export class ProductComponent implements OnInit, OnDestroy {
+export class ProductComponent implements OnInit {
 
     imagePath: string = "";
     isLoading: boolean = true;
@@ -35,7 +31,6 @@ export class ProductComponent implements OnInit, OnDestroy {
     cart = localStorage.getItem("cart") ? JSON.parse(localStorage.getItem("cart")) : [];
     images = [];
 
-
     @ViewChild(AgmMap, { static: false }) map: AgmMap;
     lat: number;
     lng: number;
@@ -50,20 +45,20 @@ export class ProductComponent implements OnInit, OnDestroy {
         private router: Router,
         private currencyPipe: CurrencyPipe,
         private updateCartCountService: updateCartCountService,
+        private activeRoute: ActivatedRoute
     ) {
         this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
     }
 
     ngOnInit() {
-        let currentUrl = this.router.url;
-        let urlArray = currentUrl.split('/');
-        this.slug = urlArray[2];
+        this.slug = this.activeRoute.snapshot.paramMap.get('slug');
+        this.activeRoute.queryParams
+            .subscribe(params => {
+                this.quantity = params.q ? params.q : 1;
+                this.duration = params.d ? params.d : 1;
+            });
         this.getMainData();
         console.log(this.cart);
-    }
-
-    ngOnDestroy(): void {
-
     }
 
     getMainData() {

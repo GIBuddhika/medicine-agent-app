@@ -66,6 +66,12 @@
     span.delete {
         position: absolute;
         right: 0;
-        bottom: 0;
+        top: 45px;
+    }
+
+    span.edit {
+        position: absolute;
+        right: 0;
+        top: 0;
     }
 }

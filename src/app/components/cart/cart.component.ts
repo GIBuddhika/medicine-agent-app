@@ -1,4 +1,5 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Router } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { OrdersService } from 'app/services/orders.service';
 import { ProductsService } from 'app/services/products.service';
@@ -32,6 +33,7 @@ export class CartComponent implements OnInit {
     private productsService: ProductsService,
     private updateCartCountService: updateCartCountService,
     private ordersService: OrdersService,
+    private router: Router,
   ) {
     this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
     if (localStorage.getItem('token')) {
@@ -66,32 +68,18 @@ export class CartComponent implements OnInit {
 
   async getProducts() {
     this.products = localStorage.getItem("cart") ? JSON.parse(localStorage.getItem("cart")) : [];
-
     let productsSubscription = [];
     this.products.forEach(cartProduct => {
       console.log(cartProduct);
       productsSubscription.push(this.productsService.get(cartProduct.slug).toPromise());
     });
     let fetchedProducts = await Promise.all(productsSubscription);
-    console.log(this.products);
-
-
     this.products.forEach(product => {
       product.data = fetchedProducts.find(productOriginal => productOriginal.id == product.id);
       let priceDetails = this.setProductPriceData(product);
       product.priceInText = priceDetails.priceInText;
       product.price = priceDetails.price;
     });
-
-    console.log(this.products);
-
-
-
-
-    // this.products.forEach(cartProduct => {
-    //   cartProduct.cart_quantity = products.find(product => product.id == cartProduct.id).quantity;
-    //   cartProduct.price = this.setProductPriceText(cartProduct);
-    // });
     this.calculateCartPrice();
     this.isLoaded = true;
   }
@@ -117,26 +105,6 @@ export class CartComponent implements OnInit {
     };
   }
 
-  increaseValue(product) {
-    console.log(product);
-
-    if (product.quantity > product.cart_quantity) {
-      product.cart_quantity++;
-    }
-    localStorage.setItem("cart", JSON.stringify(this.products));
-    this.calculateCartPrice();
-  }
-
-  decreaseValue(product) {
-    if (product.quantity == 1) {
-      product.cart_quantity = 1;
-    } else {
-      product.cart_quantity--;
-      localStorage.setItem("cart", JSON.stringify(this.products));
-      this.calculateCartPrice();
-    }
-  }
-
   calculateCartPrice() {
     this.total = 0;
     console.log(this.products);
@@ -160,7 +128,6 @@ export class CartComponent implements OnInit {
   }
 
   removeProduct(product) {
-
     let cartWithoutCurrentProduct = this.products.filter(function (item) {
       return item.time !== product.time;
     });
@@ -178,6 +145,10 @@ export class CartComponent implements OnInit {
   //   }
   // });
 
+
+  editProduct(product) {
+    this.router.navigateByUrl(`/products/${product.slug}?q=${product.quantity}${product.duration ? ('&d=' + product.duration) : ''}`);
+  }
 
   openPaymentModal(content) {
     this.modalRef = this.modalService.open(content, { windowClass: 'custom-class' });
@@ -205,9 +176,6 @@ export class CartComponent implements OnInit {
 
       }
     });
-
-
-
   };
 
 }
