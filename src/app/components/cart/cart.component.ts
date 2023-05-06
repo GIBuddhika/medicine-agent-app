@@ -77,8 +77,10 @@ export class CartComponent implements OnInit {
 
 
     this.products.forEach(product => {
-      product.data = fetchedProducts.find(productOriginal => productOriginal.id == product.id)
-      product.price = this.setProductPriceText(product);
+      product.data = fetchedProducts.find(productOriginal => productOriginal.id == product.id);
+      let priceDetails = this.setProductPriceData(product);
+      product.priceInText = priceDetails.priceInText;
+      product.price = priceDetails.price;
     });
 
     console.log(this.products);
@@ -94,19 +96,25 @@ export class CartComponent implements OnInit {
     this.isLoaded = true;
   }
 
-  setProductPriceText(product) {
+  setProductPriceData(product) {
     let price;
+    let priceInText;
     if (product.data.sellable_item) {
       if (product.data.sellable_item.wholesale_minimum_quantity
         && product.data.sellable_item.wholesale_minimum_quantity <= product.quantity) {
-        price = "Rs. " + product.data.sellable_item.wholesale_price;
+        price = product.data.sellable_item.wholesale_price;
       } else {
-        price = "Rs. " + product.data.sellable_item.retail_price;
+        price = product.data.sellable_item.retail_price;
       }
+      priceInText = "Rs. " + price;
     } else {
-      price = "Rs. " + product.data.rentable_item.price_per_month + ' Per month';
+      price = product.data.rentable_item.price_per_month;
+      priceInText = "Rs. " + price + ' Per month';
     }
-    return price;
+    return {
+      price: price,
+      priceInText: priceInText
+    };
   }
 
   increaseValue(product) {
@@ -146,8 +154,8 @@ export class CartComponent implements OnInit {
       } else {
         price = product.data.rentable_item.price_per_month * product.duration;
       }
-      product.price = this.setProductPriceText(product);
-      this.total += parseFloat(price) * parseFloat(product.quantity);
+      product.subTotal = parseFloat(price) * parseFloat(product.quantity);
+      this.total += product.subTotal;
     });
   }
 

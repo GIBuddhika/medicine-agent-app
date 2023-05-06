@@ -77,8 +77,7 @@ export class ProductComponent implements OnInit, OnDestroy {
             }))
             .subscribe(response => {
                 this.product = response;
-                console.log(this.product);
-                this.price = "Rs. " + (this.product.category_id == 1 ? this.currencyPipe.transform(this.product.sellable_item.retail_price, '', '') : (this.currencyPipe.transform(this.product.rentable_item.price_per_month, '', '')));
+                this.price = this.getProductPrice(this.product);
                 this.shopName = this.product.is_a_shop_listing == 1 ? ("(" + this.product.shop.name + ")") : "";
                 this.wholesaleMinimumQuantity = Math.trunc(this.product.sellable_item?.wholesale_minimum_quantity);
                 this.lat = parseFloat(this.product.shop.latitude);
@@ -86,6 +85,12 @@ export class ProductComponent implements OnInit, OnDestroy {
                 this.images = this.product.files.length > 0 ? this.product.files : [this.product.shop.file];
                 this.calculateRemainingQuantity();
             });
+    }
+
+    getProductPrice(product) {
+        return (product.category_id == 1
+            ? this.currencyPipe.transform(product.sellable_item.retail_price, '', '')
+            : (this.currencyPipe.transform(product.rentable_item.price_per_month, '', '')));
     }
 
     calculateRemainingQuantity() {

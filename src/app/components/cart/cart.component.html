@@ -15,20 +15,15 @@
                             width: 100%;height: 100px;">
                                     </div>
                                 </div>
-                                <!-- <div id="card-element"></div> -->
-
                                 <div class="col-md-4 cursor-pointer" [routerLink]="['/products',product.slug]">
                                     <h5><b>{{product.data.name | titlecase}}</b></h5>
-                                    <p>{{product.data.description}}</p>
                                     <p class="color-grey">
                                         <i _ngcontent-uob-c127="" class="nc-icon nc-shop"></i>&nbsp;
                                         {{product.data.is_a_shop_listing?product.data.shop.name:product.data.user.name}}
                                     </p>
+                                    <p class="price">{{product.priceInText}}</p>
                                 </div>
-                                <div class="col-md-2">
-                                    <p class="price">{{product.price}}</p>
-                                </div>
-                                <div class="col-md-3" style="padding-bottom: 50px;">
+                                <div class="col-md-3">
                                     <span>Quantity</span>
                                     <div class="quantity-selector mb-10">
                                         <div class="value-button" id="decrease" (click)="decreaseValue(product)"
@@ -53,6 +48,10 @@
                                             </div>
                                         </div>
                                     </div>
+                                </div>
+                                <div class="col-md-2" style="padding-bottom: 50px;">
+                                    <p class="">Sub Total:</p>
+                                    <p class="price">{{product.subTotal| currency:"Rs. "}}</p>
                                     <span title="Delete" class="text text-danger pointer delete"
                                         (click)="removeProduct(product)">
                                         <i class="fa fa-2x fa-trash-o"></i></span>

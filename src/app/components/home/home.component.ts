@@ -132,8 +132,14 @@ export class HomeComponent implements OnInit, OnDestroy {
                 let city = this.getAddress(res, "administrative_area_level_3");
                 let district = this.getAddress(res, "administrative_area_level_2");
 
-                this.districtName = district;
-                let districtObj = this.districts.find(dis => dis.name == district)
+                let districtObj;
+                if (district) {
+                    districtObj = this.districts.find(dis => dis.name == district);
+                    this.districtName = district;
+                } else {
+                    districtObj = this.districts.find(dis => dis.name == 'Colombo');
+                    this.districtName = 'Colombo';
+                }
 
                 await this.getCitiesByDistrict(districtObj.id);
                 let townName = this.cityNames.find(cityItem => cityItem == town);
