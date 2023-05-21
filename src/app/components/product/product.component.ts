@@ -30,6 +30,9 @@ export class ProductComponent implements OnInit {
     wholesaleMinimumQuantity: number;
     cart = localStorage.getItem("cart") ? JSON.parse(localStorage.getItem("cart")) : [];
     images = [];
+    isEditProduct: boolean = false;
+    editItemQuantity: number = 0;
+    editItemIndex: number;
 
     @ViewChild(AgmMap, { static: false }) map: AgmMap;
     lat: number;
@@ -54,8 +57,12 @@ export class ProductComponent implements OnInit {
         this.slug = this.activeRoute.snapshot.paramMap.get('slug');
         this.activeRoute.queryParams
             .subscribe(params => {
-                this.quantity = params.q ? params.q : 1;
-                this.duration = params.d ? params.d : 1;
+                this.duration = params.d ? parseInt(params.d) : 1;
+                this.editItemIndex = params.i ? parseInt(params.i) : null;
+                if (params.q) {
+                    this.isEditProduct = true;
+                    this.quantity = this.editItemQuantity = parseInt(params.q);
+                }
             });
         this.getMainData();
         console.log(this.cart);
@@ -120,8 +127,6 @@ export class ProductComponent implements OnInit {
         for (i = 0; i < dots.length; i++) {
             dots[i].className = dots[i].className.replace(" active", "");
         }
-        console.log(slides);
-        console.log(this.slideIndex);
 
         slides[this.slideIndex - 1].setAttribute("style", "display:block;");
         dots[this.slideIndex - 1].className += " active";
@@ -157,10 +162,12 @@ export class ProductComponent implements OnInit {
     }
 
     addToCart() {
-        if (this.quantity > this.product.quantity) {
+        if (this.quantity > (this.product.quantity + this.editItemQuantity)) {
             Swal.fire(
                 'No enough items available.',
-                'Please re-enter the quantity or contact the shop owner for more details.',
+                this.product.sellable_item
+                    ? 'Please re-enter the quantity or contact the shop owner for more details.'
+                    : 'Please contact the shop owner for more details.',
                 'error'
             );
             return false;
@@ -179,16 +186,20 @@ export class ProductComponent implements OnInit {
             'time': Date.now(),
             'id': this.product.id,
             'slug': this.product.slug,
-            'quantity': this.quantity,
+            'quantity': this.product.rentable_item ? 1 : (this.quantity + (this.isEditProduct ? 0 : this.quantityAlreadyInCart)),
             'duration': null,
         };
-        let product = this.product;
 
+        let product = this.product;
         if (product.rentable_item) {
             item.duration = this.duration;
-            this.cart.push(item);
+            if (this.isEditProduct) {
+                this.cart[this.editItemIndex] = item;
+            } else {
+                this.cart.push(item);
+            }
             localStorage.setItem("cart", JSON.stringify(this.cart));
-        } else {
+        } else { //sellable item
             let cartWithoutCurrentProduct = this.cart.filter(function (item) {
                 return item.id !== product.id
             });

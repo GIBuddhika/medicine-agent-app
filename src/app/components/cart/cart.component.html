@@ -7,7 +7,7 @@
                     <div class="card-normal no-decorations">
                         <div *ngFor="let product of products; let i = index">
                             <div class="row product">
-                                <div class="col-md-3 cursor-pointer" [routerLink]="['/products',product.slug]">
+                                <div class="col-md-3 cursor-pointer" (click)="editProduct(product,i)">
                                     <div style="background-image: url('{{imagePath + product.data.files[0].location}}');
                             background-repeat: no-repeat;
                             background-position: center;
@@ -15,7 +15,7 @@
                             width: 100%;height: 100px;">
                                     </div>
                                 </div>
-                                <div class="col-md-4 cursor-pointer" [routerLink]="['/products',product.slug]">
+                                <div class="col-md-4 cursor-pointer" (click)="editProduct(product,i)">
                                     <h5><b>{{product.data.name | titlecase}}</b></h5>
                                     <p class="color-grey">
                                         <i _ngcontent-uob-c127="" class="nc-icon nc-shop"></i>&nbsp;
@@ -36,7 +36,7 @@
                                         (click)="removeProduct(product)">
                                         <i class="fa fa-2x fa-trash-o"></i></span>
                                     <span title="Edit" class="text text-warning pointer edit"
-                                        (click)="editProduct(product)">
+                                        (click)="editProduct(product,i)">
                                         <i class="fa fa-2x fa-pencil-square-o"></i></span>
                                 </div>
                             </div>

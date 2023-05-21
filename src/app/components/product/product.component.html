@@ -54,7 +54,7 @@
                                 {{wholesaleMinimumQuantity}})</p>
 
                         </div>
-                        <div class="quantity-selector">
+                        <div class="quantity-selector" *ngIf="product.sellable_item">
                             Quantity
                             &nbsp;&nbsp;&nbsp;
                             <div class="value-button" id="decrease" (click)="decreaseValue()" value="Decrease Value">-
@@ -63,8 +63,8 @@
                                 [(ngModel)]="quantity" />
                             <div class="value-button" id="increase" (click)="increaseValue()" value="Increase Value">+
                             </div>
+                            <br>
                         </div>
-                        <br>
                         <div class="quantity-selector" *ngIf="product.rentable_item">
                             Duration(months)
                             &nbsp;&nbsp;&nbsp;
@@ -78,12 +78,12 @@
                         </div>
                         <br>
                         <div class="flex float-right">
-                            <a *ngIf="quantityAlreadyInCart" href="/cart">
+                            <a *ngIf="quantityAlreadyInCart && !isEditProduct" href="/cart">
                                 <u>{{quantityAlreadyInCart}} items already in the cart.</u>
                             </a>
                             <button type="button" class="btn btn-outline-warning btn-sm float-right ml-10"
-                                (click)="addToCart()">
-                                Add to cart
+                                (click)="addToCart()" [disabled]="quantity==0">
+                                {{isEditProduct? 'Update cart':'Add to cart'}}
                             </button>
                         </div>
                     </div>

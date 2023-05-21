@@ -136,18 +136,8 @@ export class CartComponent implements OnInit {
     this.updateCartCountService.updateCartCount();
   }
 
-  //   card.addEventListener('change',(event)=>{
-  //   var displayError = document.getElementById('card-errors');
-  //   if (event.error) {
-  //     displayError.textContent = event.error.message;
-  //   } else {
-  //     displayError.textContent = '';
-  //   }
-  // });
-
-
-  editProduct(product) {
-    this.router.navigateByUrl(`/products/${product.slug}?q=${product.quantity}${product.duration ? ('&d=' + product.duration) : ''}`);
+  editProduct(product, i) {
+    this.router.navigateByUrl(`/products/${product.slug}?q=${product.quantity}${product.duration ? ('&d=' + product.duration + '&i=' + i) : ''}`);
   }
 
   openPaymentModal(content) {
@@ -155,27 +145,23 @@ export class CartComponent implements OnInit {
     this.card.mount('#card-element');
   }
 
-  pay() {
+  async pay() {
     this.isProcessing = true;
-    this.stripe.createToken(this.card).then((result) => {
-      console.log(result);
 
-      if (result.error) {
-        // Inform the user if there was an error
-        var errorElement = document.getElementById('card-errors');
-        errorElement.textContent = result.error.message;
-      } else {
-        // Send the token to your server
-        // stripeTokenHandler(result.token);
-        console.log(result);
-        //pay
-        let order = this.ordersService.create({
-          'stripe_token': result.token.id,
-        });
-        console.log(order);
+    let stripeResult = await this.stripe.createToken(this.card);
+    if (stripeResult.error) {
+      // Inform the user if there was an error
+      var errorElement = document.getElementById('card-errors');
+      errorElement.textContent = stripeResult.error.message;
+      this.isProcessing = false;
+      return;
+    }
 
-      }
+    let order = await this.ordersService.create({
+      'stripe_token': stripeResult.token.id,
     });
+    console.log(order);
+
   };
 
 }
