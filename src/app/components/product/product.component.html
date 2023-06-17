@@ -88,15 +88,15 @@
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <div class="flex mb-10">
+                        <div class="flex mb-10" *ngIf="product.is_a_shop_listing">
                             <i _ngcontent-uob-c127="" class="nc-icon nc-shop"></i>
                             <div class="ml-10">
                                 <h4 class="m-0"><b class="cursor-pointer"
                                         [routerLink]="['/shops',product.shop.slug]">{{product.is_a_shop_listing?product.shop.name:product.user.name}}</b>
                                 </h4>
                             </div>
+                            <hr>
                         </div>
-                        <hr>
                         <div class="flex mb-10">
                             <i _ngcontent-uob-c127="" class="nc-icon nc-mobile"></i>
                             <div class="ml-10">
@@ -122,7 +122,8 @@
                         <div class="flex mb-10">
                             <i _ngcontent-uob-c127="" class="nc-icon nc-pin-3"></i>
                             <div class="ml-10">
-                                <p class="m-0">{{product.shop.address + ', ' + product.shop.city.name}}</p>
+                                <p class="m-0" *ngIf="product.is_a_shop_listing">{{product.shop.address + ', ' + product.shop.city.name}}</p>
+                                <p class="m-0" *ngIf="!product.is_a_shop_listing">{{product.personal_listing.address + ', ' + product.city.name}}</p>
                             </div>
                         </div>
                         <a href="https://www.google.com/maps/dir/{{lat}},{{lng}}" target="_blank">

@@ -5,6 +5,7 @@ import { OrdersService } from 'app/services/orders.service';
 import { ProductsService } from 'app/services/products.service';
 import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service';
 import { updateCartCountService } from 'app/shared-services/update-cart-count.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-cart',
@@ -148,7 +149,20 @@ export class CartComponent implements OnInit {
   async pay() {
     this.isProcessing = true;
 
-    let stripeResult = await this.stripe.createToken(this.card);
+    this.card.name = "new name";
+    this.card.address = "new address";
+
+    let stripeResult = await this.stripe.createToken(this.card,
+      {
+        name: 'ishan',
+        address: {
+          'line1': '510 Townsend St',
+          'postal_code': '98140',
+          'city': 'San Francisco',
+          'state': 'CA',
+          'country': 'US',
+        },
+      });
     if (stripeResult.error) {
       // Inform the user if there was an error
       var errorElement = document.getElementById('card-errors');
@@ -157,11 +171,37 @@ export class CartComponent implements OnInit {
       return;
     }
 
-    let order = await this.ordersService.create({
-      'stripe_token': stripeResult.token.id,
-    });
-    console.log(order);
+    try {
+      let cartData = this.products.map(product => {
+        return {
+          item_id: product.id,
+          quantity: product.quantity,
+          duration: product.duration ?? null
+        }
+      })
 
+      let order = await this.ordersService.create({
+        'stripe_token': stripeResult.token.id,
+        'data': cartData
+      }).toPromise();
+
+      this.isProcessing = false;
+      this.modalRef.close()
+
+      Swal.fire(
+        'Order success',
+        'Your order has been placed successfully. Collect your items in the stores.',
+        'success'
+      );
+
+    } catch (error) {
+      this.isProcessing = false;
+      Swal.fire(
+        'Something went wrong',
+        'Please contact a support agent via 071-0125-874',
+        'error'
+      );
+    }
   };
 
 }

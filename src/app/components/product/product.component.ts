@@ -82,8 +82,13 @@ export class ProductComponent implements OnInit {
                 this.price = this.getProductPrice(this.product);
                 this.shopName = this.product.is_a_shop_listing == 1 ? ("(" + this.product.shop.name + ")") : "";
                 this.wholesaleMinimumQuantity = Math.trunc(this.product.sellable_item?.wholesale_minimum_quantity);
-                this.lat = parseFloat(this.product.shop.latitude);
-                this.lng = parseFloat(this.product.shop.longitude);
+                if (this.product.is_a_shop_listing) {
+                    this.lat = parseFloat(this.product.shop.latitude);
+                    this.lng = parseFloat(this.product.shop.longitude);
+                } else {
+                    this.lat = parseFloat(this.product.personal_listing.latitude);
+                    this.lng = parseFloat(this.product.personal_listing.longitude);
+                }
                 this.images = this.product.files.length > 0 ? this.product.files : [this.product.shop.file];
                 this.calculateRemainingQuantity();
             });

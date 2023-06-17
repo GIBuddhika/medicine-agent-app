@@ -82,8 +82,8 @@ export class LoginComponent implements OnInit, OnDestroy {
                 this.submitting = false;
             }))
             .subscribe(response => {
-                localStorage.setItem("token", response["token"]);
-                localStorage.setItem("userId", response["user_id"]);
+                localStorage.setItem("token", response["authSession"]["token"]);
+                localStorage.setItem("userId", response["authSession"]["user_id"]);
                 localStorage.setItem("user_role", UserRolesConstants.CUSTOMER.toString());
                 localStorage.setItem("first_time_login", "true");
                 window.location.reload();
