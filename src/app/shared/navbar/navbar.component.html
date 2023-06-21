@@ -30,6 +30,13 @@
                         <i class="nc-icon nc-globe"></i> Sell Now</a>
                 </li>
 
+                <!-- customer only pages -->
+                <li class="nav-item" *ngIf="isLoggedInUser && isCustomer">
+                    <a routerLink="/my-orders" class="nav-link">
+                        <i class="nc-icon nc-app"></i> My Orders</a>
+                </li>
+                <!-- end - customer only pages  -->
+
                 <!-- admin only pages -->
                 <li class="nav-item" *ngIf="isLoggedInUser && (isAdmin || isShopAdmin)">
                     <a routerLink="/admin/shops" class="nav-link">

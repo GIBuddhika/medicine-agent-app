@@ -24,6 +24,7 @@ import { AdminPasswordResetRequestComponent } from './components/Auth/admin-pass
 import { AdminResetPasswordComponent } from './components/Auth/admin-reset-password/admin-reset-password.component';
 import { ShopAdminsComponent } from './components/admin/shop-admins/shop-admins.component';
 import { UserRolesConstants } from './constants/user-roles';
+import { MyOrdersComponent } from './components/my-orders/my-orders.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -63,12 +64,13 @@ const routes: Routes = [
   { path: 'products/:slug', component: ProductComponent },
   { path: 'shops/:slug', component: ProductComponent },
   { path: 'cart', component: CartComponent },
+  { path: 'my-orders', component: MyOrdersComponent },
 
   { path: 'home', component: HomeComponent },
   { path: 'user-profile', component: ProfileComponent, canActivate: [CanActivateRouteGuard] },
 
   { path: 'landing', component: LandingComponent },
-  { path: 'nucleoicons', component: NucleoiconsComponent }
+  { path: 'icons', component: NucleoiconsComponent }
 ];
 
 @NgModule({

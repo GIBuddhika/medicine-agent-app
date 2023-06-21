@@ -34,6 +34,7 @@ import { ResetPasswordComponent } from './components/Auth/reset-password/reset-p
 import { AdminPasswordResetRequestComponent } from './components/Auth/admin-password-reset-request/admin-password-reset-request.component';
 import { AdminResetPasswordComponent } from './components/Auth/admin-reset-password/admin-reset-password.component';
 import { ShopAdminsComponent } from './components/admin/shop-admins/shop-admins.component';
+import { MyOrdersComponent } from './components/my-orders/my-orders.component';
 
 const appInitializerFn = (envLoader: RuntimeEnvLoaderService) => {
   return () => {
@@ -66,6 +67,7 @@ const DIRECTIVES = [
     AdminPasswordResetRequestComponent,
     AdminResetPasswordComponent,
     ShopAdminsComponent,
+    MyOrdersComponent,
   ],
   imports: [
     BrowserModule,

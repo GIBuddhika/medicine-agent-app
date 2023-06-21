@@ -1,0 +1,96 @@
+<div class="wrapper">
+    <div class="container cart">
+        <h3>Yet to be collected</h3>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card-normal no-decorations" *ngFor="let shop of unCollectedOrderItems.shops">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4><b>{{shop.name}}</b></h4>
+                        </div>
+                        <div class="col-md-6 text-right">
+                            <a href="tel:{{shop.phone}}">{{shop.phone}}</a>
+                            <p>{{shop.address}}</p>
+                            <a href="https://www.google.com/maps/dir/{{shop.latitude}},{{shop.longitude}}"
+                                target="_blank">
+                                <button type="button" class="btn btn-outline-info btn-sm">
+                                    Open item location in Google map
+                                </button>
+                            </a>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="card-normal no-decorations" *ngFor="let orderItem of shop.orderItems">
+                        <div class="row product">
+                            <div class="col-md-3">
+                                <div style="background-image: url('{{imagePath + orderItem.location}}');
+                            background-repeat: no-repeat;
+                            background-position: center;
+                            background-size: cover;
+                            width: 100%;height: 100px;">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <p>Quantity: {{orderItem.quantity}}</p>
+                                <p *ngIf="orderItem.duration">Duration: {{orderItem.duration}} month(s)</p>
+                                <p class="price">{{orderItem.quantity * orderItem.price| currency:"Rs. "}}</p>
+                            </div>
+                            <div class="col-md-4">
+                                Order date: {{orderItem.order_created_at}}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <br>
+
+                <div class="card-normal no-decorations" *ngFor="let user of unCollectedOrderItems.users">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h4><b>{{user.name}}</b></h4>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="card-normal no-decorations" *ngFor="let orderItem of user.orderItems">
+                        <div class="row product">
+                            <div class="col-md-3">
+                                <div style="background-image: url('{{imagePath + orderItem.location}}');
+                            background-repeat: no-repeat;
+                            background-position: center;
+                            background-size: cover;
+                            width: 100%;height: 120px;">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <p>Quantity: {{orderItem.quantity}}</p>
+                                <p *ngIf="orderItem.duration">Duration: {{orderItem.duration}} month(s)</p>
+                                <p class="price">{{orderItem.quantity * orderItem.price| currency:"Rs. "}}</p>
+                            </div>
+                            <div class="col-md-5">
+                                Order date: {{orderItem.order_created_at}}
+                                <br>
+                                <a href="tel:{{orderItem.phone}}">{{orderItem.phone}}</a>
+                                <p>{{orderItem.address}}</p>
+                                <a href="https://www.google.com/maps/dir/{{orderItem.latitude}},{{orderItem.longitude}}"
+                                    target="_blank">
+                                    <button type="button" class="btn btn-outline-info btn-sm">
+                                        Open item location in Google map
+                                    </button>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        <br>
+        <h3>Previous orders</h3>
+        <div class="row">
+            <div class="col-md-12">
+                <div class="card-normal no-decorations">
+                    11
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
