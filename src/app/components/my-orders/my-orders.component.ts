@@ -16,6 +16,12 @@ export class MyOrdersComponent implements OnInit {
     users: [],
     shops: []
   };
+  collectedOrderItems = {
+    collectedPersonalOrderItems: [],
+    colletedShopOrderItems: [],
+    users: [],
+    shops: []
+  };
 
   constructor(
     private envLoader: RuntimeEnvLoaderService,
@@ -29,7 +35,7 @@ export class MyOrdersComponent implements OnInit {
   }
 
   async getMyOrders() {
-    this.unCollectedOrderItems = await this.myOrdersService.getMyOrders().toPromise();
+    this.unCollectedOrderItems = await this.myOrdersService.getMyUnCollectedOrders().toPromise();
 
     Object.keys(this.unCollectedOrderItems.unCollectedPersonalOrderItems).forEach(key => {
       let user = this.unCollectedOrderItems.users.find(user => user.id == key);
@@ -38,6 +44,17 @@ export class MyOrdersComponent implements OnInit {
     Object.keys(this.unCollectedOrderItems.unColletedShopOrderItems).forEach(key => {
       let shop = this.unCollectedOrderItems.shops.find(shop => shop.id == key);
       shop.orderItems = this.unCollectedOrderItems.unColletedShopOrderItems[key];
+    });
+
+    this.collectedOrderItems = await this.myOrdersService.getMyCollectedOrders().toPromise();
+
+    Object.keys(this.collectedOrderItems.collectedPersonalOrderItems).forEach(key => {
+      let user = this.collectedOrderItems.users.find(user => user.id == key);
+      user.orderItems = this.collectedOrderItems.collectedPersonalOrderItems[key];
+    });
+    Object.keys(this.collectedOrderItems.colletedShopOrderItems).forEach(key => {
+      let shop = this.collectedOrderItems.shops.find(shop => shop.id == key);
+      shop.orderItems = this.collectedOrderItems.colletedShopOrderItems[key];
     });
   }
 

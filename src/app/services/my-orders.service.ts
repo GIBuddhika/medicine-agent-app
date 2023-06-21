@@ -33,10 +33,24 @@ export class MyOrdersService {
     this.userId = localStorage.getItem("userId");
   }
 
-  getMyOrders(): Observable<any> {
+  getMyUnCollectedOrders(): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
       .get<any>(this.basePath + "/orders/un-collected", {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
+
+  getMyCollectedOrders(): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    return this.http
+      .get<any>(this.basePath + "/orders/collected", {
         headers
       })
       .pipe(
