@@ -421,15 +421,12 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     onChangeListingMethod() {
         if (this.isAShopListingProduct === true) {
             this.productForm.controls.address.setValidators(null);
-            this.productForm.controls.phone.setValidators(null);
             this.productForm.controls.shopId.setValidators([Validators.required]);
             this.productForm.controls.shopId.updateValueAndValidity();
         } else {
             this.productForm.controls.address.setValidators([Validators.required]);
-            this.productForm.controls.phone.setValidators([Validators.required, Validators.pattern('\\d{2}[- ]?\\d{3}[- ]?\\d{4}')]);
         }
         this.productForm.controls.address.updateValueAndValidity();
-        this.productForm.controls.phone.updateValueAndValidity();
     }
 
     onChangeWholesaleAvailability() {
