@@ -17,6 +17,7 @@ import { UsersService } from '../../../services/users.service';
 import { ValidationMessagesHelper } from '../../../helpers/validation-messages.helper';
 import { LoginComponent } from 'app/components/Auth/login/login.component';
 import { PhoneValidator } from 'app/validators/phone.validator';
+import { UserRolesConstants } from 'app/constants/user-roles';
 
 @Component({
     selector: 'app-shops',
@@ -38,6 +39,7 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
     isCreatingProcess: boolean;
     isDistrictError: boolean = false;
     isLoading: boolean = true;
+    isShopAdmin: boolean = false;
     isSubmitted: boolean = false;
     isSubmitting: boolean = false;
     isUpdating: boolean = false;
@@ -86,6 +88,7 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
         this.districts.forEach(district => {
             this.districtNames.push(district.name);
         });
+        this.isShopAdmin = localStorage.getItem('user_role') == UserRolesConstants.SHOP_ADMIN.toString();
     }
 
     ngOnInit() {
@@ -122,11 +125,13 @@ export class MyShopsComponent implements OnInit, OnDestroy, AfterViewInit {
                 this.phone = response.phone;
             });
 
-        this.usersService.getShopAdmins()
-            .pipe(take(1))
-            .subscribe(response => {
-                this.shopAdminsOriginal = response;
-            });
+        if (!this.isShopAdmin) {
+            this.usersService.getShopAdmins()
+                .pipe(take(1))
+                .subscribe(response => {
+                    this.shopAdminsOriginal = response;
+                });
+        }
     }
 
     openCreateModal(content) {

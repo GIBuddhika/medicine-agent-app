@@ -25,6 +25,7 @@ import { AdminResetPasswordComponent } from './components/Auth/admin-reset-passw
 import { ShopAdminsComponent } from './components/admin/shop-admins/shop-admins.component';
 import { UserRolesConstants } from './constants/user-roles';
 import { MyOrdersComponent } from './components/my-orders/my-orders.component';
+import { MyOrdersComponent as AdminOrdersComponent } from './components/admin/my-orders/my-orders.component';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -49,6 +50,7 @@ const routes: Routes = [
     children: [
       { path: 'shops', component: MyShopsComponent, canActivate: [CanActivateRouteGuard] },
       { path: 'products', component: MyProductsComponent, canActivate: [CanActivateRouteGuard] },
+      { path: 'orders', component: AdminOrdersComponent, canActivate: [CanActivateRouteGuard] },
     ],
     data: { roles: [UserRolesConstants.ADMIN, UserRolesConstants.SHOP_ADMIN] }
   },

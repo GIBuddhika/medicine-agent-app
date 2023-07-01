@@ -5,7 +5,7 @@
                 <h2 class="page-title"><b>Shops</b></h2>
             </div>
             <div class="col-sm-6">
-                <div class="card-normal" style="float:right;padding:0;">
+                <div class="card-normal" style="float:right;padding:0;" *ngIf="!isShopAdmin">
                     <div class="buttons">
                         <button type="button" class="btn btn-outline-success btn-sm" style="width: 100%;"
                             #openCreateModalId (click)="openCreateModal(content)">ADD NEW SHOP</button>
@@ -29,7 +29,7 @@
                             <p>{{shop.address|titlecase}}</p>
                             <p>{{shop.city.name|titlecase}}</p>
 
-                            <div class="text-left" *ngIf="shop.shop_admins.length>0">
+                            <div class="text-left" *ngIf="!isShopAdmin && shop.shop_admins.length>0">
                                 <hr>
                                 <p><b>Assigned Shop Admins</b></p>
                                 <ul class="block">
@@ -40,7 +40,7 @@
                             </div>
                             <hr>
 
-                            <div class="buttons">
+                            <div class="buttons" *ngIf="!isShopAdmin">
                                 <button type="button" class="btn btn-outline-info btn-sm"
                                     (click)="openEditModal(content,shop)">Edit</button>
                                 <button type="button" class="btn btn-outline-danger btn-sm"

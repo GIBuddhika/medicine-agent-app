@@ -60,4 +60,18 @@ export class MyOrdersService {
         catchError(this.handleErrorsService.handle)
       );
   }
+
+  getMyUnCollectedOrdersAdmin(): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    return this.http
+      .get<any>(this.basePath + "/admin/orders/un-collected", {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
 }
