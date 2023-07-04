@@ -61,10 +61,12 @@ export class MyOrdersService {
       );
   }
 
-  getMyUnCollectedOrdersAdmin(): Observable<any> {
+  getMyUnCollectedShopOrdersAdmin(params): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
+    const urlParams = this.router.createUrlTree(["admin/orders/shops/un-collected"], { queryParams: params });
+
     return this.http
-      .get<any>(this.basePath + "/admin/orders/un-collected", {
+      .get<any>(this.basePath + this.serializer.serialize(urlParams), {
         headers
       })
       .pipe(

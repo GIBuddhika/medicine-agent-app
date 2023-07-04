@@ -71,4 +71,18 @@ export class ShopsService {
         catchError(this.handleErrorsService.handle)
       );
   }
+
+  getProductsByShop(shopId): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    return this.http
+      .get<any>(this.basePath + "/shops/" + shopId + "/items", {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
 }
