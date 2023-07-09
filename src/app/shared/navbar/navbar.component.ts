@@ -3,6 +3,7 @@ import { Location, LocationStrategy, PathLocationStrategy } from '@angular/commo
 import { updateCartCountService } from 'app/shared-services/update-cart-count.service';
 import { Router } from '@angular/router';
 import { UserRolesConstants } from 'app/constants/user-roles';
+import { AccountTypeConstants } from 'app/constants/account-types';
 
 @Component({
     selector: 'app-navbar',
@@ -22,12 +23,17 @@ export class NavbarComponent implements OnInit {
         }
     }
     private toggleButton: any;
-    sidebarVisible: boolean;
+
+    accountType: number = 0;
+    cartCount: number = 0;
     isLoggedInUser: boolean = false;
+    isAccTypePersonal = AccountTypeConstants.PERSONAL;
+    isAccTypeShop = AccountTypeConstants.SHOP;
+    isAccTypeShopAndPersonal = AccountTypeConstants.SHOP_AND_PERSONAL;
     isAdmin: boolean = false;
     isCustomer: boolean = false;
     isShopAdmin: boolean = false;
-    cartCount: number = 0;
+    sidebarVisible: boolean;
 
     constructor(
         public location: Location,
@@ -45,6 +51,7 @@ export class NavbarComponent implements OnInit {
         } else if (localStorage.getItem('user_role') == UserRolesConstants.CUSTOMER.toString()) {
             this.isCustomer = true;
         }
+        this.accountType = parseInt(localStorage.getItem('account_type'));
     }
 
     ngOnInit() {

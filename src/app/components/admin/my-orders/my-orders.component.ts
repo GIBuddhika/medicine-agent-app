@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { AccountTypeConstants } from 'app/constants/account-types';
 import { MyOrdersService } from 'app/services/my-orders.service';
 import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service';
 import { ShopsService } from 'app/services/shops.service';
@@ -12,6 +13,8 @@ import { UsersService } from 'app/services/users.service';
 })
 export class MyOrdersComponent implements OnInit {
 
+  accountType: number = 0;
+  isAccountTypePersonalOnly = AccountTypeConstants.PERSONAL;
   collectedOrderItems = {
     collectedPersonalOrderItems: [],
     colletedShopOrderItems: [],
@@ -22,15 +25,16 @@ export class MyOrdersComponent implements OnInit {
     year, month, day
   };
   imagePath: string;
+  isPersonalOrdersOnly: boolean = false;
   isSearching: boolean = false;
   isProductsListDisabled: boolean = true;
-  products = [];
-  selectedProduct: number;
-  shops = [];
   orderItems = {
     order_items: [],
     users: [],
   };
+  products = [];
+  selectedProduct: number;
+  shops = [];
 
   orderSearchForm: FormGroup;
 
@@ -42,11 +46,19 @@ export class MyOrdersComponent implements OnInit {
     private shopsService: ShopsService,
   ) {
     this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
+    this.accountType = parseInt(localStorage.getItem('account_type'));
+    if (this.accountType == this.isAccountTypePersonalOnly) {
+      this.isPersonalOrdersOnly = true;
+    }
   }
 
   ngOnInit(): void {
     (async () => {
-      await this.getShops();
+      if(this.isPersonalOrdersOnly){
+        this.getAllPersonalProducts();
+      }else{
+        await this.getShops();
+      }
       this.getUnCollectedOrders({ status: 'not-collected' });
     })();
 
@@ -65,6 +77,12 @@ export class MyOrdersComponent implements OnInit {
 
   async getProducts(shopId) {
     this.products = await this.shopsService.getProductsByShop(shopId).toPromise();
+    console.log(this.products);
+  }
+
+  async getAllPersonalProducts() {
+    let personalProducts = await this.usersService.getAllPersonalProducts().toPromise();
+    this.products = personalProducts.data;
     console.log(this.products);
   }
 
@@ -143,5 +161,11 @@ export class MyOrdersComponent implements OnInit {
       this.isProductsListDisabled = false;
     }
 
+  }
+
+  fetchPersonalItems() {
+    if (this.isPersonalOrdersOnly) {
+      this.getAllPersonalProducts();
+    }
   }
 }

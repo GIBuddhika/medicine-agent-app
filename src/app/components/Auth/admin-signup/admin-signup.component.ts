@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy, ViewChild, ElementRef } from '@angular/core';
 import { FormGroup, FormControl, Validators, FormBuilder } from '@angular/forms';
 import { AuthService } from 'app/services/auth/auth.service';
 import { Subject } from 'rxjs';
@@ -7,6 +7,8 @@ import { UpdateMainViewSharedService } from 'app/shared-services/update-main-vie
 import { Router } from '@angular/router';
 import { PhoneValidator } from 'app/validators/phone.validator';
 import { UserRolesConstants } from 'app/constants/user-roles';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { AccountTypeConstants } from 'app/constants/account-types';
 
 @Component({
   selector: 'app-admin-signup',
@@ -15,11 +17,14 @@ import { UserRolesConstants } from 'app/constants/user-roles';
 })
 export class AdminSignupComponent implements OnInit {
   private destroy$: Subject<void> = new Subject<void>();
+  @ViewChild('accountHelpModal') accountHelpModal: ElementRef<HTMLElement>;
 
   errorsList = [];
   isSubmitted: boolean = false;
+  modalRef: any;
   signUpForm: FormGroup;
   submitting: boolean = false;
+  accountTypeValidationError: boolean = false;
 
   focus;
   focus1;
@@ -29,6 +34,7 @@ export class AdminSignupComponent implements OnInit {
     private authService: AuthService,
     private updateMainViewSharedService: UpdateMainViewSharedService,
     private router: Router,
+    private modalService: NgbModal,
   ) {
     if (localStorage.getItem("token")) {
       this.router.navigate(['home']);
@@ -41,6 +47,10 @@ export class AdminSignupComponent implements OnInit {
     this.signUpForm = this.formBuilder.group({
       name: new FormControl('', [Validators.required]),
       phone: new FormControl('', [Validators.required, PhoneValidator]),
+      accountType: this.formBuilder.group({
+        shop: new FormControl('', []),
+        personal: new FormControl('', []),
+      }),
       email: new FormControl('', [Validators.required, Validators.email]),
       password: new FormControl('', [Validators.required]),
       confirmPassword: new FormControl('', [Validators.required]),
@@ -63,11 +73,16 @@ export class AdminSignupComponent implements OnInit {
   }
 
   onSubmit() {
-    console.log(1);
 
     this.errorsList = [];
     this.isSubmitted = true;
-    if (!this.signUpForm.valid) {
+    this.accountTypeValidationError = false;
+
+    if ((this.signUpForm.get('accountType.shop').value == "" && this.signUpForm.get('accountType.personal').value == "")) {
+      this.accountTypeValidationError = true;
+    }
+
+    if (!this.signUpForm.valid || this.accountTypeValidationError) {
       return false;
     }
     this.submitting = true;
@@ -78,7 +93,8 @@ export class AdminSignupComponent implements OnInit {
       email: this.signUpForm.controls.email.value,
       password: this.signUpForm.controls.password.value,
       confirmPassword: this.signUpForm.controls.confirmPassword.value,
-      isAdmin: 1
+      isAdmin: 1,
+      accountType: this.getAccountType()
     };
 
     this.authService.signup(submitData)
@@ -104,5 +120,21 @@ export class AdminSignupComponent implements OnInit {
           this.errorsList.push("Something went wrong. Please try again.");
         }
       });
+  }
+
+  openAccountHelpModal(content) {
+    this.modalRef = this.modalService.open(content, { windowClass: 'custom-class' });
+  }
+
+  getAccountType() {
+    let accountType;
+    if (this.signUpForm.get('accountType.shop').value && this.signUpForm.get('accountType.personal').value) {
+      accountType = AccountTypeConstants.SHOP_AND_PERSONAL;
+    } else if (this.signUpForm.get('accountType.shop').value) {
+      accountType = AccountTypeConstants.SHOP;
+    } else if (this.signUpForm.get('accountType.personal').value) {
+      accountType = AccountTypeConstants.PERSONAL;
+    }
+    return accountType;
   }
 }

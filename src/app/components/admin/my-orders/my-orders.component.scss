@@ -34,3 +34,16 @@ button.bi.bi-calendar3 {
     background-color: lightslategrey;
     border: none;
 }
+
+.shop-label {
+    @media (max-width: 767px) {
+        width: 40%;
+    }
+
+    width: 50%;
+}
+
+.shop.disabled {
+    pointer-events: none;
+    opacity: 0.4;
+}

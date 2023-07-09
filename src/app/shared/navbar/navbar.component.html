@@ -42,7 +42,8 @@
                     <a routerLink="/admin/orders" class="nav-link">
                         <i class="nc-icon nc-app"></i> My Orders</a>
                 </li>
-                <li class="nav-item" *ngIf="isLoggedInUser && (isAdmin || isShopAdmin)">
+                <li class="nav-item"
+                    *ngIf="isLoggedInUser && (isAdmin || isShopAdmin) && accountType != isAccTypePersonal">
                     <a routerLink="/admin/shops" class="nav-link">
                         <i class="nc-icon nc-shop"></i> My Shops</a>
                 </li>
@@ -52,14 +53,20 @@
                             <i class="nc-icon nc-tile-56"></i> My products
                         </a>
                         <div ngbDropdownMenu aria-labelledby="dropdownBasic1" class="dropdown-primary">
-                            <a href="/admin/products?type=shop" class="dropdown-item">Shop listings</a>
-                            <a *ngIf="isAdmin" href="/admin/products?type=personal" class="dropdown-item">
-                                Personal listings</a>
+                            <a href="/admin/products?type=shop" class="dropdown-item"
+                                *ngIf="accountType != isAccTypePersonal">
+                                Shop listings
+                            </a>
+                            <!-- shop admin cannot add personal listings  -->
+                            <a *ngIf="isAdmin && accountType != isAccTypeShop" href="/admin/products?type=personal"
+                                class="dropdown-item">
+                                Personal listings
+                            </a>
                         </div>
                     </div>
                 </li>
 
-                <li class="nav-item" *ngIf="isLoggedInUser && isAdmin">
+                <li class="nav-item" *ngIf="isLoggedInUser && isAdmin && accountType != isAccTypePersonal">
                     <a routerLink="/admin/shop-admins" class="nav-link">
                         <i class="nc-icon nc-user-run"></i> Shop Admins</a>
                 </li>

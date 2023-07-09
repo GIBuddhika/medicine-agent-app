@@ -115,4 +115,18 @@ export class UsersService {
         catchError(this.handleErrorsService.handle)
       );
   }
+
+  getAllPersonalProducts(): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    return this.http
+      .get<any>(this.basePath + "/users/" + this.userId + "/personal-items", {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
 }

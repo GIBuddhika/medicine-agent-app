@@ -5,11 +5,30 @@
                 <div class="col-sm-12">
                     <form [formGroup]="orderSearchForm">
                         <div class="row">
-                            <div class="col-sm-4 col-xs-12">
+                            <div class="col-sm-4 col-xs-12" *ngIf="accountType != isAccountTypePersonalOnly">
+                                <div class="form-group">
+                                    <div class="flex">
+                                        <div class="form-check margin-b-0">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input" type="checkbox" value="true"
+                                                    [(ngModel)]="isPersonalOrdersOnly"
+                                                    [ngModelOptions]="{standalone: true}"
+                                                    (change)="fetchPersonalItems()">
+                                                Personal orders only
+                                                <span class="form-check-sign"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 col-xs-12 shop" [ngClass]="{'disabled':isPersonalOrdersOnly}"
+                                *ngIf="accountType != isAccountTypePersonalOnly">
                                 <label>Shop</label>
                                 <select class="browser-default custom-select form-control" formControlName="shopId"
                                     (change)="onShopChange()" id="shopId">
-                                    <option selected value="">Select option</option>
+                                    <option selected value="">All shops</option>
                                     <option *ngFor="let shop of shops" value="{{shop.id}}">
                                         {{shop.name|titlecase}},&nbsp;{{shop.city.name}}
                                     </option>
@@ -44,11 +63,16 @@
                             <div class="col-sm-4 col-xs-12"
                                 [title]="isProductsListDisabled?'Select a shop to show the products':''">
                                 <label>
-                                    Product {{isProductsListDisabled?'(Select a shop to show the products)':''}}
+                                    Product
+                                    {{
+                                    (isProductsListDisabled && !isPersonalOrdersOnly)
+                                    ?'(Select a shop to show the products)'
+                                    :''
+                                    }}
                                 </label>
                                 <ng-select class="custom form-control browser-default" [items]="products"
-                                    [disabled]="isProductsListDisabled" bindLabel="name" bindValue="id"
-                                    [(ngModel)]="selectedProduct" [ngModelOptions]="{standalone: true}">
+                                    [disabled]="isProductsListDisabled && !isPersonalOrdersOnly" bindLabel="name"
+                                    bindValue="id" [(ngModel)]="selectedProduct" [ngModelOptions]="{standalone: true}">
                                 </ng-select>
                             </div>
                             <div class="col-sm-4 col-xs-12">

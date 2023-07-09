@@ -30,6 +30,7 @@ export class AuthService {
     const params = new HttpParams()
       .set("name", query["name"])
       .set("phone", query["phone"])
+      .set("accountType", query["accountType"])
       .set("email", query["email"])
       .set("password", query["password"])
       .set("confirm_password", query["confirmPassword"])
