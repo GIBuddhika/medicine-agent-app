@@ -19,8 +19,9 @@
                                 <label>Status</label>
                                 <select class="browser-default custom-select form-control" formControlName="status"
                                     id="status">
-                                    <option [selected]="true" value="not-collected">Not collected</option>
-                                    <option value="collected">Collected</option>
+                                    <option value="not-collected">Not collected</option>
+                                    <!-- change defalt selected item later -->
+                                    <option [selected]="true" value="collected">Collected</option>
                                 </select>
                             </div>
                             <div class="col-sm-4 col-xs-12">
@@ -99,7 +100,7 @@
                             width: 100%;height: 100px;">
                                 </div>
                             </div>
-                            <div class="col-md-4">
+                            <div class="col-md-2">
                                 <p>Quantity: {{orderItem.quantity}}</p>
                                 <p *ngIf="orderItem.duration">Duration: {{orderItem.duration}} month(s)</p>
                                 <p class="price">{{orderItem.quantity * orderItem.price| currency:"Rs. "}}</p>
@@ -107,6 +108,9 @@
                             <div class="col-md-4">
                                 <p>Order No: {{orderItem.order_id}}</p>
                                 <span>Order date: {{orderItem.order_created_at | date: 'yyyy/MM/dd hh.mm a' }}</span>
+                            </div>
+                            <div class="col-md-3">
+                                <p>Shop: {{orderItem.shop_name_address}}</p>
                             </div>
                         </div>
                     </div>

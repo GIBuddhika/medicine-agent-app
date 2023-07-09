@@ -45,8 +45,11 @@ export class MyOrdersComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    this.getUnCollectedOrders({ status: 'not-collected' });
-    this.getShops();
+    (async () => {
+      await this.getShops();
+      this.getUnCollectedOrders({ status: 'not-collected' });
+    })();
+
     this.orderSearchForm = this.formBuilder.group({
       orderNo: new FormControl('', []),
       shopId: new FormControl('', []),
@@ -69,9 +72,23 @@ export class MyOrdersComponent implements OnInit {
     this.orderItems = await this.myOrdersService.getMyUnCollectedShopOrdersAdmin(params).toPromise();
     Object.keys(this.orderItems.order_items).forEach(key => {
       let user = this.orderItems.users.find(user => user.id == key);
-      console.log(user);
-
       user.orderItems = this.orderItems.order_items[key];
+      user.orderItems.forEach(orderItem => {
+        let shop = this.shops.find(shop => shop.id == orderItem.shop_id);
+        orderItem.shop_name_address = shop.name + ", " + shop.city.name;
+      });
+    });
+  }
+
+  async getCollectedOrders(params = {}) {
+    this.orderItems = await this.myOrdersService.getMyCollectedShopOrdersAdmin(params).toPromise();
+    Object.keys(this.orderItems.order_items).forEach(key => {
+      let user = this.orderItems.users.find(user => user.id == key);
+      user.orderItems = this.orderItems.order_items[key];
+      user.orderItems.forEach(orderItem => {
+        let shop = this.shops.find(shop => shop.id == orderItem.shop_id);
+        orderItem.shop_name_address = shop.name + ", " + shop.city.name;
+      });
     });
   }
 
@@ -108,6 +125,7 @@ export class MyOrdersComponent implements OnInit {
       await this.getUnCollectedOrders(params);
     } else if (this.orderSearchForm.controls.status.value == "collected") {
       //fetch collected
+      await this.getCollectedOrders(params);
     }
 
     this.isSearching = false;
