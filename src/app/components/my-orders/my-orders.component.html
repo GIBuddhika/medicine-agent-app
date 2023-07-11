@@ -47,6 +47,9 @@
                         <div class="col-md-6">
                             <h4><b>{{user.name}}</b></h4>
                         </div>
+                        <div class="col-md-6 text-right">
+                            <a href="tel:{{user.phone}}">{{user.phone}}</a>
+                        </div>
                     </div>
                     <br>
                     <div class="card-normal no-decorations" *ngFor="let orderItem of user.orderItems">
