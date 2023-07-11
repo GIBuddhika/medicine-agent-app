@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MyOrdersService } from 'app/services/my-orders.service';
 import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service';
 
@@ -10,52 +11,62 @@ import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service
 export class MyOrdersComponent implements OnInit {
 
   imagePath: string;
-  unCollectedOrderItems = {
-    unCollectedPersonalOrderItems: [],
-    unColletedShopOrderItems: [],
+  orderItems = {
+    personalOrderItems: [],
+    shopOrderItems: [],
     users: [],
     shops: []
   };
-  collectedOrderItems = {
-    collectedPersonalOrderItems: [],
-    colletedShopOrderItems: [],
-    users: [],
-    shops: []
-  };
+  orderSearchForm: FormGroup;
 
   constructor(
     private envLoader: RuntimeEnvLoaderService,
     private myOrdersService: MyOrdersService,
+    private formBuilder: FormBuilder,
   ) {
     this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
   }
 
   ngOnInit(): void {
-    this.getMyOrders();
+    this.getMyUnCollectedOrders();
+    this.orderSearchForm = this.formBuilder.group({
+      orderStatus: new FormControl('un-collected', []),
+    });
   }
 
-  async getMyOrders() {
-    this.unCollectedOrderItems = await this.myOrdersService.getMyUnCollectedOrders().toPromise();
+  async getMyUnCollectedOrders() {
+    this.orderItems = await this.myOrdersService.getMyUnCollectedOrders().toPromise();
+    this.processOrderData();
+  }
 
-    Object.keys(this.unCollectedOrderItems.unCollectedPersonalOrderItems).forEach(key => {
-      let user = this.unCollectedOrderItems.users.find(user => user.id == key);
-      user.orderItems = this.unCollectedOrderItems.unCollectedPersonalOrderItems[key];
-    });
-    Object.keys(this.unCollectedOrderItems.unColletedShopOrderItems).forEach(key => {
-      let shop = this.unCollectedOrderItems.shops.find(shop => shop.id == key);
-      shop.orderItems = this.unCollectedOrderItems.unColletedShopOrderItems[key];
-    });
+  async getMyCollectedOrders() {
+    this.orderItems = await this.myOrdersService.getMyCollectedOrders().toPromise();
+    this.processOrderData();
+  }
 
-    this.collectedOrderItems = await this.myOrdersService.getMyCollectedOrders().toPromise();
+  processOrderData() {
+    Object.keys(this.orderItems.personalOrderItems).forEach(key => {
+      let user = this.orderItems.users.find(user => user.id == key);
+      user.orderItems = this.orderItems.personalOrderItems[key];
+    });
+    Object.keys(this.orderItems.shopOrderItems).forEach(key => {
+      let shop = this.orderItems.shops.find(shop => shop.id == key);
+      shop.orderItems = this.orderItems.shopOrderItems[key];
+    });
+  }
 
-    Object.keys(this.collectedOrderItems.collectedPersonalOrderItems).forEach(key => {
-      let user = this.collectedOrderItems.users.find(user => user.id == key);
-      user.orderItems = this.collectedOrderItems.collectedPersonalOrderItems[key];
-    });
-    Object.keys(this.collectedOrderItems.colletedShopOrderItems).forEach(key => {
-      let shop = this.collectedOrderItems.shops.find(shop => shop.id == key);
-      shop.orderItems = this.collectedOrderItems.colletedShopOrderItems[key];
-    });
+  fetchOrders() {
+    switch (this.orderSearchForm.controls.orderStatus.value) {
+      case 'collected':
+        this.getMyCollectedOrders();
+        break;
+      case 'un-collected':
+        this.getMyUnCollectedOrders();
+        break;
+
+      default:
+        break;
+    }
   }
 
 }

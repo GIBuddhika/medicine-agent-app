@@ -125,6 +125,7 @@
                                 </div>
                             </div>
                             <div class="col-md-2">
+                                <h4 class="margin-b-0">{{orderItem.name}}</h4>
                                 <p>Quantity: {{orderItem.quantity}}</p>
                                 <p *ngIf="orderItem.duration">Duration: {{orderItem.duration}} month(s)</p>
                                 <p class="price">{{orderItem.quantity * orderItem.price| currency:"Rs. "}}</p>
