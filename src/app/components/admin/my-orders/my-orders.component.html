@@ -38,9 +38,8 @@
                                 <label>Status</label>
                                 <select class="browser-default custom-select form-control" formControlName="status"
                                     id="status">
-                                    <option value="not-collected">Not collected</option>
-                                    <!-- change defalt selected item later -->
-                                    <option [selected]="true" value="collected">Collected</option>
+                                    <option [selected]="true" value="not-collected">Not collected</option>
+                                    <option value="collected">Collected</option>
                                 </select>
                             </div>
                             <div class="col-sm-4 col-xs-12">
@@ -104,13 +103,14 @@
                         </div>
                         <div class="col-md-6 text-right">
                             <a href="tel:{{user.phone}}">{{user.phone}}</a>
-                            <p>{{user.address}}</p>
-                            <a href="https://www.google.com/maps/dir/{{user.latitude}},{{user.longitude}}"
+                            <!-- users don't have a location or address -->
+                            <!-- <p>{{user.address}}</p> -->
+                            <!-- <a href="https://www.google.com/maps/dir/{{user.latitude}},{{user.longitude}}"
                                 target="_blank">
                                 <button type="button" class="btn btn-outline-info btn-sm">
                                     Open item location in Google map
                                 </button>
-                            </a>
+                            </a> -->
                         </div>
                     </div>
                     <br>
@@ -133,7 +133,7 @@
                                 <p>Order No: {{orderItem.order_id}}</p>
                                 <span>Order date: {{orderItem.order_created_at | date: 'yyyy/MM/dd hh.mm a' }}</span>
                             </div>
-                            <div class="col-md-3">
+                            <div class="col-md-3" *ngIf="!isPersonalOrdersOnly">
                                 <p>Shop: {{orderItem.shop_name_address}}</p>
                             </div>
                         </div>

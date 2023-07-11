@@ -3,6 +3,7 @@ import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from
 import { UserRolesConstants } from 'app/constants/user-roles';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth/auth.service';
+import { getLocaleMonthNames } from '@angular/common';
 
 @Injectable({
     providedIn: 'root'
@@ -18,6 +19,15 @@ export class CanActivateRouteGuard implements CanActivate {
         : Observable<boolean> | Promise<boolean> | boolean {
         if (!localStorage.getItem('token')) {
             this.router.navigate(['/']);
+        }
+
+        let blockedAccountTypes = route.data.blockedAccountTypes as Array<string>;
+
+        if (blockedAccountTypes) {
+            let accountType = localStorage.getItem("account_type");
+            if (blockedAccountTypes.find(account => account == accountType)) {
+                this.router.navigate(['not-found']);
+            }
         }
 
         let roles = route.data.roles as Array<string>;

@@ -26,6 +26,7 @@ import { ShopAdminsComponent } from './components/admin/shop-admins/shop-admins.
 import { UserRolesConstants } from './constants/user-roles';
 import { MyOrdersComponent } from './components/my-orders/my-orders.component';
 import { MyOrdersComponent as AdminOrdersComponent } from './components/admin/my-orders/my-orders.component';
+import { AccountTypeConstants } from './constants/account-types';
 
 const routes: Routes = [
   { path: '', component: HomeComponent },
@@ -48,7 +49,7 @@ const routes: Routes = [
   {
     path: 'admin',
     children: [
-      { path: 'shops', component: MyShopsComponent, canActivate: [CanActivateRouteGuard] },
+      { path: 'shops', component: MyShopsComponent, canActivate: [CanActivateRouteGuard], data: { blockedAccountTypes: [AccountTypeConstants.PERSONAL] } },
       { path: 'products', component: MyProductsComponent, canActivate: [CanActivateRouteGuard] },
       { path: 'orders', component: AdminOrdersComponent, canActivate: [CanActivateRouteGuard] },
     ],
@@ -58,7 +59,7 @@ const routes: Routes = [
   {
     path: 'admin',
     children: [
-      { path: 'shop-admins', component: ShopAdminsComponent, canActivate: [CanActivateRouteGuard] },
+      { path: 'shop-admins', component: ShopAdminsComponent, canActivate: [CanActivateRouteGuard], data: { blockedAccountTypes: [AccountTypeConstants.PERSONAL] } },
     ],
     data: { roles: [UserRolesConstants.ADMIN] }
   },

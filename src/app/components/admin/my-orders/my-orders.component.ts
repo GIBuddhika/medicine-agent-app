@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { AccountTypeConstants } from 'app/constants/account-types';
+import { OrderStatusConstants } from 'app/constants/order-statuses';
 import { MyOrdersService } from 'app/services/my-orders.service';
 import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service';
 import { ShopsService } from 'app/services/shops.service';
@@ -54,12 +55,14 @@ export class MyOrdersComponent implements OnInit {
 
   ngOnInit(): void {
     (async () => {
-      if(this.isPersonalOrdersOnly){
+      if (this.isPersonalOrdersOnly) {
         this.getAllPersonalProducts();
-      }else{
+        //get uncollected personal orders
+        this.getPersonalOrders({ status: OrderStatusConstants.NOT_COLLECTED });
+      } else {
         await this.getShops();
+        this.getShopOrders({ status: OrderStatusConstants.NOT_COLLECTED });
       }
-      this.getUnCollectedOrders({ status: 'not-collected' });
     })();
 
     this.orderSearchForm = this.formBuilder.group({
@@ -86,8 +89,8 @@ export class MyOrdersComponent implements OnInit {
     console.log(this.products);
   }
 
-  async getUnCollectedOrders(params = {}) {
-    this.orderItems = await this.myOrdersService.getMyUnCollectedShopOrdersAdmin(params).toPromise();
+  async getShopOrders(params = {}) {
+    this.orderItems = await this.myOrdersService.getMyShopOrdersAdmin(params).toPromise();
     Object.keys(this.orderItems.order_items).forEach(key => {
       let user = this.orderItems.users.find(user => user.id == key);
       user.orderItems = this.orderItems.order_items[key];
@@ -98,15 +101,17 @@ export class MyOrdersComponent implements OnInit {
     });
   }
 
-  async getCollectedOrders(params = {}) {
-    this.orderItems = await this.myOrdersService.getMyCollectedShopOrdersAdmin(params).toPromise();
+  async getPersonalOrders(params = {}) {
+    this.orderItems = await this.myOrdersService.getMyPersonalOrdersAdmin(params).toPromise();
+    console.log(this.orderItems);
+
     Object.keys(this.orderItems.order_items).forEach(key => {
       let user = this.orderItems.users.find(user => user.id == key);
       user.orderItems = this.orderItems.order_items[key];
-      user.orderItems.forEach(orderItem => {
-        let shop = this.shops.find(shop => shop.id == orderItem.shop_id);
-        orderItem.shop_name_address = shop.name + ", " + shop.city.name;
-      });
+      // user.orderItems.forEach(orderItem => {
+      //   let shop = this.shops.find(shop => shop.id == orderItem.shop_id);
+      //   orderItem.shop_name_address = shop.name + ", " + shop.city.name;
+      // });
     });
   }
 
@@ -118,7 +123,8 @@ export class MyOrdersComponent implements OnInit {
       order_id: null,
       product_id: this.selectedProduct,
       date: null,
-      phone: null
+      phone: null,
+      status: null,
     };
 
     let shopId = this.orderSearchForm.controls.shopId.value;
@@ -139,11 +145,15 @@ export class MyOrdersComponent implements OnInit {
     }
 
     if (this.orderSearchForm.controls.status.value == "not-collected") {
-      //fetch un-colleted
-      await this.getUnCollectedOrders(params);
+      params.status = OrderStatusConstants.NOT_COLLECTED;
     } else if (this.orderSearchForm.controls.status.value == "collected") {
-      //fetch collected
-      await this.getCollectedOrders(params);
+      params.status = OrderStatusConstants.COLLECTED;
+    }
+
+    if (this.isPersonalOrdersOnly) {
+      await this.getPersonalOrders(params);
+    } else {
+      await this.getShopOrders(params);
     }
 
     this.isSearching = false;
