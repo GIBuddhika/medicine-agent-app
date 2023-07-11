@@ -148,7 +148,7 @@ export class CartComponent implements OnInit {
 
   async pay() {
     this.isProcessing = true;
-
+    let cartData = [];
     this.card.name = "new name";
     this.card.address = "new address";
 
@@ -172,7 +172,7 @@ export class CartComponent implements OnInit {
     }
 
     try {
-      let cartData = this.products.map(product => {
+      cartData = this.products.map(product => {
         return {
           item_id: product.id,
           quantity: product.quantity,
@@ -195,12 +195,34 @@ export class CartComponent implements OnInit {
       );
 
     } catch (error) {
+      let isSwalShown = false;
+      let validationErrors = Object.keys(error.errors);
       this.isProcessing = false;
-      Swal.fire(
-        'Something went wrong',
-        'Please contact a support agent via 071-0125-874',
-        'error'
-      );
+
+      validationErrors.forEach(validationError => {
+        if (validationError.search("data.*.quantity") != -1) {
+          let itemIndex = validationError.substring(5, 6);
+          let itemId = cartData[itemIndex].item_id;
+          let item = this.products.find(product => product.id == itemId);
+          Swal.fire(
+            'Not enough items available for Product: ' + item.data.name,
+            'Please update the quantity and try again.',
+            'error'
+          );
+          isSwalShown = true;
+        }
+      });
+
+      if (!isSwalShown) {
+        this.isProcessing = false;
+        Swal.fire(
+          'Something went wrong',
+          'Please contact a support agent via 071-0125-874',
+          'error'
+        );
+      }
+
+      this.modalRef.close();
     }
   };
 
