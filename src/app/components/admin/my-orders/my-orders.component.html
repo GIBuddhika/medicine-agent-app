@@ -134,18 +134,26 @@
                             <div class="col-md-4">
                                 <p>Order No: {{orderItem.order_id}}</p>
                                 <span>Order date: {{orderItem.order_created_at | date: 'yyyy/MM/dd hh.mm a' }}</span>
+                                <br>
+                                <div *ngIf="orderItem.collected_at">
+                                    <span>
+                                        Collected date: {{orderItem.collected_at | date: 'yyyy/MM/dd hh.mm a' }}
+                                    </span>
+                                    <br>
+                                </div>
                                 <p *ngIf="orderItem.note"><b>Customer Note:</b> {{orderItem.note}}</p>
                                 <p *ngIf="orderItem.admin_note"><b>Admin Note:</b> {{orderItem.admin_note}}</p>
                             </div>
                             <div class="col-md-3" *ngIf="!isPersonalOrdersOnly">
                                 <p>Shop: {{orderItem.shop_name_address}}</p>
                                 <button type="button" class="btn btn-outline-success btn-sm"
-                                    style="width: 100%;margin-bottom:2px" #updateOrderModal
-                                    (click)="openUpdateOrderModal(content, orderItem)">
+                                    *ngIf=" orderItem.status == 1" style="width: 100%;margin-bottom:2px"
+                                    #updateOrderModal (click)="openUpdateOrderModal(content, orderItem)">
                                     Mark as collected
                                 </button>
                                 <button type="button" class="btn btn-outline-danger btn-sm" style="width: 100%;"
-                                    #cancelOrderModal (click)="openCancelOrderModal(contentCancel, orderItem)">
+                                    #cancelOrderModal (click)="openCancelOrderModal(contentCancel, orderItem)"
+                                    *ngIf=" orderItem.status == 1">
                                     Mark as cancelled
                                 </button>
                             </div>
