@@ -5,7 +5,8 @@
                 <div class="col-sm-12">
                     <form [formGroup]="orderSearchForm">
                         <div class="row">
-                            <div class="col-sm-4 col-xs-12" *ngIf="accountType != isAccountTypePersonalOnly">
+                            <div class="col-sm-4 col-xs-12"
+                                *ngIf="accountType == isAccountTypePersonalOnly || accountType == isAccountTypeShopAndPersonal">
                                 <div class="form-group">
                                     <div class="flex">
                                         <div class="form-check margin-b-0">
@@ -24,7 +25,7 @@
                         </div>
                         <div class="row">
                             <div class="col-sm-4 col-xs-12 shop" [ngClass]="{'disabled':isPersonalOrdersOnly}"
-                                *ngIf="accountType != isAccountTypePersonalOnly">
+                                *ngIf="accountType == isAccountTypeShopOnly || accountType == isAccountTypeShopAndPersonal">
                                 <label>Shop</label>
                                 <select class="browser-default custom-select form-control" formControlName="shopId"
                                     (change)="onShopChange()" id="shopId">
@@ -133,9 +134,20 @@
                             <div class="col-md-4">
                                 <p>Order No: {{orderItem.order_id}}</p>
                                 <span>Order date: {{orderItem.order_created_at | date: 'yyyy/MM/dd hh.mm a' }}</span>
+                                <p *ngIf="orderItem.note"><b>Customer Note:</b> {{orderItem.note}}</p>
+                                <p *ngIf="orderItem.admin_note"><b>Admin Note:</b> {{orderItem.admin_note}}</p>
                             </div>
                             <div class="col-md-3" *ngIf="!isPersonalOrdersOnly">
                                 <p>Shop: {{orderItem.shop_name_address}}</p>
+                                <button type="button" class="btn btn-outline-success btn-sm"
+                                    style="width: 100%;margin-bottom:2px" #updateOrderModal
+                                    (click)="openUpdateOrderModal(content, orderItem)">
+                                    Mark as collected
+                                </button>
+                                <button type="button" class="btn btn-outline-danger btn-sm" style="width: 100%;"
+                                    #cancelOrderModal (click)="openCancelOrderModal(contentCancel, orderItem)">
+                                    Mark as cancelled
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -147,3 +159,52 @@
         </div>
     </div>
 </div>
+
+<ng-template #content let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title text-center">Order</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <label class="form-check-label">Note:</label>
+        <textarea type="text" class="form-control" [(ngModel)]="orderItemNote" [ngModelOptions]="{standalone: true}"
+            id="note" rows="4"></textarea>
+    </div>
+    <div class="modal-footer text-center">
+        <div class="left-side">
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Cancel</button>
+        </div>
+        <div class="divider"></div>
+        <div class="right-side">
+            <button type="button" class="btn btn-success btn-link" (click)="markOrderItemAsCollected()"
+                replaceText="Submitting" [spinnerButton]="isMarkAsCollectedProcessing">Mark as collected</button>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #contentCancel let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title text-center">Cancel Order</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <ul>
+            <li>
+                <b>Shop:</b> If your purpose is to list your shop items, you can use "Shop" account type.
+            </li>
+            <li>
+                <b>Personal:</b> If you only have personal items to list, use "Personal" account type.
+            </li>
+        </ul>
+        <p>Note: If you wish to list both Shop items and personal items, please select both account types.</p>
+    </div>
+    <div class="modal-footer text-center" style="display: inline-block;">
+        <div class="">
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">OK</button>
+        </div>
+    </div>
+</ng-template>

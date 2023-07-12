@@ -96,4 +96,20 @@ export class MyOrdersService {
         catchError(this.handleErrorsService.handle)
       );
   }
+
+  markAsCollected(orderItemId, note): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    return this.http
+      .patch<any>(this.basePath + "/admin/orders/item-order/" + orderItemId, {
+        admin_note: note
+      }, {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
 }

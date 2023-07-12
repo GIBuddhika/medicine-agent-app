@@ -1,11 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { AccountTypeConstants } from 'app/constants/account-types';
 import { OrderStatusConstants } from 'app/constants/order-statuses';
 import { MyOrdersService } from 'app/services/my-orders.service';
 import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service';
 import { ShopsService } from 'app/services/shops.service';
 import { UsersService } from 'app/services/users.service';
+import Swal from 'sweetalert2';
 
 @Component({
   selector: 'app-my-orders',
@@ -13,9 +15,13 @@ import { UsersService } from 'app/services/users.service';
   styleUrls: ['./my-orders.component.scss']
 })
 export class MyOrdersComponent implements OnInit {
+  @ViewChild('updateOrderModal') updateOrderModal: ElementRef<HTMLElement>;
+  @ViewChild('cancelOrderModal') cancelOrderModal: ElementRef<HTMLElement>;
 
   accountType: number = 0;
   isAccountTypePersonalOnly = AccountTypeConstants.PERSONAL;
+  isAccountTypeShopOnly = AccountTypeConstants.SHOP;
+  isAccountTypeShopAndPersonal = AccountTypeConstants.SHOP_AND_PERSONAL;
   collectedOrderItems = {
     collectedPersonalOrderItems: [],
     colletedShopOrderItems: [],
@@ -26,14 +32,20 @@ export class MyOrdersComponent implements OnInit {
     year, month, day
   };
   imagePath: string;
+  isMarkAsCollectedProcessing: boolean = false;
   isPersonalOrdersOnly: boolean = false;
   isSearching: boolean = false;
   isProductsListDisabled: boolean = true;
+  modalRef: any;
+  orderItemNote: string = "";
   orderItems = {
     order_items: [],
     users: [],
   };
   products = [];
+  selectedOrderItem = {
+    id: null
+  };
   selectedProduct: number;
   shops = [];
 
@@ -45,6 +57,7 @@ export class MyOrdersComponent implements OnInit {
     private formBuilder: FormBuilder,
     private usersService: UsersService,
     private shopsService: ShopsService,
+    private modalService: NgbModal
   ) {
     this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
     this.accountType = parseInt(localStorage.getItem('account_type'));
@@ -177,5 +190,40 @@ export class MyOrdersComponent implements OnInit {
     if (this.isPersonalOrdersOnly) {
       this.getAllPersonalProducts();
     }
+  }
+
+  openUpdateOrderModal(content, orderItem) {
+    this.isMarkAsCollectedProcessing = false;
+    this.selectedOrderItem = orderItem;
+    this.modalRef = this.modalService.open(content, { windowClass: 'custom-class' });
+  }
+
+  openCancelOrderModal(contentCancel, orderItem) {
+    console.log(orderItem);
+    this.modalRef = this.modalService.open(contentCancel, { windowClass: 'custom-class' });
+  }
+
+  async markOrderItemAsCollected() {
+    this.isMarkAsCollectedProcessing = true;
+
+    try {
+      await this.myOrdersService.markAsCollected(this.selectedOrderItem.id, this.orderItemNote).toPromise();
+      Swal.fire(
+        'Success',
+        'Order has marked as collected successfully.',
+        'success'
+      );
+      this.filterOrders();
+    } catch (error) {
+      Swal.fire(
+        'Failed',
+        'Something went wrong, Please try again.',
+        'error'
+      );
+    } finally {
+      this.isMarkAsCollectedProcessing = false;
+      this.modalService.dismissAll();
+    }
+
   }
 }
