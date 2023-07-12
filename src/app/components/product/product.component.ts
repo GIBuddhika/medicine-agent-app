@@ -33,6 +33,7 @@ export class ProductComponent implements OnInit {
     isEditProduct: boolean = false;
     editItemQuantity: number = 0;
     editItemIndex: number;
+    noteForAdmin: string = "";
 
     @ViewChild(AgmMap, { static: false }) map: AgmMap;
     lat: number;
@@ -91,6 +92,7 @@ export class ProductComponent implements OnInit {
                 }
                 this.images = this.product.files.length > 0 ? this.product.files : [this.product.shop.file];
                 this.calculateRemainingQuantity();
+                this.setNote();
             });
     }
 
@@ -110,6 +112,20 @@ export class ProductComponent implements OnInit {
             });
         }
         this.product.quantity -= this.quantityAlreadyInCart;
+    }
+
+    setNote() {
+        let item = { note: null };
+        if (this.editItemIndex) {
+            console.log(11);
+            item = this.cart[this.editItemIndex];
+        } else if (this.quantityAlreadyInCart && this.product.sellable_item) {
+            console.log(22);
+            item = this.cart.find((item) => {
+                return item.id == this.product.id
+            });
+        }
+        this.noteForAdmin = item.note;
     }
 
     plusSlides = function (n) {
@@ -193,6 +209,7 @@ export class ProductComponent implements OnInit {
             'slug': this.product.slug,
             'quantity': this.product.rentable_item ? 1 : (this.quantity + (this.isEditProduct ? 0 : this.quantityAlreadyInCart)),
             'duration': null,
+            'note': this.noteForAdmin,
         };
 
         let product = this.product;

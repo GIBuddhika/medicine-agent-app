@@ -176,7 +176,8 @@ export class CartComponent implements OnInit {
         return {
           item_id: product.id,
           quantity: product.quantity,
-          duration: product.duration ?? null
+          duration: product.duration ?? null,
+          note: product.note ?? null
         }
       })
 

@@ -77,6 +77,12 @@
                             </div>
                         </div>
                         <br>
+                        <div class="">
+                            Note for the shop
+                            <textarea type="text" class="form-control" [(ngModel)]="noteForAdmin"
+                                [ngModelOptions]="{standalone: true}" id="note" rows="4"></textarea>
+                        </div>
+                        <br>
                         <div class="flex float-right">
                             <a *ngIf="quantityAlreadyInCart && !isEditProduct" href="/cart">
                                 <u>{{quantityAlreadyInCart}} items already in the cart.</u>
@@ -122,8 +128,10 @@
                         <div class="flex mb-10">
                             <i _ngcontent-uob-c127="" class="nc-icon nc-pin-3"></i>
                             <div class="ml-10">
-                                <p class="m-0" *ngIf="product.is_a_shop_listing">{{product.shop.address + ', ' + product.shop.city.name}}</p>
-                                <p class="m-0" *ngIf="!product.is_a_shop_listing">{{product.personal_listing.address + ', ' + product.city.name}}</p>
+                                <p class="m-0" *ngIf="product.is_a_shop_listing">{{product.shop.address + ', ' +
+                                    product.shop.city.name}}</p>
+                                <p class="m-0" *ngIf="!product.is_a_shop_listing">{{product.personal_listing.address +
+                                    ', ' + product.city.name}}</p>
                             </div>
                         </div>
                         <a href="https://www.google.com/maps/dir/{{lat}},{{lng}}" target="_blank">

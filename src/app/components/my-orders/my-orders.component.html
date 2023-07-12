@@ -68,6 +68,7 @@
                                 <p>Quantity: {{orderItem.quantity}}</p>
                                 <p *ngIf="orderItem.duration">Duration: {{orderItem.duration}} month(s)</p>
                                 <p class="price">{{orderItem.quantity * orderItem.price| currency:"Rs. "}}</p>
+                                <p *ngIf="orderItem.note"><b>Note:</b> {{orderItem.note}}</p>
                             </div>
                             <div class="col-md-4">
                                 <b>Order Id:</b> {{orderItem.order_id}}

@@ -22,6 +22,8 @@
                                         {{product.data.is_a_shop_listing?product.data.shop.name:product.data.user.name}}
                                     </p>
                                     <p class="price">{{product.priceInText}}</p>
+                                    <p *ngIf="product.note"><b>Note:</b> {{product.note}}</p>
+
                                 </div>
                                 <div class="col-md-4">
                                     <p>Quantity: {{product.quantity}}</p>
