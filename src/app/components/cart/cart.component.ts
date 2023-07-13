@@ -195,6 +195,10 @@ export class CartComponent implements OnInit {
         'success'
       );
 
+      //clear cart
+      localStorage.removeItem("cart");
+      this.updateCartCountService.updateCartCount();
+      this.router.navigate(["my-orders"]);
     } catch (error) {
       let isSwalShown = false;
       let validationErrors = Object.keys(error.errors);
