@@ -55,6 +55,19 @@ h4,
     &.no-decorations:hover {
         background-color: #fff;
     }
+
+    .item_due {
+        background-color: #f7826e;
+
+        &:hover {
+            background-color: #f7826e;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+    }
+
 }
 
 .form-control+.form-control-feedback {

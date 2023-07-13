@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
 import { MyOrdersService } from 'app/services/my-orders.service';
 import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-my-orders',
@@ -48,11 +49,27 @@ export class MyOrdersComponent implements OnInit {
     Object.keys(this.orderItems.personalOrderItems).forEach(key => {
       let user = this.orderItems.users.find(user => user.id == key);
       user.orderItems = this.orderItems.personalOrderItems[key];
+      user.orderItems.forEach(orderItem => {
+        orderItem.dueDate = this.setDueDate(orderItem);
+        orderItem.isDue = (orderItem.dueDate && orderItem.dueDate < moment()) ? true : false;
+      });
     });
     Object.keys(this.orderItems.shopOrderItems).forEach(key => {
       let shop = this.orderItems.shops.find(shop => shop.id == key);
       shop.orderItems = this.orderItems.shopOrderItems[key];
+      shop.orderItems.forEach(orderItem => {
+        orderItem.dueDate = this.setDueDate(orderItem);
+        orderItem.isDue = (orderItem.dueDate && orderItem.dueDate < moment()) ? true : false;
+      });
     });
+  }
+
+  setDueDate(orderItem) {
+    let dueDate = null;
+    if (orderItem.duration != null) {
+      dueDate = moment(orderItem.order_created_at, "YYYY-MM-DD HH:mm:ss").add(orderItem.duration, 'months');
+    }
+    return dueDate;
   }
 
   fetchOrders() {

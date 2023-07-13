@@ -8,6 +8,7 @@ import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service
 import { ShopsService } from 'app/services/shops.service';
 import { UsersService } from 'app/services/users.service';
 import Swal from 'sweetalert2';
+import * as moment from 'moment';
 
 @Component({
   selector: 'app-my-orders',
@@ -42,6 +43,14 @@ export class MyOrdersComponent implements OnInit {
     order_items: [],
     users: [],
   };
+  params = {
+    shop_id: null,
+    order_id: null,
+    product_id: null,
+    date: null,
+    phone: null,
+    status: null,
+  }
   products = [];
   selectedOrderItem = {
     id: null
@@ -110,6 +119,7 @@ export class MyOrdersComponent implements OnInit {
       user.orderItems.forEach(orderItem => {
         let shop = this.shops.find(shop => shop.id == orderItem.shop_id);
         orderItem.shop_name_address = shop.name + ", " + shop.city.name;
+        orderItem.dueDate = this.setDueDate(orderItem);
       });
     });
   }
@@ -121,52 +131,53 @@ export class MyOrdersComponent implements OnInit {
     Object.keys(this.orderItems.order_items).forEach(key => {
       let user = this.orderItems.users.find(user => user.id == key);
       user.orderItems = this.orderItems.order_items[key];
-      // user.orderItems.forEach(orderItem => {
-      //   let shop = this.shops.find(shop => shop.id == orderItem.shop_id);
-      //   orderItem.shop_name_address = shop.name + ", " + shop.city.name;
-      // });
+      user.orderItems.forEach(orderItem => {
+        orderItem.dueDate = this.setDueDate(orderItem);
+        orderItem.isDue = (orderItem.dueDate < moment()) ? true : false;
+      });
     });
+  }
+
+  setDueDate(orderItem) {
+    let dueDate = null;
+    if (orderItem.duration != null) {
+      dueDate = moment(orderItem.order_created_at, "YYYY-MM-DD HH:mm:ss").add(orderItem.duration, 'months');
+    }
+    return dueDate;
   }
 
   async filterOrders() {
     this.isSearching = true;
 
-    let params = {
-      shop_id: null,
-      order_id: null,
-      product_id: this.selectedProduct,
-      date: null,
-      phone: null,
-      status: null,
-    };
+    this.params.product_id = this.selectedProduct;
 
     let shopId = this.orderSearchForm.controls.shopId.value;
     let orderId = this.orderSearchForm.controls.orderNo.value;
     let phone = this.orderSearchForm.controls.phone.value;
 
     if (shopId) {
-      params.shop_id = shopId;
+      this.params.shop_id = shopId;
     }
     if (orderId) {
-      params.order_id = orderId;
+      this.params.order_id = orderId;
     }
     if (this.date) {
-      params.date = this.date.year + "-" + ('0' + this.date.month).slice(-2) + "-" + ('0' + this.date.day).slice(-2);
+      this.params.date = this.date.year + "-" + ('0' + this.date.month).slice(-2) + "-" + ('0' + this.date.day).slice(-2);
     }
     if (phone) {
-      params.phone = phone;
+      this.params.phone = phone;
     }
 
     if (this.orderSearchForm.controls.status.value == "not-collected") {
-      params.status = OrderStatusConstants.NOT_COLLECTED;
+      this.params.status = OrderStatusConstants.NOT_COLLECTED;
     } else if (this.orderSearchForm.controls.status.value == "collected") {
-      params.status = OrderStatusConstants.COLLECTED;
+      this.params.status = OrderStatusConstants.COLLECTED;
     }
 
     if (this.isPersonalOrdersOnly) {
-      await this.getPersonalOrders(params);
+      await this.getPersonalOrders(this.params);
     } else {
-      await this.getShopOrders(params);
+      await this.getShopOrders(this.params);
     }
 
     this.isSearching = false;
