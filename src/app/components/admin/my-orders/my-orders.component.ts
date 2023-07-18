@@ -18,11 +18,14 @@ import * as moment from 'moment';
 export class MyOrdersComponent implements OnInit {
   @ViewChild('updateOrderModal') updateOrderModal: ElementRef<HTMLElement>;
   @ViewChild('cancelOrderModal') cancelOrderModal: ElementRef<HTMLElement>;
+  @ViewChild('receiveOrderModal') receiveOrderModal: ElementRef<HTMLElement>;
 
   accountType: number = 0;
   isAccountTypePersonalOnly = AccountTypeConstants.PERSONAL;
   isAccountTypeShopOnly = AccountTypeConstants.SHOP;
   isAccountTypeShopAndPersonal = AccountTypeConstants.SHOP_AND_PERSONAL;
+  chargedAmount: number;
+  chargeStatus: string = "charge";
   collectedOrderItems = {
     collectedPersonalOrderItems: [],
     colletedShopOrderItems: [],
@@ -34,6 +37,7 @@ export class MyOrdersComponent implements OnInit {
   };
   imagePath: string;
   isMarkAsCollectedProcessing: boolean = false;
+  isMarkAsReceivedProcessing: boolean = false;
   isPersonalOrdersOnly: boolean = false;
   isSearching: boolean = false;
   isProductsListDisabled: boolean = true;
@@ -49,11 +53,13 @@ export class MyOrdersComponent implements OnInit {
     product_id: null,
     date: null,
     phone: null,
-    status: null,
+    status: 1,
   }
   products = [];
   selectedOrderItem = {
-    id: null
+    id: null,
+    dueMonthsCount: null,
+    price: null,
   };
   selectedProduct: number;
   shops = [];
@@ -133,7 +139,11 @@ export class MyOrdersComponent implements OnInit {
       user.orderItems = this.orderItems.order_items[key];
       user.orderItems.forEach(orderItem => {
         orderItem.dueDate = this.setDueDate(orderItem);
-        orderItem.isDue = (orderItem.dueDate < moment()) ? true : false;
+        if (orderItem.dueDate < moment()) {
+          orderItem.isDue = true;
+          orderItem.dueMonthsCount = Math.ceil(moment().diff(orderItem.dueDate, 'months', true));
+          orderItem.dueDaysCount = Math.round(moment().diff(orderItem.dueDate, 'days', true));
+        }
       });
     });
   }
@@ -214,6 +224,12 @@ export class MyOrdersComponent implements OnInit {
     this.modalRef = this.modalService.open(contentCancel, { windowClass: 'custom-class' });
   }
 
+  openOrderItemReceivedModal(contentReceived, orderItem) {
+    this.selectedOrderItem = orderItem;
+    this.modalRef = this.modalService.open(contentReceived, { windowClass: 'custom-class' });
+    this.chargedAmount = this.selectedOrderItem.dueMonthsCount * this.selectedOrderItem.price;
+  }
+
   async markOrderItemAsCollected() {
     this.isMarkAsCollectedProcessing = true;
 
@@ -236,5 +252,33 @@ export class MyOrdersComponent implements OnInit {
       this.modalService.dismissAll();
     }
 
+  }
+
+  async markAsReceived() {
+    this.isMarkAsReceivedProcessing = true;
+
+    let data = {
+      isChargedForDueItem: this.chargeStatus == "charge" ? true : false,
+      chargedAmount: this.chargedAmount
+    };
+
+    try {
+      await this.myOrdersService.markAsReceived(this.selectedOrderItem.id, data).toPromise();
+      Swal.fire(
+        'Success',
+        'Order has marked as received successfully.',
+        'success'
+      );
+      this.filterOrders();
+    } catch (error) {
+      Swal.fire(
+        'Failed',
+        'Something went wrong, Please try again.',
+        'error'
+      );
+    } finally {
+      this.isMarkAsReceivedProcessing = false;
+      this.modalService.dismissAll();
+    }
   }
 }

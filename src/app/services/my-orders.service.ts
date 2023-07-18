@@ -100,9 +100,23 @@ export class MyOrdersService {
   markAsCollected(orderItemId, note): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
-      .patch<any>(this.basePath + "/admin/orders/item-order/" + orderItemId, {
+      .patch<any>(this.basePath + "/admin/orders/item-order/" + orderItemId + "/collected", {
         admin_note: note
       }, {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
+
+  markAsReceived(orderItemId, data): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    return this.http
+      .patch<any>(this.basePath + "/admin/orders/item-order/" + orderItemId + "/received", data, {
         headers
       })
       .pipe(

@@ -152,14 +152,13 @@
                                     </div>
                                     <p *ngIf="orderItem.note"><b>Customer Note:</b> {{orderItem.note}}</p>
                                     <p *ngIf="orderItem.admin_note"><b>Admin Note:</b> {{orderItem.admin_note}}</p>
-                                    {{params.status}}
                                 </div>
                                 <!-- un-collected filter -->
                                 <div class="col-md-2" *ngIf="params.status == 1">
                                     <button type="button" class="btn btn-outline-success btn-sm"
-                                        *ngIf=" orderItem.status == 1" style="width: 100%;margin-bottom:2px"
+                                        *ngIf="orderItem.status == 1" style="width: 100%;margin-bottom:2px"
                                         #updateOrderModal (click)="openUpdateOrderModal(content, orderItem)">
-                                        Mark as collected
+                                        Collected by customer
                                     </button>
                                     <button type="button" class="btn btn-outline-danger btn-sm" style="width: 100%;"
                                         #cancelOrderModal (click)="openCancelOrderModal(contentCancel, orderItem)"
@@ -170,9 +169,9 @@
                                 <!-- collected filter -->
                                 <div class="col-md-2" *ngIf="params.status == 2">
                                     <!-- orderitem db status collected -->
-                                    <button type="button" class="btn btn-outline-success btn-sm"
-                                        *ngIf="orderItem.status == 2" style="width: 100%;margin-bottom:2px"
-                                        #updateOrderModal (click)="openUpdateOrderModal(content, orderItem)">
+                                    <button type="button" class="btn btn-default btn-sm" *ngIf="orderItem.status == 2"
+                                        style="width: 100%;margin-bottom:2px" #receiveOrderModal
+                                        (click)="openOrderItemReceivedModal(contentReceived, orderItem)">
                                         Mark as received
                                     </button>
                                 </div>
@@ -182,7 +181,7 @@
                 </div>
             </div>
             <div class="col-md-12" *ngIf="orderItems.users.length==0">
-                <h3>No Orders Found.</h3>
+                <h3>No orders found.</h3>
             </div>
         </div>
     </div>
@@ -190,13 +189,13 @@
 
 <ng-template #content let-modal>
     <div class="modal-header">
-        <h4 class="modal-title text-center">Order</h4>
+        <h4 class="modal-title text-center">Mark item as collected</h4>
         <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
             <span aria-hidden="">&times;</span>
         </button>
     </div>
     <div class="modal-body">
-        <label class="form-check-label">Note:</label>
+        <label class="form-check-label">Add a note: (optional)</label>
         <textarea type="text" class="form-control" [(ngModel)]="orderItemNote" [ngModelOptions]="{standalone: true}"
             id="note" rows="4"></textarea>
     </div>
@@ -212,27 +211,81 @@
     </div>
 </ng-template>
 
-<ng-template #contentCancel let-modal>
+<ng-template #contentReceived let-modal>
     <div class="modal-header">
-        <h4 class="modal-title text-center">Cancel Order</h4>
+        <h4 class="modal-title text-center">Mark item as received</h4>
         <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
             <span aria-hidden="">&times;</span>
         </button>
     </div>
     <div class="modal-body">
-        <ul>
-            <li>
-                <b>Shop:</b> If your purpose is to list your shop items, you can use "Shop" account type.
-            </li>
-            <li>
-                <b>Personal:</b> If you only have personal items to list, use "Personal" account type.
-            </li>
-        </ul>
-        <p>Note: If you wish to list both Shop items and personal items, please select both account types.</p>
+        <div class="row">
+            <div class="col-sm-4">
+                <div style="background-image: url('{{imagePath + selectedOrderItem.location}}');
+                            background-repeat: no-repeat;
+                            background-position: center;
+                            background-size: cover;
+                            width: 100%;height: 100px;">
+                </div>
+            </div>
+            <div class="col-sm-8">
+                <p class="price">{{selectedOrderItem.quantity * selectedOrderItem.price| currency:"Rs. "}}</p>
+                <p *ngIf="selectedOrderItem.duration">Duration: {{selectedOrderItem.duration}} month(s)</p>
+                <p *ngIf="selectedOrderItem.duration" [ngClass]="{'bold':selectedOrderItem.isDue}">
+                    Order No: {{selectedOrderItem.order_id}}
+                </p>
+                <p *ngIf="selectedOrderItem.duration" [ngClass]="{'bold':selectedOrderItem.isDue}">
+                    Order date: {{selectedOrderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a'}}
+                </p>
+                <p *ngIf="selectedOrderItem.duration" [ngClass]="{'bold':selectedOrderItem.isDue}">
+                    Due date: {{selectedOrderItem.dueDate | date: 'yyyy MMMM dd hh.mm a'}}
+                </p>
+            </div>
+        </div>
+        <div class="row" *ngIf="selectedOrderItem.isDue">
+            <div class="col-sm-12">
+                <hr>
+                <p>This item is overdue by {{selectedOrderItem.dueDaysCount}} days.</p>
+                <p>You can charge for {{selectedOrderItem.dueMonthsCount}} month(s).</p>
+                <hr>
+                <div class="row">
+                    <div class="col-sm-12 radio">
+                        <div class="form-check-radio">
+                            <label class="form-check-label">
+                                <input class="form-check-input form-control" type="radio" value="charge"
+                                    name="chargeStatus" checked [(ngModel)]="chargeStatus">
+                                Charged for due item
+                                <span class="form-check-sign"></span>
+                            </label>
+                        </div>
+                        <div class="form-check-radio">
+                            <label class="form-check-label">
+                                <input class="form-check-input form-control" type="radio" value="not_charge"
+                                    name="chargeStatus" [(ngModel)]="chargeStatus">
+                                Did not charge
+                                <span class="form-check-sign"></span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="row" *ngIf="chargeStatus == 'charge'">
+                    <div class="col-sm-6">
+                        Amount: (Rs.)
+                        <input class="form-control" type="number"
+                            [(ngModel)]="chargedAmount">
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
-    <div class="modal-footer text-center" style="display: inline-block;">
-        <div class="">
-            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">OK</button>
+    <div class="modal-footer">
+        <div class="left-side">
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Cancel</button>
+        </div>
+        <div class="divider"></div>
+        <div class="right-side">
+            <button type="button" class="btn btn-success btn-link" (click)="markAsReceived()" replaceText="Updating"
+                [spinnerButton]="isMarkAsReceivedProcessing">Received</button>
         </div>
     </div>
 </ng-template>

@@ -34,6 +34,12 @@
             </div>
         </form>
 
+        <div class="row" *ngIf="orderItems.shops.length == 0 && orderItems.users.length == 0">
+            <div class="col-md-12">
+                <br><br><br>
+                <h3>No orders found.</h3>
+            </div>
+        </div>
         <div class="row">
             <div class="col-md-12">
                 <div class="card-normal no-decorations mb-40" *ngFor="let shop of orderItems.shops">
@@ -56,8 +62,16 @@
                     <div *ngFor="let orderItem of shop.orderItems">
                         <div class="card-normal no-decorations" [ngClass]="{'item_due ': orderItem.isDue}">
                             <div class="row product">
-                                <div class="col-md-12">
+                                <div class="col-md-9">
                                     <h4>{{orderItem.name}}</h4>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button" class="btn btn-default btn-sm"
+                                        *ngIf="orderItem.status == 2 && orderItem.duration !=null"
+                                        style="width: 100%;margin-bottom:2px" #renewOrderModal
+                                        (click)="openOrderItemRenewModal(contentRenew, orderItem)">
+                                        Renew order
+                                    </button>
                                 </div>
                             </div>
                             <div class="row product">
@@ -82,6 +96,10 @@
                                     <b>Order Id:</b> {{orderItem.order_id}}
                                     <br>
                                     <b>Order date:</b> {{orderItem.order_created_at | date: 'yyyy/MM/dd hh.mm a' }}
+                                    <div *ngIf="orderItem.collected_at">
+                                        <b>Collected date:</b> {{orderItem.collected_at | date: 'yyyy MMMM dd hh.mm a'
+                                        }}
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -101,11 +119,14 @@
                     <div *ngFor="let orderItem of user.orderItems">
                         <div class="card-normal no-decorations" [ngClass]="{'item_due ': orderItem.isDue}">
                             <div class="row product">
-                                <div class="col-md-6">
+                                <div class="col-md-9">
                                     <h4>{{orderItem.name}}</h4>
                                 </div>
-                                <div class="col-md-6 text-right">
-                                    <button type="button" class="btn btn-default btn-sm">
+                                <div class="col-md-3 text-right">
+                                    <button type="button" class="btn btn-default btn-sm"
+                                        *ngIf="orderItem.status == 2 && orderItem.duration !=null"
+                                        style="width: 100%;margin-bottom:2px" #renewOrderModal
+                                        (click)="openOrderItemRenewModal(contentRenew, orderItem)">
                                         Renew order
                                     </button>
                                 </div>
@@ -133,6 +154,11 @@
                                     <br>
                                     <b>Order date:</b> {{orderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a' }}
                                     <br>
+                                    <div *ngIf="orderItem.collected_at">
+                                        <b>Collected date:</b> {{orderItem.collected_at | date: 'yyyy MMMM dd hh.mm a'
+                                        }}
+                                        <br>
+                                    </div>
                                     <a href="tel:{{orderItem.phone}}">{{orderItem.phone}}</a>
                                     <p>{{orderItem.address}}</p>
                                     <a href="https://www.google.com/maps/dir/{{orderItem.latitude}},{{orderItem.longitude}}"
@@ -150,3 +176,92 @@
         </div>
     </div>
 </div>
+
+<ng-template #contentRenew let-modal>
+    <div class="modal-header">
+        <h4 class="modal-title text-center">Renew order</h4>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-sm-4">
+                <div style="background-image: url('{{imagePath + selectedOrderItem.location}}');
+                            background-repeat: no-repeat;
+                            background-position: center;
+                            background-size: cover;
+                            width: 100%;height: 100px;">
+                </div>
+            </div>
+            <div class="col-sm-8">
+                <p class="price">{{selectedOrderItem.quantity * selectedOrderItem.price| currency:"Rs. "}}</p>
+                <p *ngIf="selectedOrderItem.duration">Duration: {{selectedOrderItem.duration}} month(s)</p>
+                <p *ngIf="selectedOrderItem.duration" [ngClass]="{'bold':selectedOrderItem.isDue}">
+                    Order No: {{selectedOrderItem.order_id}}
+                </p>
+                <p *ngIf="selectedOrderItem.duration" [ngClass]="{'bold':selectedOrderItem.isDue}">
+                    Order date: {{selectedOrderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a'}}
+                </p>
+                <p *ngIf="selectedOrderItem.duration" [ngClass]="{'bold':selectedOrderItem.isDue}">
+                    Due date: {{selectedOrderItem.dueDate | date: 'yyyy MMMM dd hh.mm a'}}
+                </p>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-sm-12">
+                <div class="quantity-selector">
+                    Duration(months)
+                    &nbsp;&nbsp;&nbsp;
+                    <div class="value-button" id="decrease" (click)="decreaseValueDuration()" value="Decrease Value">-
+                    </div>
+                    <input type="number" min="1" step="1" id="number" max="24" [(ngModel)]="duration" />
+                    <div class="value-button" id="increase" (click)="increaseValueDuration()" value="Increase Value">+
+                    </div>
+                </div>
+            </div>
+        </div>
+        <br>
+        <b>Total:&nbsp;</b>
+        <span class="price">{{duration * selectedOrderItem.price| currency:"Rs. "}}</span>
+        <br><br>
+        <p>You can keep this item until <b>{{dueDate | date: 'yyyy MMMM dd'}}</b></p>
+    </div>
+    <div class="modal-footer text-center">
+        <div class="left-side">
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Cancel</button>
+        </div>
+        <div class="divider"></div>
+        <div class="right-side">
+            <button type="button" class="btn btn-success btn-link" #openPaymentModalId
+                (click)="openPaymentModal(content)">Renew</button>
+        </div>
+    </div>
+</ng-template>
+<ng-template #content let-modal>
+    <div class="modal-header">
+        <h5 class="modal-title text-center">Pay now</h5>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <p>Please note that we are not delivering medicines or medical equipments due to health issues. You can reserve
+            your product by paying and collect later at the shop.</p>
+        <br>
+        <div id="card-element"></div>
+        <div id="card-errors" role="alert"></div>
+        <img src="../../../assets/img/payment-logo.png" width="250">
+    </div>
+    <div class="modal-footer">
+        <div class="left-side">
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Cancel</button>
+        </div>
+        <div class="divider"></div>
+        <div class="right-side">
+            <button type="submit" class="btn btn-success btn-link" replaceText="Processing" (click)="payNow()"
+                [spinnerButton]="isProcessing">Pay</button>
+        </div>
+    </div>
+</ng-template>

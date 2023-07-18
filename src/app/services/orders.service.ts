@@ -47,4 +47,19 @@ export class OrdersService {
         catchError(this.handleErrorsService.handle)
       );
   }
+
+  extend(data): Observable<any> {
+    console.log(data);
+    const headers = new HttpHeaders().set("security-token", this.token);
+    return this.http
+      .post<any>(this.basePath + "/orders/extend", data, {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
 }
