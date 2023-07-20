@@ -62,4 +62,20 @@ export class OrdersService {
         catchError(this.handleErrorsService.handle)
       );
   }
+
+  cancel(orderId, orderItemId): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    return this.http
+      .post<any>(this.basePath + "/orders/" + orderId + "/cancel", {
+        order_item_id: orderItemId
+      }, {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
 }

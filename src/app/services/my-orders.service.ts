@@ -63,6 +63,21 @@ export class MyOrdersService {
       );
   }
 
+  //customer portal
+  getMyCancelledOrders(): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    return this.http
+      .get<any>(this.basePath + "/orders/cancelled", {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
+
   //admin portal
   getMyShopOrdersAdmin(params): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);

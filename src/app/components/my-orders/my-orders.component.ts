@@ -14,6 +14,7 @@ import Swal from 'sweetalert2';
 })
 export class MyOrdersComponent implements OnInit {
   @ViewChild('receiveOrderModal') receiveOrderModal: ElementRef<HTMLElement>;
+  @ViewChild('cancelOrderModal') cancelOrderModal: ElementRef<HTMLElement>;
   @ViewChild('openPaymentModalId') openPaymentModalId: ElementRef<HTMLElement>;
 
   card: any;
@@ -32,6 +33,7 @@ export class MyOrdersComponent implements OnInit {
   };
   orderSearchForm: FormGroup;
   selectedOrderItem = {
+    id: null,
     item_id: null,
     order_id: null,
     order_created_at: null,
@@ -86,6 +88,11 @@ export class MyOrdersComponent implements OnInit {
     this.processOrderData();
   }
 
+  async getMyCancelledOrders() {
+    this.orderItems = await this.myOrdersService.getMyCancelledOrders().toPromise();
+    this.processOrderData();
+  }
+
   processOrderData() {
     Object.keys(this.orderItems.personalOrderItems).forEach(key => {
       let user = this.orderItems.users.find(user => user.id == key);
@@ -121,6 +128,9 @@ export class MyOrdersComponent implements OnInit {
       case 'un-collected':
         this.getMyUnCollectedOrders();
         break;
+      case 'cancelled':
+        this.getMyCancelledOrders();
+        break;
 
       default:
         break;
@@ -132,6 +142,11 @@ export class MyOrdersComponent implements OnInit {
     this.modalRef = this.modalService.open(contentReceived, { windowClass: 'custom-class' });
     this.duration = 1;
     this.setNewDueDate();
+  }
+
+  openOrderItemCancelModal(contentCancel, orderItem) {
+    this.selectedOrderItem = orderItem;
+    this.modalRef = this.modalService.open(contentCancel, { windowClass: 'custom-class' });
   }
 
   increaseValueDuration() {
@@ -219,4 +234,31 @@ export class MyOrdersComponent implements OnInit {
       this.modalRef.close();
     }
   };
+
+  async cancelOrder() {
+
+    this.isProcessing = true;
+    try {
+      await this.ordersService.cancel(this.selectedOrderItem.order_id, this.selectedOrderItem.id).toPromise();
+
+      this.orderSearchForm.get('orderStatus').setValue("not-collected");
+      await this.getMyCancelledOrders();
+      this.isProcessing = false;
+      this.modalRef.close();
+
+      Swal.fire(
+        'Success',
+        'Your order has been cancelled successfully.',
+        'success'
+      );
+    } catch (error) {
+      this.isProcessing = false;
+      Swal.fire(
+        'Something went wrong',
+        'Please contact a support agent via 071-0125-874',
+        'error'
+      );
+      this.modalRef.close();
+    }
+  }
 }

@@ -2,11 +2,11 @@
     <div class="container cart">
         <form [formGroup]="orderSearchForm">
             <div class="row">
-                <div class="col-sm-6 col-xs-12">
+                <div class="col-sm-12">
                     <div class="form-group radio-group">
                         <div class="form-control no-border" id="listingCategory">
                             <div class="row">
-                                <div class="col-sm-5 radio">
+                                <div class="col-sm-3 radio">
                                     <div class="form-check-radio">
                                         <label class="form-check-label">
                                             <input class="form-check-input form-control" type="radio"
@@ -17,12 +17,22 @@
                                         </label>
                                     </div>
                                 </div>
-                                <div class="col-sm-6 radio">
+                                <div class="col-sm-3 radio">
                                     <div class="form-check-radio">
                                         <label class="form-check-label">
                                             <input class="form-check-input form-control" type="radio" value="collected"
                                                 formControlName="orderStatus" (change)="fetchOrders()">
                                             Collected orders
+                                            <span class="form-check-sign"></span>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="col-sm-3 radio">
+                                    <div class="form-check-radio">
+                                        <label class="form-check-label">
+                                            <input class="form-check-input form-control" type="radio" value="cancelled"
+                                                formControlName="orderStatus" (change)="fetchOrders()">
+                                            Cancelled orders
                                             <span class="form-check-sign"></span>
                                         </label>
                                     </div>
@@ -72,6 +82,11 @@
                                         (click)="openOrderItemRenewModal(contentRenew, orderItem)">
                                         Renew order
                                     </button>
+                                    <button type="button" class="btn btn-danger btn-sm" *ngIf="orderItem.status == 1"
+                                        style="width: 100%;margin-bottom:2px" #renewOrderModal
+                                        (click)="openOrderItemCancelModal(contentCancel, orderItem)">
+                                        Cancel order
+                                    </button>
                                 </div>
                             </div>
                             <div class="row product">
@@ -98,6 +113,10 @@
                                     <b>Order date:</b> {{orderItem.order_created_at | date: 'yyyy/MM/dd hh.mm a' }}
                                     <div *ngIf="orderItem.collected_at">
                                         <b>Collected date:</b> {{orderItem.collected_at | date: 'yyyy MMMM dd hh.mm a'
+                                        }}
+                                    </div>
+                                    <div *ngIf="orderItem.cancelled_at">
+                                        <b>Cancelled date:</b> {{orderItem.cancelled_at | date: 'yyyy MMMM dd hh.mm a'
                                         }}
                                     </div>
                                 </div>
@@ -129,6 +148,11 @@
                                         (click)="openOrderItemRenewModal(contentRenew, orderItem)">
                                         Renew order
                                     </button>
+                                    <button type="button" class="btn btn-danger btn-sm" *ngIf="orderItem.status == 1"
+                                        style="width: 100%;margin-bottom:2px" #renewOrderModal
+                                        (click)="openOrderItemCancelModal(contentCancel, orderItem)">
+                                        Cancel order
+                                    </button>
                                 </div>
                             </div>
                             <div class="row product">
@@ -156,6 +180,11 @@
                                     <br>
                                     <div *ngIf="orderItem.collected_at">
                                         <b>Collected date:</b> {{orderItem.collected_at | date: 'yyyy MMMM dd hh.mm a'
+                                        }}
+                                        <br>
+                                    </div>
+                                    <div *ngIf="orderItem.cancelled_at">
+                                        <b>Cancelled date:</b> {{orderItem.cancelled_at | date: 'yyyy MMMM dd hh.mm a'
                                         }}
                                         <br>
                                     </div>
@@ -239,29 +268,62 @@
         </div>
     </div>
 </ng-template>
-<ng-template #content let-modal>
+<ng-template #contentCancel let-modal>
     <div class="modal-header">
-        <h5 class="modal-title text-center">Pay now</h5>
+        <h5 class="modal-title text-center">Cancel order</h5>
         <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
             <span aria-hidden="true">&times;</span>
         </button>
     </div>
     <div class="modal-body">
-        <p>Please note that we are not delivering medicines or medical equipments due to health issues. You can reserve
-            your product by paying and collect later at the shop.</p>
-        <br>
-        <div id="card-element"></div>
-        <div id="card-errors" role="alert"></div>
-        <img src="../../../assets/img/payment-logo.png" width="250">
+        <div class="row">
+            <div class="col-sm-4">
+                <div style="background-image: url('{{imagePath + selectedOrderItem.location}}');
+                            background-repeat: no-repeat;
+                            background-position: center;
+                            background-size: cover;
+                            width: 100%;height: 100px;">
+                </div>
+            </div>
+            <div class="col-sm-8">
+                <p class="price">Price: {{selectedOrderItem.price| currency:"Rs. "}}</p>
+                <p class="quantity">Quantity: {{selectedOrderItem.quantity}}</p>
+                <p *ngIf="selectedOrderItem.duration">Duration: {{selectedOrderItem.duration}} month(s)</p>
+                <p [ngClass]="{'bold':selectedOrderItem.isDue}">
+                    Order No: {{selectedOrderItem.order_id}}
+                </p>
+                <p [ngClass]="{'bold':selectedOrderItem.isDue}">
+                    Order date: {{selectedOrderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a'}}
+                </p>
+                <p *ngIf="selectedOrderItem.duration" [ngClass]="{'bold':selectedOrderItem.isDue}">
+                    Due date: {{selectedOrderItem.dueDate | date: 'yyyy MMMM dd hh.mm a'}}
+                </p>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-sm-12">
+                <p class="price">
+                    Paid amount: {{(selectedOrderItem.duration ? selectedOrderItem.duration * selectedOrderItem.price :
+                    selectedOrderItem.quantity * selectedOrderItem.price)| currency:"Rs. "}}
+                </p>
+                <p *ngIf="selectedOrderItem.payment_type == 'online'">
+                    <b>
+                        After cancelling the order, it will take 5-10 business days to trasfer the money back to your
+                        account. Contact admin if it doesn't transfer to your account.
+                    </b>
+                </p>
+            </div>
+        </div>
     </div>
     <div class="modal-footer">
         <div class="left-side">
-            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Cancel</button>
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Close</button>
         </div>
         <div class="divider"></div>
         <div class="right-side">
-            <button type="submit" class="btn btn-success btn-link" replaceText="Processing" (click)="payNow()"
-                [spinnerButton]="isProcessing">Pay</button>
+            <button type="submit" class="btn btn-success btn-link" replaceText="Processing" (click)="cancelOrder()"
+                [spinnerButton]="isProcessing">Cancel order</button>
         </div>
     </div>
 </ng-template>
