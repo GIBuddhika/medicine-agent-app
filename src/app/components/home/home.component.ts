@@ -128,6 +128,8 @@ export class HomeComponent implements OnInit, OnDestroy {
     async getAddressFromGoogleMap() {
         return new Promise((resolve, reject) => {
             return this.metaService.getAddressFromGoogleMap(this.lat, this.lng).subscribe(async res => {
+                console.log(res);
+                
                 let town = this.getAddress(res, "administrative_area_level_4");
                 let city = this.getAddress(res, "administrative_area_level_3");
                 let district = this.getAddress(res, "administrative_area_level_2");
@@ -167,8 +169,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
 
         this.products.forEach(product => {
-            console.log(product);
-
             if (product.image_id) {
                 // product.image_url = this.imagePath + product.files.find(file => file.id == product.image_id).location;
                 product.image_url = this.imagePath + product.files.find(file => file.id == product.image_id).location;

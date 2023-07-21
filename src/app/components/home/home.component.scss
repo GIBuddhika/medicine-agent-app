@@ -71,7 +71,17 @@
 }
 
 @media (max-width: 767px) {
-    .products{
+    .products {
         margin-top: 15px;
     }
+}
+
+.for-rent-label {
+    position: absolute;
+    right: 10px;
+    font-size: 10px;
+    background: coral;
+    padding: 3px;
+    border-radius: 3px;
+    line-height: 1;
 }

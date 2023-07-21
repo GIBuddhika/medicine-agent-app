@@ -49,6 +49,7 @@
                         <p>{{totalCount}} {{totalCount == 1 ? "item":"items"}} found.</p>
                         <ng-container *ngFor="let product of products">
                             <div class="card-normal product" [routerLink]="['/products',product.slug]">
+                                <span class="for-rent-label" *ngIf="product.rentable_item">For rent</span>
                                 <div class="row">
                                     <div class="col-sm-4">
                                         <img width="170" [src]="product.image_url" alt="product Image"
