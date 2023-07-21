@@ -270,7 +270,7 @@ button.swal2-cancel.swal2-styled:hover {
 }
 
 .search-form .dropdown-menu {
-    height: 400px;
+    max-height: 400px;
     overflow-y: scroll;
 }
 
