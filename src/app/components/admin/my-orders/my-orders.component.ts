@@ -36,6 +36,7 @@ export class MyOrdersComponent implements OnInit {
     year, month, day
   };
   imagePath: string;
+  isCancelling: boolean = false;
   isMarkAsCollectedProcessing: boolean = false;
   isMarkAsReceivedProcessing: boolean = false;
   isPersonalOrdersOnly: boolean = false;
@@ -58,6 +59,7 @@ export class MyOrdersComponent implements OnInit {
   products = [];
   selectedOrderItem = {
     id: null,
+    order_id: null,
     dueMonthsCount: null,
     price: null,
   };
@@ -221,6 +223,7 @@ export class MyOrdersComponent implements OnInit {
 
   openCancelOrderModal(contentCancel, orderItem) {
     console.log(orderItem);
+    this.selectedOrderItem = orderItem;
     this.modalRef = this.modalService.open(contentCancel, { windowClass: 'custom-class' });
   }
 
@@ -279,6 +282,35 @@ export class MyOrdersComponent implements OnInit {
     } finally {
       this.isMarkAsReceivedProcessing = false;
       this.modalService.dismissAll();
+    }
+  }
+
+  async cancelOrder() {
+
+    console.log(this.selectedOrderItem);
+
+    this.isCancelling = true;
+    try {
+      await this.myOrdersService.cancel(this.selectedOrderItem.id, []).toPromise();
+
+      this.orderSearchForm.get('orderStatus').setValue("not-collected");
+      // await this.getMyCancelledOrders();
+      this.isCancelling = false;
+      this.modalRef.close();
+
+      Swal.fire(
+        'Success',
+        'Order has been cancelled successfully.',
+        'success'
+      );
+    } catch (error) {
+      this.isCancelling = false;
+      Swal.fire(
+        'Something went wrong',
+        'Please contact a support agent via 071-0125-874',
+        'error'
+      );
+      this.modalRef.close();
     }
   }
 }
