@@ -307,7 +307,7 @@
                     Paid amount: {{(selectedOrderItem.duration ? selectedOrderItem.duration * selectedOrderItem.price :
                     selectedOrderItem.quantity * selectedOrderItem.price)| currency:"Rs. "}}
                 </p>
-                <p *ngIf="selectedOrderItem.payment_type == 'online'">
+                <p>
                     <b>
                         After cancelling the order, it will take 5-10 business days to trasfer the money back to your
                         account. Contact admin if it doesn't transfer to your account.
@@ -324,6 +324,29 @@
         <div class="right-side">
             <button type="submit" class="btn btn-success btn-link" replaceText="Processing" (click)="cancelOrder()"
                 [spinnerButton]="isProcessing">Cancel order</button>
+        </div>
+    </div>
+</ng-template>
+<ng-template #content let-modal>
+    <div class="modal-header">
+        <h5 class="modal-title text-center">Pay now</h5>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div id="card-element"></div>
+        <div id="card-errors" role="alert"></div>
+        <img src="../../../assets/img/payment-logo.png" width="250">
+    </div>
+    <div class="modal-footer">
+        <div class="left-side">
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Cancel</button>
+        </div>
+        <div class="divider"></div>
+        <div class="right-side">
+            <button type="submit" class="btn btn-success btn-link" replaceText="Processing" (click)="payNow()"
+                [spinnerButton]="isProcessing">Pay</button>
         </div>
     </div>
 </ng-template>

@@ -157,4 +157,34 @@ export class MyOrdersService {
         catchError(this.handleErrorsService.handle)
       );
   }
+
+  refund(orderItemId, data): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    return this.http
+      .patch<any>(this.basePath + "/admin/orders/item-order/" + orderItemId + "/refund", {
+        amount: data.amount
+      }, {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
+
+  getItemPaymentData(orderItemId): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    return this.http
+      .get<any>(this.basePath + "/admin/orders/item-order/" + orderItemId + "/payments", {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
 }

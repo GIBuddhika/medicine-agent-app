@@ -19,6 +19,7 @@ export class MyOrdersComponent implements OnInit {
   @ViewChild('updateOrderModal') updateOrderModal: ElementRef<HTMLElement>;
   @ViewChild('cancelOrderModal') cancelOrderModal: ElementRef<HTMLElement>;
   @ViewChild('receiveOrderModal') receiveOrderModal: ElementRef<HTMLElement>;
+  @ViewChild('refundOrderModal') refundOrderModal: ElementRef<HTMLElement>;
 
   accountType: number = 0;
   isAccountTypePersonalOnly = AccountTypeConstants.PERSONAL;
@@ -37,9 +38,11 @@ export class MyOrdersComponent implements OnInit {
   };
   imagePath: string;
   isCancelling: boolean = false;
+  isInvalidRefundAmount: boolean = false;
   isMarkAsCollectedProcessing: boolean = false;
   isMarkAsReceivedProcessing: boolean = false;
   isPersonalOrdersOnly: boolean = false;
+  isRefunding: boolean = false;
   isSearching: boolean = false;
   isProductsListDisabled: boolean = true;
   modalRef: any;
@@ -57,11 +60,15 @@ export class MyOrdersComponent implements OnInit {
     status: 1,
   }
   products = [];
+  refundAmount: number = 0;
   selectedOrderItem = {
     id: null,
     order_id: null,
     dueMonthsCount: null,
     price: null,
+    total_paid_amount: null,
+    online_refunds: null,
+    refundable_amount: null,
   };
   selectedProduct: number;
   shops = [];
@@ -222,9 +229,19 @@ export class MyOrdersComponent implements OnInit {
   }
 
   openCancelOrderModal(contentCancel, orderItem) {
-    console.log(orderItem);
     this.selectedOrderItem = orderItem;
     this.modalRef = this.modalService.open(contentCancel, { windowClass: 'custom-class' });
+  }
+
+  async openRefundOrderModal(contentRefund, orderItem) {
+    this.selectedOrderItem = orderItem;
+
+    let paymentData = await this.myOrdersService.getItemPaymentData(this.selectedOrderItem.id).toPromise();
+    this.selectedOrderItem.total_paid_amount = paymentData.total_paid_amount;
+    this.selectedOrderItem.online_refunds = paymentData.online_refunds;
+    this.selectedOrderItem.refundable_amount = this.selectedOrderItem.total_paid_amount - this.selectedOrderItem.online_refunds;
+
+    this.modalRef = this.modalService.open(contentRefund, { windowClass: 'custom-class' });
   }
 
   openOrderItemReceivedModal(contentReceived, orderItem) {
@@ -286,9 +303,6 @@ export class MyOrdersComponent implements OnInit {
   }
 
   async cancelOrder() {
-
-    console.log(this.selectedOrderItem);
-
     this.isCancelling = true;
     try {
       await this.myOrdersService.cancel(this.selectedOrderItem.id, []).toPromise();
@@ -312,5 +326,57 @@ export class MyOrdersComponent implements OnInit {
       );
       this.modalRef.close();
     }
+  }
+
+  async refundOrder() {
+    this.isInvalidRefundAmount = false;
+
+    if (this.selectedOrderItem.refundable_amount == 0) {
+      Swal.fire(
+        'Warning',
+        'Nothing to refund. You\'ve already refunded the fully amount.',
+        'warning'
+      );
+      return false;
+    }
+
+    if (this.selectedOrderItem.refundable_amount > 0 && this.refundAmount == 0) {
+      Swal.fire(
+        'Warning',
+        'Please add refund amount.',
+        'warning'
+      );
+      return false;
+    }
+
+    if (this.refundAmount > 0 && this.selectedOrderItem.refundable_amount < this.refundAmount) {
+      this.isInvalidRefundAmount = true;
+      return false;
+    }
+
+    this.isRefunding = true;
+
+    try {
+      await this.myOrdersService.refund(this.selectedOrderItem.id, {
+        amount: this.refundAmount
+      }).toPromise();
+      this.isRefunding = false;
+      this.modalRef.close();
+
+      Swal.fire(
+        'Success',
+        'Refund has been success.',
+        'success'
+      );
+    } catch (error) {
+      this.isRefunding = false;
+      Swal.fire(
+        'Something went wrong',
+        'Please contact a support agent via 071-0125-874',
+        'error'
+      );
+      // this.modalRef.close();
+    }
+
   }
 }
