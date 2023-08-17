@@ -1,8 +1,8 @@
 <div class="wrapper">
     <div class="container cart">
-        <form [formGroup]="orderSearchForm">
-            <div class="row">
-                <div class="col-sm-12">
+        <div class="row">
+            <div class="col-sm-12">
+                <form [formGroup]="orderSearchForm">
                     <div class="form-group radio-group">
                         <div class="form-control no-border" id="listingCategory">
                             <div class="row">
@@ -10,8 +10,7 @@
                                     <div class="form-check-radio">
                                         <label class="form-check-label">
                                             <input class="form-check-input form-control" type="radio"
-                                                value="un-collected" formControlName="orderStatus"
-                                                (change)="fetchOrders()">
+                                                value="un-collected" formControlName="orderStatus">
                                             Not collected orders
                                             <span class="form-check-sign"></span>
                                         </label>
@@ -21,7 +20,7 @@
                                     <div class="form-check-radio">
                                         <label class="form-check-label">
                                             <input class="form-check-input form-control" type="radio" value="collected"
-                                                formControlName="orderStatus" (change)="fetchOrders()">
+                                                formControlName="orderStatus">
                                             Collected orders
                                             <span class="form-check-sign"></span>
                                         </label>
@@ -31,7 +30,7 @@
                                     <div class="form-check-radio">
                                         <label class="form-check-label">
                                             <input class="form-check-input form-control" type="radio" value="cancelled"
-                                                formControlName="orderStatus" (change)="fetchOrders()">
+                                                formControlName="orderStatus">
                                             Cancelled orders
                                             <span class="form-check-sign"></span>
                                         </label>
@@ -40,13 +39,49 @@
                             </div>
                         </div>
                     </div>
-                </div>
+                    <div class="row">
+                        <div class="col-sm-4 col-xs-12">
+                            <label>Product name</label>
+                            <div class="form-group">
+                                <input class="form-control" name="dp" formControlName="productName" />
+                            </div>
+                        </div>
+                        <div class="col-sm-4 col-xs-12">
+                            <label>Date from</label>
+                            <div class="input-group">
+                                <input class="form-control" placeholder="yyyy-mm-dd" name="dp" [(ngModel)]="dateFrom"
+                                    ngbDatepicker #dp="ngbDatepicker" [ngModelOptions]="{standalone: true}" />
+                                <button class="btn btn-outline-secondary bi bi-calendar3" (click)="dp.toggle()"
+                                    type="button"></button>
+                            </div>
+                        </div>
+                        <div class="col-sm-4 col-xs-12">
+                            <label>Date to</label>
+                            <div class="input-group">
+                                <input class="form-control" placeholder="yyyy-mm-dd" name="dp" [(ngModel)]="dateTo"
+                                    ngbDatepicker #d="ngbDatepicker" [ngModelOptions]="{standalone: true}" />
+                                <button class="btn btn-outline-secondary bi bi-calendar3" (click)="d.toggle()"
+                                    type="button"></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-12 col-xs-12">
+                            <br>
+                            <button type="button" class="btn btn-warning btn float-right" (click)="fetchOrders()"
+                                replaceText="Searching" [spinnerButton]="isSearching">Search</button>
+                        </div>
+                    </div>
+                </form>
             </div>
-        </form>
+        </div>
+
+        <br>
+        <p>Results between <b>{{params.date_from+' 12AM'}}</b> to <b>{{params.date_to+' 11.59PM'}}</b></p>
+        <br>
 
         <div class="row" *ngIf="orderItems.shops.length == 0 && orderItems.users.length == 0">
             <div class="col-md-12">
-                <br><br><br>
                 <h3>No orders found.</h3>
             </div>
         </div>

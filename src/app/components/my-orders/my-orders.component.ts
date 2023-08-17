@@ -31,6 +31,13 @@ export class MyOrdersComponent implements OnInit {
     users: [],
     shops: []
   };
+  params = {
+    date_from: null,
+    date_to: null,
+    page: null,
+    perPage: null,
+    product_name: null
+  }
   orderSearchForm: FormGroup;
   selectedOrderItem = {
     id: null,
@@ -40,6 +47,14 @@ export class MyOrdersComponent implements OnInit {
     duration: null
   };
   stripe: any;
+  isSearching: boolean = false;
+
+  dateFrom: {
+    year, month, day
+  };
+  dateTo: {
+    year, month, day
+  };
 
   constructor(
     private envLoader: RuntimeEnvLoaderService,
@@ -52,9 +67,29 @@ export class MyOrdersComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    let today = new Date();
+    this.dateFrom = {
+      year: today.getFullYear(),
+      month: today.getMonth() + 1,
+      day: 1
+    };
+    this.dateTo = {
+      year: today.getFullYear(),
+      month: today.getMonth() + 1,
+      day: today.getDate()
+    };
+
+    if (this.dateFrom) {
+      this.params.date_from = this.dateFrom.year + "-" + ('0' + this.dateFrom.month).slice(-2) + "-" + ('0' + this.dateFrom.day).slice(-2);
+    }
+    if (this.dateTo) {
+      this.params.date_to = this.dateTo.year + "-" + ('0' + this.dateTo.month).slice(-2) + "-" + ('0' + this.dateTo.day).slice(-2);
+    }
+
     this.getMyUnCollectedOrders();
     this.orderSearchForm = this.formBuilder.group({
       orderStatus: new FormControl('un-collected', []),
+      productName: new FormControl('', []),
     });
     this.stripe = Stripe(this.envLoader.config.STRIPE_PUBLIC_KEY);
     this.elements = this.stripe.elements();
@@ -79,17 +114,17 @@ export class MyOrdersComponent implements OnInit {
   }
 
   async getMyUnCollectedOrders() {
-    this.orderItems = await this.myOrdersService.getMyUnCollectedOrders().toPromise();
+    this.orderItems = await this.myOrdersService.getMyUnCollectedOrders(this.params).toPromise();
     this.processOrderData();
   }
 
   async getMyCollectedOrders() {
-    this.orderItems = await this.myOrdersService.getMyCollectedOrders().toPromise();
+    this.orderItems = await this.myOrdersService.getMyCollectedOrders(this.params).toPromise();
     this.processOrderData();
   }
 
   async getMyCancelledOrders() {
-    this.orderItems = await this.myOrdersService.getMyCancelledOrders().toPromise();
+    this.orderItems = await this.myOrdersService.getMyCancelledOrders(this.params).toPromise();
     this.processOrderData();
   }
 
@@ -120,21 +155,43 @@ export class MyOrdersComponent implements OnInit {
     return dueDate;
   }
 
-  fetchOrders() {
+  async fetchOrders() {
+    this.isSearching = true;
+
+    if (!this.dateFrom || !this.dateTo) {
+      Swal.fire(
+        '',
+        'Please select "Date from" and "Date to" before filter orders.',
+        'warning'
+      );
+    }
+
+    if (this.dateFrom) {
+      this.params.date_from = this.dateFrom.year + "-" + ('0' + this.dateFrom.month).slice(-2) + "-" + ('0' + this.dateFrom.day).slice(-2);
+    }
+    if (this.dateTo) {
+      this.params.date_to = this.dateTo.year + "-" + ('0' + this.dateTo.month).slice(-2) + "-" + ('0' + this.dateTo.day).slice(-2);
+    }
+    if (this.orderSearchForm.controls.productName.value) {
+      this.params.product_name = this.orderSearchForm.controls.productName.value;
+    }
+
     switch (this.orderSearchForm.controls.orderStatus.value) {
       case 'collected':
-        this.getMyCollectedOrders();
+        await this.getMyCollectedOrders();
         break;
       case 'un-collected':
-        this.getMyUnCollectedOrders();
+        await this.getMyUnCollectedOrders();
         break;
       case 'cancelled':
-        this.getMyCancelledOrders();
+        await this.getMyCancelledOrders();
         break;
 
       default:
         break;
     }
+
+    this.isSearching = false;
   }
 
   openOrderItemRenewModal(contentReceived, orderItem) {
