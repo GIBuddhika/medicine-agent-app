@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core';
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
-import { UserRolesConstants } from 'app/constants/user-roles';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth/auth.service';
-import { getLocaleMonthNames } from '@angular/common';
 
 @Injectable({
     providedIn: 'root'
@@ -35,10 +33,10 @@ export class CanActivateRouteGuard implements CanActivate {
         let isValid = this.authService.validate(localStorage.getItem('token'), localStorage.getItem('user_role'));
 
         if (isValid) {
-            if (roles.find(role => role == localStorage.getItem('user_role'))) {
-                return true;
-            } else {
+            if (roles.find(role => role == localStorage.getItem('user_role')) == undefined) {
                 this.router.navigate(['not-found']);
+            } else {
+                return true;
             }
         } else {
             this.router.navigate(['/']);

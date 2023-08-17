@@ -38,6 +38,7 @@ import { MyOrdersComponent as AdminOrdersComponent } from './components/admin/my
 import { MyOrdersComponent } from './components/my-orders/my-orders.component';
 import { NgSelectModule } from '@ng-select/ng-select';
 import { AccountSummaryComponent } from './components/admin/account-summary/account-summary.component';
+import { ProfileComponent } from './components/profile/profile.component';
 
 const appInitializerFn = (envLoader: RuntimeEnvLoaderService) => {
   return () => {
@@ -73,6 +74,7 @@ const DIRECTIVES = [
     MyOrdersComponent,
     AdminOrdersComponent,
     AccountSummaryComponent,
+    ProfileComponent
   ],
   imports: [
     BrowserModule,

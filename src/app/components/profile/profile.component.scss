@@ -1,0 +1,30 @@
+.input-group {
+    &.form-group-no-border .input-group-prepend .input-group-text {
+        background-color: #e9ecef !important;
+    }
+}
+
+label {
+    margin-top: 20px;
+
+    &:first-child {
+        margin-top: 0;
+    }
+}
+
+@media (min-width: 576px) {
+    .btn.btn-success {
+        position: absolute;
+        right: 10px;
+        bottom: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .row {
+        .btn.btn-success {
+            margin-top: 20px;
+            float: right;
+        }
+    }
+}

@@ -1,0 +1,101 @@
+<div class="wrapper">
+    <div class="container cart">
+        <div class="container">
+            <div class="title row" style="margin-bottom:20px;">
+                <div class="col-sm-6">
+                    <h2 class="page-title"><b>Profile</b></h2>
+                </div>
+            </div>
+            <div class="card-normal" style="padding:20px;">
+                <form [formGroup]="userProfileForm" (ngSubmit)="onSubmit()">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <label>Email</label>
+                            <div class="input-group form-group-no-border"
+                                [ngClass]="{'input-group-focus':focus===true}">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="nc-icon nc-email-85"></i>
+                                    </span>
+                                </div>
+                                <input type="text" id="email" class="form-control" placeholder="Email" [disabled]="true"
+                                    [(ngModel)]="email" [ngModelOptions]="{standalone: true}">
+                            </div>
+                            <label>Name</label>
+                            <div class="input-group form-group-no-border"
+                                [ngClass]="{'input-group-focus':focus===true}">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="nc-icon nc-badge"></i>
+                                    </span>
+                                </div>
+                                <input type="text" id="name" class="form-control" placeholder="Name"
+                                    (focus)="focus=true" (blur)="focus=false" formControlName="name">
+                            </div>
+                            <div *ngIf="isSubmitted && userProfileForm.controls.name.errors">
+                                <p *ngIf="userProfileForm.controls.name.errors.required" class="form-error">
+                                    Required</p>
+                            </div>
+                            <label>WhatsApp<img src="../../../assets/img/WhatsApp.png" width="25"> or phone number
+                                <p class="font-s-10 font-bold">(Enter 9 numbers without 0. Ex: 710422547)</p>
+                            </label>
+                            <div class="flex">
+                                +94&nbsp;
+                                <div style="width: 100%;">
+                                    <input type="text" class="form-control" formControlName="phone" id="phone"
+                                        placeholder="Enter 9 digits phone number">
+                                </div>
+                            </div>
+                            <div *ngIf="isSubmitted && userProfileForm.controls.phone.errors">
+                                <p *ngIf="userProfileForm.controls.phone.errors.required" class="form-error">
+                                    Required</p>
+                                <p *ngIf="!userProfileForm.controls.phone.errors.required && !userProfileForm.controls.phone.errors.pattern"
+                                    class="form-error">
+                                    Phone number format invalid</p>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <label>Password</label>
+                            <div class="input-group form-group-no-border"
+                                [ngClass]="{'input-group-focus':focus1===true}">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="nc-icon nc-key-25"></i>
+                                    </span>
+                                </div>
+                                <input type="password" class="form-control" placeholder="Password" (focus)="focus1=true"
+                                    (blur)="focus1=false" formControlName="password">
+                            </div>
+                            <label>Confirm Password</label>
+                            <div class="input-group form-group-no-border"
+                                [ngClass]="{'input-group-focus':focus1===true}">
+                                <div class="input-group-prepend">
+                                    <span class="input-group-text">
+                                        <i class="nc-icon nc-key-25"></i>
+                                    </span>
+                                </div>
+                                <input type="password" class="form-control" placeholder="Confirm Password"
+                                    (focus)="focus1=true" (blur)="focus1=false" formControlName="confirmPassword">
+                            </div>
+                            <p *ngIf="isSubmitted && userProfileForm.errors && userProfileForm.errors.notSame"
+                                class="form-error">
+                                Password does not match</p>
+                            <button type="submit" class="btn btn-success btn-round" replaceText="Processing"
+                                [spinnerButton]="submitting">Update</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="row" *ngIf="false">
+        <div class="col-sm-6">
+            <h3>Bank details</h3>
+            <form [formGroup]="userPasswordForm" (ngSubmit)="onSubmit()">
+
+                <p *ngIf="isSubmitted && userPasswordForm.errors && userPasswordForm.errors.notSame" class="form-error">
+                    Password does not match</p>
+            </form>
+        </div>
+    </div>
+</div>

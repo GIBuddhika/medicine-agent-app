@@ -85,7 +85,7 @@
                         </a>
                         <div ngbDropdownMenu aria-labelledby="dropdownBasic1" class="dropdown-primary">
                             <a *ngIf="isAdmin || isShopAdmin" class="dropdown-item" routerLink="/admin/account-summary">Account summary</a>
-                            <a class="dropdown-item">Update profile</a>
+                            <a class="dropdown-item" routerLink="/profile">Update profile</a>
                             <a class="dropdown-item" (click)="logout()">Logout</a>
                         </div>
                     </div>

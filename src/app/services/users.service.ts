@@ -47,6 +47,22 @@ export class UsersService {
       );
   }
 
+  updateCurrentUser(data): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    return this.http
+      .patch<any>(this.basePath + "/users/" + this.userId, {
+        data: data
+      }, {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
+
   getShops(is_a_personal_listing = false): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
     return this.http

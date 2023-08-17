@@ -4,7 +4,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { Routes, RouterModule } from '@angular/router';
 
 import { ComponentsComponent } from './components/components.component';
-import { ProfileComponent } from './examples/profile/profile.component';
+import { ProfileComponent } from './components/profile/profile.component';
 import { LandingComponent } from './examples/landing/landing.component';
 import { NucleoiconsComponent } from './components/nucleoicons/nucleoicons.component';
 import { SignupComponent } from './components/Auth/signup/signup.component';
@@ -72,7 +72,7 @@ const routes: Routes = [
   { path: 'my-orders', component: MyOrdersComponent },
 
   { path: 'home', component: HomeComponent },
-  { path: 'user-profile', component: ProfileComponent, canActivate: [CanActivateRouteGuard] },
+  { path: 'profile', component: ProfileComponent, canActivate: [CanActivateRouteGuard], data: { roles: [UserRolesConstants.CUSTOMER, UserRolesConstants.ADMIN, UserRolesConstants.SHOP_ADMIN] } },
 
   { path: 'landing', component: LandingComponent },
   { path: 'icons', component: NucleoiconsComponent }
