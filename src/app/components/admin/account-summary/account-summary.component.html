@@ -1,0 +1,224 @@
+<div class="wrapper">
+    <div class="container cart">
+        <div class="container">
+            <div class="title row" style="margin-bottom:20px;">
+                <div class="col-sm-6">
+                    <h2 class="page-title"><b>Account summary</b></h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <form [formGroup]="orderSearchForm">
+                        <div class="row" *ngIf="accountType == isAccountTypeShopAndPersonal">
+                            <div class="col-sm-4 col-xs-12">
+                                <div class="form-group">
+                                    <div class="flex">
+                                        <div class="form-check margin-b-0">
+                                            <label class="form-check-label">
+                                                <input class="form-check-input" type="checkbox" value="true"
+                                                    [(ngModel)]="isPersonalOrdersOnly"
+                                                    [ngModelOptions]="{standalone: true}">
+                                                Personal orders only
+                                                <span class="form-check-sign"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-sm-4 col-xs-12">
+                                <div class="shop" [ngClass]="{'disabled':isPersonalOrdersOnly}"
+                                    *ngIf="(accountType == isAccountTypeShopOnly || accountType == isAccountTypeShopAndPersonal) && shops.length > 0">
+                                    <label>Shop</label>
+                                    <select class="browser-default custom-select form-control" formControlName="shopId"
+                                        id="shopId">
+                                        <option selected value="">All shops</option>
+                                        <option *ngFor="let shop of shops" value="{{shop.id}}">
+                                            {{shop.name|titlecase}},&nbsp;{{shop.city.name}}
+                                        </option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-sm-4 col-xs-12">
+                                <label>Date from</label>
+                                <div class="input-group">
+                                    <input class="form-control" placeholder="yyyy-mm-dd" name="dp"
+                                        [(ngModel)]="dateFrom" ngbDatepicker #dp="ngbDatepicker"
+                                        [ngModelOptions]="{standalone: true}" />
+                                    <button class="btn btn-outline-secondary bi bi-calendar3" (click)="dp.toggle()"
+                                        type="button"></button>
+                                </div>
+                            </div>
+                            <div class="col-sm-4 col-xs-12">
+                                <label>Date to</label>
+                                <div class="input-group">
+                                    <input class="form-control" placeholder="yyyy-mm-dd" name="dp" [(ngModel)]="dateTo"
+                                        ngbDatepicker #d="ngbDatepicker" [ngModelOptions]="{standalone: true}" />
+                                    <button class="btn btn-outline-secondary bi bi-calendar3" (click)="d.toggle()"
+                                        type="button"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <br>
+            <div style="display: block;">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <button type="button" class="btn btn-warning btn float-right" (click)="filterOrders()"
+                            replaceText="Searching" [spinnerButton]="isSearching">Search</button>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <br>
+            <p>Results between <b>{{params.date_from+' 12AM'}}</b> to <b>{{params.date_to+' 11.59PM'}}</b></p>
+            <br>
+            <br>
+            <div class="row">
+                <div class="col-sm-4">
+                    <div class="card-normal text-center">
+                        <h3>Total sale</h3>
+                        <h3 class="font-bold">{{accountSummary.total_sale| currency:"Rs. "}}</h3>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="card-normal text-center">
+                        <h3>Total refunds</h3>
+                        <h3 class="price text-danger">{{accountSummary.total_refunds| currency:"Rs. "}}</h3>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div class="card-normal text-center">
+                        <h3>Net total</h3>
+                        <h3 class="price">{{accountSummary.total_sale - accountSummary.total_refunds| currency:"Rs. "}}
+                        </h3>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <br>
+            <div class="row">
+                <div class="col-sm-12">
+                    <p *ngIf="accountSummary.total>0" style="text-align: left;font-weight: bold;color: #f5593d;">
+                        {{accountSummary.total}} product(s) found.</p>
+                    <div class="table-responsive shadow">
+                        <table class="table table-striped">
+                            <thead class="shadow">
+                                <tr>
+                                    <th>#</th>
+                                    <th>Name</th>
+                                    <th>Shop</th>
+                                    <th>Quantity</th>
+                                    <th>Paid amount</th>
+                                    <th>Order placed at</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr *ngIf="isSearching">
+                                    <td colspan="100%">Loading...</td>
+                                </tr>
+                                <tr *ngIf="!isSearching && orders.length==0">
+                                    <td colspan="100%">No orders found.</td>
+                                </tr>
+                                <ng-container *ngIf="!isSearching && orders.length>0">
+                                    <tr *ngFor="let order of orders">
+                                        <td>{{order.id}}</td>
+                                        <td>{{order.item.name}}</td>
+                                        <td *ngIf="order.item.shop">{{order.item.shop.name}}</td>
+                                        <td *ngIf="!order.item.shop"></td>
+                                        <td>{{order.quantity|number}}</td>
+                                        <td>{{order.total_paid_amount| number : '1.2-2'}}
+                                        </td>
+                                        <td>{{order.created_at | date: 'yyyy-MM-dd H:mma'}}
+                                        </td>
+                                        <td>{{order.status_name}}</td>
+                                        <td>
+                                            <button type="button" class="btn btn-danger btn-sm"
+                                                style="width: 100%;margin-bottom:2px" #viewOrderModal
+                                                (click)="openViewOrderModal(contentView, order)">
+                                                View <i class="fa fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                </ng-container>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="pagination">
+                <ngb-pagination [collectionSize]="accountSummary.total" [pageSize]="pageSize" [(page)]="page"
+                    (pageChange)="filterOnPaginate($event)" [rotate]="true"></ngb-pagination>
+            </div>
+        </div>
+    </div>
+</div>
+<ng-template #contentView let-modal>
+    <div class="modal-header">
+        <h5 class="modal-title text-center">Order summary</h5>
+        <button type="button" class="close" aria-label="Close" (click)="modal.dismiss()">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+    <div class="modal-body">
+        <div class="row">
+            <!-- <div class="col-sm-4">
+                <div style="background-image: url('{{imagePath + selectedOrderItem.image_location}}');
+                            background-repeat: no-repeat;
+                            background-position: center;
+                            background-size: cover;
+                            width: 100%;height: 100px;">
+                </div>
+            </div> -->
+            <div class="col-sm-12">
+                <h3><b>Summary</b></h3>
+                <p class="price">Unit price: {{selectedOrderItem.price| currency:"Rs. "}}</p>
+                <p class="quantity">Quantity: {{selectedOrderItem.quantity}}</p>
+                <p *ngIf="selectedOrderItem.duration">Duration: {{selectedOrderItem.duration}} month(s)</p>
+                <p [ngClass]="{'bold':selectedOrderItem.isDue}">
+                    Order No: {{selectedOrderItem.order_id}}
+                </p>
+                <p [ngClass]="{'bold':selectedOrderItem.isDue}">
+                    Order date: {{selectedOrderItem.created_at | date: 'yyyy MMMM dd hh.mm a'}}
+                </p>
+                <p *ngIf="selectedOrderItem.duration" [ngClass]="{'bold':selectedOrderItem.isDue}">
+                    Due date: {{selectedOrderItem.dueDate | date: 'yyyy MMMM dd hh.mm a'}}
+                </p>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-sm-12">
+                <h3><b>Payments</b></h3>
+                <p>Total paid amount: {{selectedOrderItem.total_paid_amount| currency:"Rs. "}}</p>
+                <ul>
+                    <li *ngFor="let payment of selectedOrderItem.payments">
+                        {{payment.log}}
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <hr>
+        <div class="row">
+            <div class="col-sm-12">
+                <h3><b>Refunds</b></h3>
+                <p>Total refunded amount: {{selectedOrderItem.online_refunds| currency:"Rs. "}}</p>
+                <ul>
+                    <li *ngFor="let refund of selectedOrderItem.refunds">
+                        {{refund.log}}
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <div style="width: 100%;">
+            <button type="button" class="btn btn-default btn-link" (click)="modal.close()">Close</button>
+        </div>
+    </div>
+</ng-template>

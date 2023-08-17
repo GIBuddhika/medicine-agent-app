@@ -40,6 +40,7 @@
                                     id="status">
                                     <option [selected]="true" value="not-collected">Not collected</option>
                                     <option value="collected">Collected</option>
+                                    <option value="cancelled">Cancelled</option>
                                 </select>
                             </div>
                             <div class="col-sm-4 col-xs-12">
@@ -118,9 +119,10 @@
                         <div class="card-normal no-decorations" [ngClass]="{'item_due ': orderItem.isDue}">
                             <div class="row product">
                                 <div class="col-md-12">
-                                    <h4>{{orderItem.name}}</h4>
+                                    <h4 class="margin-b-0">{{orderItem.name}}</h4>
                                 </div>
                             </div>
+                            <hr>
                             <div class="row product">
                                 <div class="col-md-2">
                                     <div style="background-image: url('{{imagePath + orderItem.location}}');
@@ -140,10 +142,11 @@
                                 </div>
                                 <div class="col-md-4">
                                     <p *ngIf="!isPersonalOrdersOnly">Shop: {{orderItem.shop_name_address}}</p>
-                                    <p>Order No: {{orderItem.order_id}}</p>
-                                    <span>
-                                        Order date: {{orderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a'}}</span>
-                                    <br>
+                                    <p>Order No: {{orderItem.id}}</p>
+                                    <p>
+                                        Order date: {{orderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a'}}</p>
+                                    <p *ngIf="orderItem.cancelled_at">
+                                        Cancelled date: {{orderItem.cancelled_at | date: 'yyyy MMMM dd hh.mm a'}}</p>
                                     <div *ngIf="orderItem.collected_at">
                                         <span>
                                             Collected date: {{orderItem.collected_at | date: 'yyyy MMMM dd hh.mm a'}}
@@ -237,7 +240,7 @@
                 <p class="price">{{selectedOrderItem.quantity * selectedOrderItem.price| currency:"Rs. "}}</p>
                 <p *ngIf="selectedOrderItem.duration">Duration: {{selectedOrderItem.duration}} month(s)</p>
                 <p *ngIf="selectedOrderItem.duration" [ngClass]="{'bold':selectedOrderItem.isDue}">
-                    Order No: {{selectedOrderItem.order_id}}
+                    Order No: {{selectedOrderItem.id}}
                 </p>
                 <p *ngIf="selectedOrderItem.duration" [ngClass]="{'bold':selectedOrderItem.isDue}">
                     Order date: {{selectedOrderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a'}}
@@ -315,7 +318,7 @@
                 <p class="quantity">Quantity: {{selectedOrderItem.quantity}}</p>
                 <p *ngIf="selectedOrderItem.duration">Duration: {{selectedOrderItem.duration}} month(s)</p>
                 <p [ngClass]="{'bold':selectedOrderItem.isDue}">
-                    Order No: {{selectedOrderItem.order_id}}
+                    Order No: {{selectedOrderItem.id}}
                 </p>
                 <p [ngClass]="{'bold':selectedOrderItem.isDue}">
                     Order date: {{selectedOrderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a'}}
@@ -348,7 +351,7 @@
         <div class="divider"></div>
         <div class="right-side">
             <button type="submit" class="btn btn-success btn-link" replaceText="Processing" (click)="cancelOrder()"
-                [spinnerButton]="isProcessing">Cancel order</button>
+                [spinnerButton]="isCancelling">Cancel order</button>
         </div>
     </div>
 </ng-template>
@@ -376,7 +379,7 @@
                 <p class="quantity">Quantity: {{selectedOrderItem.quantity}}</p>
                 <p *ngIf="selectedOrderItem.duration">Duration: {{selectedOrderItem.duration}} month(s)</p>
                 <p [ngClass]="{'bold':selectedOrderItem.isDue}">
-                    Order No: {{selectedOrderItem.order_id}}
+                    Order No: {{selectedOrderItem.id}}
                 </p>
                 <p [ngClass]="{'bold':selectedOrderItem.isDue}">
                     Order date: {{selectedOrderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a'}}
@@ -425,8 +428,8 @@
         </div>
         <div class="divider"></div>
         <div class="right-side">
-            <button type="submit" class="btn btn-success btn-link" replaceText="Processing" (click)="refundOrder()" [attr.disabled]="true"
-                [spinnerButton]="isRefunding">Refund</button>
+            <button type="submit" class="btn btn-success btn-link" replaceText="Processing" (click)="refundOrder()"
+                [attr.disabled]="true" [spinnerButton]="isRefunding">Refund</button>
         </div>
     </div>
 </ng-template>

@@ -1,0 +1,11 @@
+@import "~bootstrap-icons/font/bootstrap-icons.css";
+
+.shop.disabled {
+    pointer-events: none;
+    opacity: 0.4;
+}
+
+button.bi.bi-calendar3 {
+    background-color: lightslategrey;
+    border: none;
+}

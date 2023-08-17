@@ -92,14 +92,7 @@ export class MyOrdersComponent implements OnInit {
 
   ngOnInit(): void {
     (async () => {
-      if (this.isPersonalOrdersOnly) {
-        this.getAllPersonalProducts();
-        //get uncollected personal orders
-        this.getPersonalOrders({ status: OrderStatusConstants.NOT_COLLECTED });
-      } else {
-        await this.getShops();
-        this.getShopOrders({ status: OrderStatusConstants.NOT_COLLECTED });
-      }
+      this.getOrders();
     })();
 
     this.orderSearchForm = this.formBuilder.group({
@@ -108,6 +101,17 @@ export class MyOrdersComponent implements OnInit {
       status: new FormControl('not-collected', []),
       phone: new FormControl('', []),
     });
+  }
+
+  async getOrders() {
+    if (this.isPersonalOrdersOnly) {
+      this.getAllPersonalProducts();
+      //get uncollected personal orders
+      this.getPersonalOrders({ status: OrderStatusConstants.SUCCESS });
+    } else {
+      await this.getShops();
+      this.getShopOrders({ status: OrderStatusConstants.SUCCESS });
+    }
   }
 
   async getShops() {
@@ -188,9 +192,11 @@ export class MyOrdersComponent implements OnInit {
     }
 
     if (this.orderSearchForm.controls.status.value == "not-collected") {
-      this.params.status = OrderStatusConstants.NOT_COLLECTED;
+      this.params.status = OrderStatusConstants.SUCCESS;
     } else if (this.orderSearchForm.controls.status.value == "collected") {
       this.params.status = OrderStatusConstants.COLLECTED;
+    } else if (this.orderSearchForm.controls.status.value == "cancelled") {
+      this.params.status = OrderStatusConstants.CANCELLED;
     }
 
     if (this.isPersonalOrdersOnly) {
@@ -307,8 +313,9 @@ export class MyOrdersComponent implements OnInit {
     try {
       await this.myOrdersService.cancel(this.selectedOrderItem.id, []).toPromise();
 
-      this.orderSearchForm.get('orderStatus').setValue("not-collected");
-      // await this.getMyCancelledOrders();
+      this.orderSearchForm.get('status').setValue("not-collected");
+      this.getOrders();
+
       this.isCancelling = false;
       this.modalRef.close();
 

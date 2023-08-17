@@ -37,6 +37,7 @@ import { ShopAdminsComponent } from './components/admin/shop-admins/shop-admins.
 import { MyOrdersComponent as AdminOrdersComponent } from './components/admin/my-orders/my-orders.component';
 import { MyOrdersComponent } from './components/my-orders/my-orders.component';
 import { NgSelectModule } from '@ng-select/ng-select';
+import { AccountSummaryComponent } from './components/admin/account-summary/account-summary.component';
 
 const appInitializerFn = (envLoader: RuntimeEnvLoaderService) => {
   return () => {
@@ -71,6 +72,7 @@ const DIRECTIVES = [
     ShopAdminsComponent,
     MyOrdersComponent,
     AdminOrdersComponent,
+    AccountSummaryComponent,
   ],
   imports: [
     BrowserModule,

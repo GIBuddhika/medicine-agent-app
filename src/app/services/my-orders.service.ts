@@ -187,4 +187,20 @@ export class MyOrdersService {
         catchError(this.handleErrorsService.handle)
       );
   }
+
+  getAccountSummary(data): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    const urlParams = this.router.createUrlTree(["admin/account-summary"], { queryParams: data });
+
+    return this.http
+      .get<any>(this.basePath + this.serializer.serialize(urlParams), {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
 }

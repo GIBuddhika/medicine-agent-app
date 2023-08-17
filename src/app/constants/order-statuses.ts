@@ -1,4 +1,7 @@
 export const OrderStatusConstants = {
-    NOT_COLLECTED: 1,
-    COLLECTED: 2
+    PENDING: 0,
+    SUCCESS: 1,
+    COLLECTED: 2,
+    RECEIVED: 3,
+    CANCELLED: 4
 }

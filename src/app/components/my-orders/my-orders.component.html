@@ -108,7 +108,7 @@
                                     <p *ngIf="orderItem.note"><b>Note:</b> {{orderItem.note}}</p>
                                 </div>
                                 <div class="col-md-4">
-                                    <b>Order Id:</b> {{orderItem.order_id}}
+                                    <b>Order Id:</b> {{orderItem.id}}
                                     <br>
                                     <b>Order date:</b> {{orderItem.order_created_at | date: 'yyyy/MM/dd hh.mm a' }}
                                     <div *ngIf="orderItem.collected_at">
@@ -174,7 +174,7 @@
                                     <p *ngIf="orderItem.note"><b>Note:</b> {{orderItem.note}}</p>
                                 </div>
                                 <div class="col-md-5">
-                                    <b>Order Id:</b> {{orderItem.order_id}}
+                                    <b>Order Id:</b> {{orderItem.id}}
                                     <br>
                                     <b>Order date:</b> {{orderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a' }}
                                     <br>
@@ -227,7 +227,7 @@
                 <p class="price">{{selectedOrderItem.quantity * selectedOrderItem.price| currency:"Rs. "}}</p>
                 <p *ngIf="selectedOrderItem.duration">Duration: {{selectedOrderItem.duration}} month(s)</p>
                 <p *ngIf="selectedOrderItem.duration" [ngClass]="{'bold':selectedOrderItem.isDue}">
-                    Order No: {{selectedOrderItem.order_id}}
+                    Order No: {{selectedOrderItem.id}}
                 </p>
                 <p *ngIf="selectedOrderItem.duration" [ngClass]="{'bold':selectedOrderItem.isDue}">
                     Order date: {{selectedOrderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a'}}
@@ -290,7 +290,7 @@
                 <p class="quantity">Quantity: {{selectedOrderItem.quantity}}</p>
                 <p *ngIf="selectedOrderItem.duration">Duration: {{selectedOrderItem.duration}} month(s)</p>
                 <p [ngClass]="{'bold':selectedOrderItem.isDue}">
-                    Order No: {{selectedOrderItem.order_id}}
+                    Order No: {{selectedOrderItem.id}}
                 </p>
                 <p [ngClass]="{'bold':selectedOrderItem.isDue}">
                     Order date: {{selectedOrderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a'}}
