@@ -100,7 +100,12 @@
                                 </div>
                                 <div class="col-md-4">
                                     <p>Quantity: {{orderItem.quantity}}</p>
-                                    <p class="price">{{orderItem.quantity * orderItem.price| currency:"Rs. "}}</p>
+                                    <p class="price" *ngIf="orderItem.duration">
+                                        Paid: {{orderItem.quantity * orderItem.price * orderItem.duration| currency:"Rs.
+                                        "}}
+                                    </p>
+                                    <p class="price" *ngIf="!orderItem.duration">
+                                        Paid: {{orderItem.quantity * orderItem.price| currency:"Rs. "}}</p>
                                     <p *ngIf="orderItem.duration">Duration: {{orderItem.duration}} month(s)</p>
                                     <p *ngIf="orderItem.duration" [ngClass]="{'bold ': orderItem.isDue}">
                                         Due date: {{orderItem.dueDate | date: 'yyyy MMMM dd hh.mm a'}}
@@ -166,7 +171,12 @@
                                 </div>
                                 <div class="col-md-4">
                                     <p>Quantity: {{orderItem.quantity}}</p>
-                                    <p class="price">{{orderItem.quantity * orderItem.price | currency:"Rs. "}}</p>
+                                    <p class="price" *ngIf="orderItem.duration">
+                                        {{orderItem.quantity * orderItem.price *orderItem.duration| currency:"Rs. "}}
+                                    </p>
+                                    <p class="price" *ngIf="!orderItem.duration">
+                                        {{orderItem.quantity * orderItem.price | currency:"Rs. "}}
+                                    </p>
                                     <p *ngIf="orderItem.duration">Duration: {{orderItem.duration}} month(s)</p>
                                     <p *ngIf="orderItem.duration" [ngClass]="{'bold ': orderItem.isDue}">
                                         Due date: {{orderItem.dueDate | date: 'yyyy MMMM dd hh.mm a'}}
