@@ -29,7 +29,6 @@ export class ProfileComponent implements OnInit {
     isShopAdmin: boolean = false;
 
     userPasswordForm: FormGroup;
-    userProfileForm: FormGroup;
     phone: number;
     email: string;
     userData = {

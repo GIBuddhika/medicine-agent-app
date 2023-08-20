@@ -85,8 +85,8 @@ export class SignupComponent implements OnInit, OnDestroy {
                 this.submitting = false;
             }))
             .subscribe(response => {
-                localStorage.setItem("token", response["token"]);
-                localStorage.setItem("userId", response["user_id"]);
+                localStorage.setItem("token", response["authSession"]["token"]);
+                localStorage.setItem("userId", response["authSession"]["user_id"]);
                 localStorage.setItem("user_role", UserRolesConstants.CUSTOMER.toString());
                 window.location.reload();
             }, errors => {
@@ -94,8 +94,6 @@ export class SignupComponent implements OnInit, OnDestroy {
                     for (let key in errors.errors) {
                         if (key == "email" && errors.errors[key].includes("duplicate")) {
                             this.errorsList.push("This email has already been used.");
-                        } else {
-                            this.errorsList.push("Something went wrong. Please try again.");
                         }
                     }
                 } else {
