@@ -17,6 +17,8 @@ import { updateCartCountService } from 'app/shared-services/update-cart-count.se
 })
 export class ProductComponent implements OnInit {
 
+    activeTab: string = "description";
+    totalReviewWidth: string = "10px";
     imagePath: string = "";
     isLoading: boolean = true;
     price: string;
@@ -34,6 +36,10 @@ export class ProductComponent implements OnInit {
     editItemQuantity: number = 0;
     editItemIndex: number;
     noteForAdmin: string = "";
+
+    pageSize = 10;
+    page = 1;
+    totalCount: number = 0;
 
     @ViewChild(AgmMap, { static: false }) map: AgmMap;
     lat: number;
@@ -69,10 +75,13 @@ export class ProductComponent implements OnInit {
         console.log(this.cart);
     }
 
-    getMainData() {
+    async getMainData() {
+        let reviewsData = await this.getReviews(this.page);
         this.productsService.get(this.slug)
             .pipe(take(1))
             .pipe(finalize(() => {
+                console.log(1111);
+
                 this.isLoading = false;
                 setTimeout(() => {
                     this.showSlides(this.slideIndex);
@@ -80,6 +89,9 @@ export class ProductComponent implements OnInit {
             }))
             .subscribe(response => {
                 this.product = response;
+                this.product.reviewsData = reviewsData;
+                console.log(this.product);
+
                 this.price = this.getProductPrice(this.product);
                 this.shopName = this.product.is_a_shop_listing == 1 ? ("(" + this.product.shop.name + ")") : "";
                 this.wholesaleMinimumQuantity = Math.trunc(this.product.sellable_item?.wholesale_minimum_quantity);
@@ -112,6 +124,19 @@ export class ProductComponent implements OnInit {
             });
         }
         this.product.quantity -= this.quantityAlreadyInCart;
+    }
+
+    async getReviews(page) {
+        let data = {
+            page: page,
+            per_page: this.pageSize
+        }
+        let reviewsData = await this.productsService.reviews(this.slug, data).toPromise();
+        this.totalCount = reviewsData.total;
+        if (this.product) {
+            this.product.reviewsData = reviewsData;
+        }
+        return reviewsData;
     }
 
     setNote() {
@@ -245,5 +270,13 @@ export class ProductComponent implements OnInit {
                 this.router.navigate(['cart']);
             }
         })
+    }
+
+    changeActiveTab(tab) {
+        this.activeTab = tab;
+    }
+
+    getStarWidth(rating) {
+        return (rating * 16) + 'px';
     }
 }

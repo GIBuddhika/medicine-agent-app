@@ -4,12 +4,6 @@
             Loading...
         </div>
         <div *ngIf="!isLoading">
-            <!-- <div class="row">
-                <div class="col-md-12">
-                    
-                </div>
-            </div> -->
-
             <div class="card-normal no-decorations">
                 <div class="row">
                     <div class="col-md-4">
@@ -38,9 +32,14 @@
                     </div>
                     <div class="col-md-5">
                         <h2>{{product.name|titlecase}}</h2>
+                        <span class="flex" *ngIf="product.reviewsData.rating > 0">
+                            <span class="stars alignright" style="float: left;">
+                                <span [ngStyle]="{ 'width': getStarWidth(product.reviewsData.rating) }"></span>
+                            </span>
+                            <p class="margin-b-0">&nbsp;&nbsp;{{product.reviewsData.rating}}/5</p>
+                            <br>
+                        </span>
                         <hr>
-                        <p>{{product.description|titlecase}}</p>
-                        <br>
                         <div class="flex">
                             <h2 class="price margin-b-0">{{"Rs. "+ price}}</h2>
                             &nbsp;&nbsp;
@@ -78,7 +77,7 @@
                         </div>
                         <br>
                         <div class="">
-                            Note for the shop
+                            Note for the admin
                             <textarea type="text" class="form-control" [(ngModel)]="noteForAdmin"
                                 [ngModelOptions]="{standalone: true}" id="note" rows="4"></textarea>
                         </div>
@@ -142,7 +141,61 @@
                     </div>
                 </div>
             </div>
-
+            <br>
+            <div class="row">
+                <div class="col-md-12">
+                    <ul class="nav nav-tabs">
+                        <li class="nav-item pointer">
+                            <a class="nav-link" [ngClass]="{'active' : activeTab == 'description'}" aria-current="page"
+                                (click)="changeActiveTab('description')">Description</a>
+                        </li>
+                        <li class="nav-item pointer">
+                            <a class="nav-link" [ngClass]="{'active' : activeTab == 'reviews'}"
+                                (click)="changeActiveTab('reviews')">Reviews</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12">
+                    <div *ngIf="activeTab == 'description'">
+                        {{product.description|titlecase}}
+                    </div>
+                    <div *ngIf="activeTab == 'reviews'">
+                        <div class="row" *ngIf="product.reviewsData.rating == 0">
+                            <div class="col-md-12">
+                                No ratings found for this item.
+                            </div>
+                        </div>
+                        <div *ngIf="product.reviewsData.rating > 0">
+                            <div class="row" *ngFor="let review of product.reviewsData.reviews"
+                                style="margin-bottom: 15px;">
+                                <div class="col-md-2">
+                                    {{review.user.name}}
+                                </div>
+                                <div class="col-md-2">
+                                    <span class="stars alignright" style="float: left;">
+                                        <span [ngStyle]="{ 'width': getStarWidth(review.rating) }"></span>
+                                    </span>
+                                </div>
+                                <div class="col-md-6">
+                                    {{review.comment}}
+                                </div>
+                                <div class="col-md-2">
+                                    {{review.updated_at | date: 'yyyy-MM-dd H:mma'}}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="pagination" *ngIf="product.reviewsData.rating > 0" ngClass="float-right">
+                            <ngb-pagination [collectionSize]="totalCount" [pageSize]="pageSize" [(page)]="page"
+                                (pageChange)="getReviews($event)" [rotate]="true"></ngb-pagination>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <br>
+            <hr>
+            <br>
             <div class="row">
                 <div class="col-md-12">
                     <div class="products">

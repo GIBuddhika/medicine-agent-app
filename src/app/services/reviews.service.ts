@@ -10,7 +10,7 @@ import { Router, UrlSerializer } from "@angular/router";
 @Injectable({
   providedIn: "root"
 })
-export class ProductsService {
+export class ReviewsService {
   private loggedUser: Subject<any> = new Subject<any>();
 
   basePath: string;
@@ -20,23 +20,24 @@ export class ProductsService {
   userRoleNameAdmin: string;
   userRoleNameShipReceive: any;
   userId: string;
-
   constructor(
+    private router: Router,
+    private serializer: UrlSerializer,
     private http: HttpClient,
     private envLoader: RuntimeEnvLoaderService,
-    private handleErrorsService: HandleErrorsService,
-    private serializer: UrlSerializer,
-    private router: Router
+    private handleErrorsService: HandleErrorsService
   ) {
     this.basePath = envLoader.config.API_BASE_URL;
     this.token = localStorage.getItem("token");
     this.userId = localStorage.getItem("userId");
   }
 
-  create(data): Observable<any> {
+  getAll(params): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
+    const urlParams = this.router.createUrlTree(["reviews"], { queryParams: params });
+
     return this.http
-      .post<any>(this.basePath + "/items", data, {
+      .get<any>(this.basePath + this.serializer.serialize(urlParams), {
         headers
       })
       .pipe(
@@ -47,9 +48,12 @@ export class ProductsService {
       );
   }
 
-  get(slug): Observable<any> {
+  create(data): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
-      .get<any>(this.basePath + "/items/" + slug)
+      .post<any>(this.basePath + "/reviews", data, {
+        headers
+      })
       .pipe(
         map(response => {
           return response;
@@ -58,26 +62,10 @@ export class ProductsService {
       );
   }
 
-  reviews(slug, params): Observable<any> {
-    const urlParams = this.router.createUrlTree(["/items/" + slug + "/reviews"], { queryParams: params });
-
-    return this.http
-      .get<any>(this.basePath + this.serializer.serialize(urlParams),
-        {
-          observe: 'response',
-        })
-      .pipe(
-        map(response => {
-          return response.body;
-        }),
-        catchError(this.handleErrorsService.handle)
-      );
-  }
-
-  update(id, data): Observable<any> {
+  update(reviewId, data): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
-      .patch<any>(this.basePath + "/items/" + id, data, {
+      .patch<any>(this.basePath + "/reviews/" + reviewId, data, {
         headers
       })
       .pipe(
@@ -91,38 +79,12 @@ export class ProductsService {
   delete(id): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
     return this.http
-      .delete<any>(this.basePath + "/items/" + id, {
+      .delete<any>(this.basePath + "/reviews/" + id, {
         headers
       })
       .pipe(
         map(response => {
           return response;
-        }),
-        catchError(this.handleErrorsService.handle)
-      );
-  }
-
-  all(page = 1, perPage = 10, searchData = {}): Observable<any> {
-
-    var params = {
-      page: page,
-      per_page: perPage,
-      ...searchData
-    };
-
-    const urlParams = this.router.createUrlTree(["items"], { queryParams: params });
-
-    return this.http
-      .get<any>(this.basePath + this.serializer.serialize(urlParams),
-        {
-          observe: 'response',
-        })
-      .pipe(
-        map((response) => {
-          return {
-            data: response.body,
-            total_count: response.headers.get('App-Content-Full-Count')
-          };
         }),
         catchError(this.handleErrorsService.handle)
       );

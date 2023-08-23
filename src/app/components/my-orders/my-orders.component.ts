@@ -1,8 +1,9 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
-import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
+import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MyOrdersService } from 'app/services/my-orders.service';
 import { OrdersService } from 'app/services/orders.service';
+import { ReviewsService } from 'app/services/reviews.service';
 import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service';
 import * as moment from 'moment';
 import Swal from 'sweetalert2';
@@ -16,7 +17,9 @@ export class MyOrdersComponent implements OnInit {
   @ViewChild('receiveOrderModal') receiveOrderModal: ElementRef<HTMLElement>;
   @ViewChild('cancelOrderModal') cancelOrderModal: ElementRef<HTMLElement>;
   @ViewChild('openPaymentModalId') openPaymentModalId: ElementRef<HTMLElement>;
+  @ViewChild('reviewOrderModal') reviewOrderModal: ElementRef<HTMLElement>;
 
+  currentRate: number = 4;
   card: any;
   duration: number = 1;
   dueDate: string;
@@ -39,15 +42,18 @@ export class MyOrdersComponent implements OnInit {
     product_name: null
   }
   orderSearchForm: FormGroup;
+  reviewForm: FormGroup;
   selectedOrderItem = {
     id: null,
     item_id: null,
     order_id: null,
     order_created_at: null,
-    duration: null
+    duration: null,
+    review: null,
   };
   stripe: any;
   isSearching: boolean = false;
+  isSubmitted: boolean = false;
 
   dateFrom: {
     year, month, day
@@ -61,7 +67,8 @@ export class MyOrdersComponent implements OnInit {
     private myOrdersService: MyOrdersService,
     private formBuilder: FormBuilder,
     private modalService: NgbModal,
-    private ordersService: OrdersService
+    private ordersService: OrdersService,
+    private reviewsService: ReviewsService
   ) {
     this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
   }
@@ -206,6 +213,27 @@ export class MyOrdersComponent implements OnInit {
     this.modalRef = this.modalService.open(contentCancel, { windowClass: 'custom-class' });
   }
 
+  async openOrderItemReviewModal(contentReview, orderItem) {
+    this.selectedOrderItem = orderItem;
+
+    let reviews = await this.reviewsService.getAll({ item_order_id: orderItem.id }).toPromise();
+
+    if (reviews.length == 0) {
+      this.selectedOrderItem.review = null;
+      this.reviewForm = this.formBuilder.group({
+        rating: new FormControl('', [Validators.required]),
+        comment: new FormControl('', []),
+      });
+    } else {
+      this.selectedOrderItem.review = reviews[0];
+      this.reviewForm = this.formBuilder.group({
+        rating: new FormControl('', []),
+        comment: new FormControl(this.selectedOrderItem.review?.comment, []),
+      });
+    }
+    this.modalRef = this.modalService.open(contentReview, { windowClass: 'custom-class' });
+  }
+
   increaseValueDuration() {
     if (this.duration < 24) {
       this.duration++;
@@ -318,4 +346,106 @@ export class MyOrdersComponent implements OnInit {
       this.modalRef.close();
     }
   }
+
+  async submitReview() {
+    this.isSubmitted = true;
+
+    if (!this.reviewForm.valid) {
+      return false;
+    }
+
+    this.isProcessing = true;
+
+    if (this.selectedOrderItem.review) {
+      this.updateReview();
+    } else {
+      this.createReview();
+    }
+
+  }
+
+  createReview = async function () {
+    let params = {
+      item_order_id: this.selectedOrderItem.id,
+      rating: this.reviewForm.controls.rating.value,
+      comment: this.reviewForm.controls.comment.value
+    };
+
+    try {
+      await this.reviewsService.create(params).toPromise();
+      Swal.fire(
+        'Success',
+        'Your review has been submitted successfully.',
+        'success'
+      );
+    } catch (error) {
+      Swal.fire(
+        'Something went wrong',
+        'Please contact a support agent via 071-0125-874',
+        'error'
+      );
+    } finally {
+      this.modalRef.close();
+      this.isProcessing = false;
+    }
+  }
+
+  updateReview = async function () {
+    let params = {
+      item_order_id: this.selectedOrderItem.id,
+      rating: this.reviewForm.controls.rating.value ? this.reviewForm.controls.rating.value : this.selectedOrderItem.review.rating,
+      comment: this.reviewForm.controls.comment.value
+    };
+
+    try {
+      await this.reviewsService.update(this.selectedOrderItem.review.id, params).toPromise();
+      Swal.fire(
+        'Success',
+        'Your review has been updated successfully.',
+        'success'
+      );
+    } catch (error) {
+      Swal.fire(
+        'Something went wrong',
+        'Please contact a support agent via 071-0125-874',
+        'error'
+      );
+    } finally {
+      this.modalRef.close();
+      this.isProcessing = false;
+    }
+  }
+
+  async openOrderItemReviewClearModal() {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'This action will remove your review.',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, keep it'
+    }).then(async (result) => {
+      if (result.value) {
+        try {
+          await this.reviewsService.delete(this.selectedOrderItem.review.id).toPromise();
+          Swal.fire(
+            'Deleted!',
+            'Your review has been deleted',
+            'success'
+          );
+        } catch (error) {
+          Swal.fire(
+            'Something went wrong',
+            'Please contact a support agent via 071-0125-874',
+            'error'
+          )
+        } finally {
+          this.modalRef.close();
+        }
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+
+      }
+    })
+  }
+
 }
