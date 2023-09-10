@@ -34,6 +34,23 @@ export class MyOrdersService {
   }
 
   //customer portal
+  getMyOrders(params): Observable<any> {
+    const headers = new HttpHeaders().set("security-token", this.token);
+    const urlParams = this.router.createUrlTree(["/orders"], { queryParams: params });
+
+    return this.http
+      .get<any>(this.basePath + this.serializer.serialize(urlParams), {
+        headers
+      })
+      .pipe(
+        map(response => {
+          return response;
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
+
+  //customer portal
   getMyUnCollectedOrders(params): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
     const urlParams = this.router.createUrlTree(["/orders/un-collected"], { queryParams: params });
@@ -85,26 +102,9 @@ export class MyOrdersService {
   }
 
   //admin portal
-  getMyShopOrdersAdmin(params): Observable<any> {
+  getMyOrdersAdmin(params): Observable<any> {
     const headers = new HttpHeaders().set("security-token", this.token);
-    const urlParams = this.router.createUrlTree(["admin/orders/shops"], { queryParams: params });
-
-    return this.http
-      .get<any>(this.basePath + this.serializer.serialize(urlParams), {
-        headers
-      })
-      .pipe(
-        map(response => {
-          return response;
-        }),
-        catchError(this.handleErrorsService.handle)
-      );
-  }
-
-  //admin portal
-  getMyPersonalOrdersAdmin(params): Observable<any> {
-    const headers = new HttpHeaders().set("security-token", this.token);
-    const urlParams = this.router.createUrlTree(["admin/orders/personal"], { queryParams: params });
+    const urlParams = this.router.createUrlTree(["admin/orders"], { queryParams: params });
 
     return this.http
       .get<any>(this.basePath + this.serializer.serialize(urlParams), {

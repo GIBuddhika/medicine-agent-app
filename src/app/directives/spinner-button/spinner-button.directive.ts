@@ -1,4 +1,4 @@
-import { Directive, Input, OnChanges } from '@angular/core';
+import { Directive, Input } from '@angular/core';
 import { ElementRef } from '@angular/core';
 
 @Directive({
@@ -7,12 +7,14 @@ import { ElementRef } from '@angular/core';
 export class SpinnerButtonDirective {
   @Input('spinnerButton') isWaiting: boolean;
   @Input('replaceText') replaceText: string;
+  @Input('originalText') originalText: string;
   originalInnerHtml: string;
   constructor(private el: ElementRef) { }
 
   ngOnInit() {
-    // Save the original button text so I can restore it when waiting ends
-    this.originalInnerHtml = this.el.nativeElement.innerHTML;
+    if (!this.originalText) {
+      this.originalInnerHtml = this.el.nativeElement.innerHTML;
+    }
 
     if (!this.replaceText) {
       this.replaceText = "Please Wait";
@@ -22,6 +24,8 @@ export class SpinnerButtonDirective {
   ngOnChanges() {
     if (this.isWaiting) {
       this.el.nativeElement.innerHTML = '<span><i class="fa fa-spinner fa-spin"></i>&nbsp;' + this.replaceText + '...</span>';
+    } else if (!this.isWaiting && this.originalText) {
+      this.el.nativeElement.innerHTML = '<span>' + this.originalText + '</span>';
     } else {
       if (this.el.nativeElement.innerHTML == '<span><i class="fa fa-spinner fa-spin"></i>&nbsp;' + this.replaceText + '...</span>') {
         this.el.nativeElement.innerHTML = this.originalInnerHtml;

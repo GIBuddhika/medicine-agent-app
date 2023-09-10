@@ -1,5 +1,6 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { FormBuilder, FormControl, FormGroup, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { MyOrdersService } from 'app/services/my-orders.service';
 import { OrdersService } from 'app/services/orders.service';
@@ -39,7 +40,9 @@ export class MyOrdersComponent implements OnInit {
     date_to: null,
     page: null,
     perPage: null,
-    product_name: null
+    product_name: null,
+    order_item_id: null,
+    status: null,
   }
   orderSearchForm: FormGroup;
   reviewForm: FormGroup;
@@ -68,36 +71,33 @@ export class MyOrdersComponent implements OnInit {
     private formBuilder: FormBuilder,
     private modalService: NgbModal,
     private ordersService: OrdersService,
-    private reviewsService: ReviewsService
+    private reviewsService: ReviewsService,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {
     this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
   }
 
   ngOnInit(): void {
-    let today = new Date();
-    this.dateFrom = {
-      year: today.getFullYear(),
-      month: today.getMonth() + 1,
-      day: 1
-    };
-    this.dateTo = {
-      year: today.getFullYear(),
-      month: today.getMonth() + 1,
-      day: today.getDate()
-    };
 
-    if (this.dateFrom) {
-      this.params.date_from = this.dateFrom.year + "-" + ('0' + this.dateFrom.month).slice(-2) + "-" + ('0' + this.dateFrom.day).slice(-2);
-    }
-    if (this.dateTo) {
-      this.params.date_to = this.dateTo.year + "-" + ('0' + this.dateTo.month).slice(-2) + "-" + ('0' + this.dateTo.day).slice(-2);
-    }
+    this.route.queryParams.subscribe(params => {
+      this.params.date_from = params['date_from'];
+      this.params.date_to = params['date_to'];
+      this.params.page = params['page'];
+      this.params.perPage = params['per_page'];
+      this.params.product_name = params['product_name'];
+      this.params.order_item_id = params['order_item_id'];
+      this.params.status = params['status'];
 
-    this.getMyUnCollectedOrders();
-    this.orderSearchForm = this.formBuilder.group({
-      orderStatus: new FormControl('un-collected', []),
-      productName: new FormControl('', []),
+      this.fetchMainData();
     });
+
+    this.orderSearchForm = this.formBuilder.group({
+      orderStatus: new FormControl(this.params.status, []),
+      orderId: new FormControl(this.params.order_item_id, []),
+      productName: new FormControl(this.params.product_name, []),
+    });
+
     this.stripe = Stripe(this.envLoader.config.STRIPE_PUBLIC_KEY);
     this.elements = this.stripe.elements();
     let style =
@@ -118,6 +118,51 @@ export class MyOrdersComponent implements OnInit {
       }
     };
     this.card = this.elements.create('card', { hidePostalCode: true, style: style });
+  }
+
+  async fetchMainData() {
+    this.isSearching = true;
+
+    if ((this.params.date_from && this.params.date_to)) {
+
+      let dateFrom = moment(this.params.date_from, 'YYYY-MM-DD').toDate();
+      this.dateFrom = {
+        year: dateFrom.getFullYear(),
+        month: dateFrom.getMonth() + 1,
+        day: dateFrom.getDate()
+      };
+
+      let dateTo = moment(this.params.date_to, 'YYYY-MM-DD').toDate();
+      this.dateTo = {
+        year: dateTo.getFullYear(),
+        month: dateTo.getMonth() + 1,
+        day: dateTo.getDate()
+      };
+    } else {
+      let today = new Date();
+      this.dateFrom = {
+        year: today.getFullYear(),
+        month: today.getMonth() + 1,
+        day: 1
+      };
+      this.dateTo = {
+        year: today.getFullYear(),
+        month: today.getMonth() + 1,
+        day: today.getDate()
+      };
+
+      if (this.dateFrom) {
+        this.params.date_from = this.dateFrom.year + "-" + ('0' + this.dateFrom.month).slice(-2) + "-" + ('0' + this.dateFrom.day).slice(-2);
+      }
+      if (this.dateTo) {
+        this.params.date_to = this.dateTo.year + "-" + ('0' + this.dateTo.month).slice(-2) + "-" + ('0' + this.dateTo.day).slice(-2);
+      }
+    }
+
+    this.orderItems = await this.myOrdersService.getMyOrders(this.params).toPromise();
+    this.processOrderData();
+
+    this.isSearching = false;
   }
 
   async getMyUnCollectedOrders() {
@@ -163,8 +208,6 @@ export class MyOrdersComponent implements OnInit {
   }
 
   async fetchOrders() {
-    this.isSearching = true;
-
     if (!this.dateFrom || !this.dateTo) {
       Swal.fire(
         '',
@@ -179,26 +222,13 @@ export class MyOrdersComponent implements OnInit {
     if (this.dateTo) {
       this.params.date_to = this.dateTo.year + "-" + ('0' + this.dateTo.month).slice(-2) + "-" + ('0' + this.dateTo.day).slice(-2);
     }
-    if (this.orderSearchForm.controls.productName.value) {
-      this.params.product_name = this.orderSearchForm.controls.productName.value;
-    }
 
-    switch (this.orderSearchForm.controls.orderStatus.value) {
-      case 'collected':
-        await this.getMyCollectedOrders();
-        break;
-      case 'un-collected':
-        await this.getMyUnCollectedOrders();
-        break;
-      case 'cancelled':
-        await this.getMyCancelledOrders();
-        break;
+    this.params.product_name = this.orderSearchForm.controls.productName.value;
+    this.params.order_item_id = this.orderSearchForm.controls.orderId.value;
+    this.params.status = this.orderSearchForm.controls.orderStatus.value;
 
-      default:
-        break;
-    }
+    this.router.navigate(['.'], { relativeTo: this.route, queryParams: this.params });
 
-    this.isSearching = false;
   }
 
   openOrderItemRenewModal(contentReceived, orderItem) {
@@ -294,7 +324,8 @@ export class MyOrdersComponent implements OnInit {
       }).toPromise();
 
       this.orderSearchForm.get('orderStatus').setValue("collected");
-      await this.getMyCollectedOrders();
+      this.fetchOrders();
+
       this.isProcessing = false;
       this.modalRef.close();
       this.modalRefPayment.close();
@@ -326,8 +357,9 @@ export class MyOrdersComponent implements OnInit {
     try {
       await this.ordersService.cancel(this.selectedOrderItem.order_id, this.selectedOrderItem.id).toPromise();
 
-      this.orderSearchForm.get('orderStatus').setValue("not-collected");
-      await this.getMyCancelledOrders();
+      this.orderSearchForm.get('orderStatus').setValue("cancelled");
+      this.fetchOrders();
+
       this.isProcessing = false;
       this.modalRef.close();
 

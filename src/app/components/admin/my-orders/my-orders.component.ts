@@ -9,6 +9,7 @@ import { ShopsService } from 'app/services/shops.service';
 import { UsersService } from 'app/services/users.service';
 import Swal from 'sweetalert2';
 import * as moment from 'moment';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-my-orders',
@@ -44,21 +45,26 @@ export class MyOrdersComponent implements OnInit {
   isPersonalOrdersOnly: boolean = false;
   isRefunding: boolean = false;
   isSearching: boolean = false;
-  isProductsListDisabled: boolean = true;
+  isProductsListDisabled: boolean = false;
   modalRef: any;
   orderItemNote: string = "";
-  orderItems = {
-    order_items: [],
-    users: [],
-  };
+  orderItems = [];
   params = {
     shop_id: null,
     order_id: null,
     product_id: null,
     date: null,
     phone: null,
-    status: 1,
+    status: null,
+    is_personal_orders_only: null,
+    page: null,
+    per_page: null,
   }
+
+  page: number = 1;
+  perPage: number = 10;
+  totalCount: number;
+
   products = [];
   refundAmount: number = 0;
   selectedOrderItem = {
@@ -81,7 +87,9 @@ export class MyOrdersComponent implements OnInit {
     private formBuilder: FormBuilder,
     private usersService: UsersService,
     private shopsService: ShopsService,
-    private modalService: NgbModal
+    private modalService: NgbModal,
+    private route: ActivatedRoute,
+    private router: Router,
   ) {
     this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
     this.accountType = parseInt(localStorage.getItem('account_type'));
@@ -92,73 +100,66 @@ export class MyOrdersComponent implements OnInit {
 
   ngOnInit(): void {
     (async () => {
-      this.getOrders();
+      this.route.queryParams.subscribe(async params => {
+        this.params.shop_id = params['shop_id'];
+        this.params.order_id = params['order_id'];
+        this.params.product_id = params['product_id'];
+        this.params.is_personal_orders_only = params['is_personal_orders_only'];
+        this.params.phone = params['phone'];
+        this.params.date = params['date'];
+        this.params.page = params['page'] ?? this.page;
+        this.params.per_page = params['per_page'] ?? this.perPage;
+        this.params.status = params['status'] ?? null;
+
+        this.page = this.params.page;
+
+        await this.getShops();
+
+        if (this.params.is_personal_orders_only == "true") {
+          this.isPersonalOrdersOnly = true;
+          await this.getAllPersonalProducts();
+          this.selectedProduct = parseInt(this.params.product_id);
+        } else {
+          if (this.params.shop_id) {
+            await this.getProducts(this.params.shop_id);
+            this.selectedProduct = parseInt(this.params.product_id);
+          }
+        }
+
+        if (this.params.shop_id == null && this.params.product_id == null) {
+          this.isProductsListDisabled = true;
+        }
+
+        this.getOrders();
+      });
+
+      this.orderSearchForm = this.formBuilder.group({
+        orderNo: new FormControl(this.params.order_id, []),
+        shopId: new FormControl(this.params.shop_id, []),
+        status: new FormControl(this.params.status ?? "", []),
+        phone: new FormControl(this.params.phone, []),
+      });
     })();
 
-    this.orderSearchForm = this.formBuilder.group({
-      orderNo: new FormControl('', []),
-      shopId: new FormControl('', []),
-      status: new FormControl('not-collected', []),
-      phone: new FormControl('', []),
-    });
   }
 
   async getOrders() {
-    if (this.isPersonalOrdersOnly) {
-      this.getAllPersonalProducts();
-      //get uncollected personal orders
-      this.getPersonalOrders({ status: OrderStatusConstants.SUCCESS });
-    } else {
-      await this.getShops();
-      this.getShopOrders({ status: OrderStatusConstants.SUCCESS });
-    }
+    let orderItemsResponse = await this.myOrdersService.getMyOrdersAdmin(this.params).toPromise();
+    this.orderItems = orderItemsResponse.order_items;
+    this.totalCount = orderItemsResponse.total;
   }
 
   async getShops() {
     this.shops = await this.usersService.getShops().toPromise();
-    console.log(this.shops);
   }
 
   async getProducts(shopId) {
     this.products = await this.shopsService.getProductsByShop(shopId).toPromise();
-    console.log(this.products);
   }
 
   async getAllPersonalProducts() {
     let personalProducts = await this.usersService.getAllPersonalProducts().toPromise();
     this.products = personalProducts.data;
-    console.log(this.products);
-  }
-
-  async getShopOrders(params = {}) {
-    this.orderItems = await this.myOrdersService.getMyShopOrdersAdmin(params).toPromise();
-    Object.keys(this.orderItems.order_items).forEach(key => {
-      let user = this.orderItems.users.find(user => user.id == key);
-      user.orderItems = this.orderItems.order_items[key];
-      user.orderItems.forEach(orderItem => {
-        let shop = this.shops.find(shop => shop.id == orderItem.shop_id);
-        orderItem.shop_name_address = shop.name + ", " + shop.city.name;
-        orderItem.dueDate = this.setDueDate(orderItem);
-      });
-    });
-  }
-
-  async getPersonalOrders(params = {}) {
-    this.orderItems = await this.myOrdersService.getMyPersonalOrdersAdmin(params).toPromise();
-    console.log(this.orderItems);
-
-    Object.keys(this.orderItems.order_items).forEach(key => {
-      let user = this.orderItems.users.find(user => user.id == key);
-      user.orderItems = this.orderItems.order_items[key];
-      user.orderItems.forEach(orderItem => {
-        orderItem.dueDate = this.setDueDate(orderItem);
-        if (orderItem.dueDate < moment()) {
-          orderItem.isDue = true;
-          orderItem.dueMonthsCount = Math.ceil(moment().diff(orderItem.dueDate, 'months', true));
-          orderItem.dueDaysCount = Math.round(moment().diff(orderItem.dueDate, 'days', true));
-        }
-      });
-    });
   }
 
   setDueDate(orderItem) {
@@ -170,48 +171,44 @@ export class MyOrdersComponent implements OnInit {
   }
 
   async filterOrders() {
-    this.isSearching = true;
-
-    this.params.product_id = this.selectedProduct;
 
     let shopId = this.orderSearchForm.controls.shopId.value;
     let orderId = this.orderSearchForm.controls.orderNo.value;
     let phone = this.orderSearchForm.controls.phone.value;
 
-    if (shopId) {
-      this.params.shop_id = shopId;
-    }
-    if (orderId) {
-      this.params.order_id = orderId;
-    }
-    if (this.date) {
-      this.params.date = this.date.year + "-" + ('0' + this.date.month).slice(-2) + "-" + ('0' + this.date.day).slice(-2);
-    }
-    if (phone) {
-      this.params.phone = phone;
-    }
+    this.params.shop_id = shopId;
+    this.params.order_id = orderId;
+    this.params.phone = phone;
 
-    if (this.orderSearchForm.controls.status.value == "not-collected") {
-      this.params.status = OrderStatusConstants.SUCCESS;
-    } else if (this.orderSearchForm.controls.status.value == "collected") {
-      this.params.status = OrderStatusConstants.COLLECTED;
-    } else if (this.orderSearchForm.controls.status.value == "cancelled") {
-      this.params.status = OrderStatusConstants.CANCELLED;
+    if (this.params.shop_id && this.selectedProduct) {
+      this.params.product_id = this.selectedProduct;
+    } else if (this.isPersonalOrdersOnly && this.selectedProduct) {
+      this.params.product_id = this.selectedProduct;
+    } else {
+      this.params.product_id = null;
     }
 
     if (this.isPersonalOrdersOnly) {
-      await this.getPersonalOrders(this.params);
+      this.params.is_personal_orders_only = true;
     } else {
-      await this.getShopOrders(this.params);
+      this.params.is_personal_orders_only = false;
     }
 
-    this.isSearching = false;
+    if (this.date) {
+      this.params.date = this.date.year + "-" + ('0' + this.date.month).slice(-2) + "-" + ('0' + this.date.day).slice(-2);
+    }
+
+    this.params.page = 1;
+    this.params.per_page = this.perPage;
+
+    this.params.status = this.orderSearchForm.controls.status.value == "" ? null : this.orderSearchForm.controls.status.value;
+
+    this.router.navigate(['.'], { relativeTo: this.route, queryParams: this.params });
   }
 
   onShopChange = async function () {
     this.products = [];
     this.selectedProduct = null;
-    this.isProductsListDisabled = true;
 
     let selectedShopId = this.orderSearchForm.controls.shopId.value;
 
@@ -219,12 +216,16 @@ export class MyOrdersComponent implements OnInit {
       await this.getProducts(this.orderSearchForm.controls.shopId.value);
       this.isProductsListDisabled = false;
     }
-
   }
 
   fetchPersonalItems() {
+    this.selectedProduct = null;
+    this.isProductsListDisabled = true;
+    this.orderSearchForm.get('shopId').setValue("");
     if (this.isPersonalOrdersOnly) {
       this.getAllPersonalProducts();
+      this.selectedProduct = null;
+      this.isProductsListDisabled = false;
     }
   }
 
@@ -266,7 +267,7 @@ export class MyOrdersComponent implements OnInit {
         'Order has marked as collected successfully.',
         'success'
       );
-      this.filterOrders();
+      window.location.reload();
     } catch (error) {
       Swal.fire(
         'Failed',
@@ -277,7 +278,6 @@ export class MyOrdersComponent implements OnInit {
       this.isMarkAsCollectedProcessing = false;
       this.modalService.dismissAll();
     }
-
   }
 
   async markAsReceived() {
@@ -385,5 +385,18 @@ export class MyOrdersComponent implements OnInit {
       // this.modalRef.close();
     }
 
+  }
+
+  onClickSearch(page = 1) {
+    this.params.page = page;
+    this.router.navigate(['.'], { relativeTo: this.route, queryParams: this.params });
+  }
+
+  onChangeProduct(product = null) {
+    if (!product) {
+      this.params.product_id = null;
+    } else {
+      this.selectedProduct = product.id;
+    }
   }
 }

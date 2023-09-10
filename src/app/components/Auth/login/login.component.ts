@@ -34,7 +34,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         this.route.queryParams.subscribe((params) => {
             this.redirect = params['redirect'];
         });
-        if (localStorage.getItem("token")) {
+        if (localStorage.getItem("token") && localStorage.getItem("user_role") == UserRolesConstants.CUSTOMER.toString()) {
             if (this.redirect) {
                 this.router.navigate([this.redirect]);
             } else {

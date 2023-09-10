@@ -102,7 +102,7 @@ export class ProductComponent implements OnInit {
                     this.lat = parseFloat(this.product.personal_listing.latitude);
                     this.lng = parseFloat(this.product.personal_listing.longitude);
                 }
-                this.images = this.product.files.length > 0 ? this.product.files : [this.product.shop.file];
+                this.images = this.product.files.length > 0 ? this.product.files : [this.product.image_path];
                 this.calculateRemainingQuantity();
                 this.setNote();
             });

@@ -129,7 +129,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         return new Promise((resolve, reject) => {
             return this.metaService.getAddressFromGoogleMap(this.lat, this.lng).subscribe(async res => {
                 console.log(res);
-                
+
                 let town = this.getAddress(res, "administrative_area_level_4");
                 let city = this.getAddress(res, "administrative_area_level_3");
                 let district = this.getAddress(res, "administrative_area_level_2");
@@ -169,13 +169,10 @@ export class HomeComponent implements OnInit, OnDestroy {
         }
 
         this.products.forEach(product => {
-            if (product.image_id) {
-                // product.image_url = this.imagePath + product.files.find(file => file.id == product.image_id).location;
-                product.image_url = this.imagePath + product.files.find(file => file.id == product.image_id).location;
-            } else if (product.files.length > 0) {
-                product.image_url = this.imagePath + product.files[0].location;
-            } else if (product.shop.file_id) {
-                product.image_url = this.imagePath + product.shop.file.location;
+            if (product.files.length > 0) {
+                product.image_url = this.imagePath + product.files.find(file => file.is_default == true).location;
+            } else if (product.shop && product.shop.image_path) {
+                product.image_url = this.imagePath + product.shop.image_path;
             } else {
                 product.image_url = '/assets/img/default-product.jpeg';
             }

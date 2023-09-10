@@ -122,3 +122,24 @@ button.bi.bi-calendar3 {
 .rating>label:active {
     position: relative;
 }
+
+.status-label {
+    font-size: 10px;
+    padding: 3px;
+    border-radius: 3px;
+    line-height: 1;
+    float: right;
+    margin-bottom: 5px;
+
+    &.not-collected {
+        background: greenyellow;
+    }
+
+    &.collected {
+        background: skyblue;
+    }
+
+    &.cancelled {
+        background: coral;
+    }
+}

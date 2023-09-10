@@ -38,9 +38,11 @@
                                 <label>Status</label>
                                 <select class="browser-default custom-select form-control" formControlName="status"
                                     id="status">
-                                    <option [selected]="true" value="not-collected">Not collected</option>
-                                    <option value="collected">Collected</option>
-                                    <option value="cancelled">Cancelled</option>
+                                    <option value="">Any</option>
+                                    <option value="1">Not collected</option>
+                                    <option value="2">Collected</option>
+                                    <option value="3">Received</option>
+                                    <option value="4">Cancelled</option>
                                 </select>
                             </div>
                             <div class="col-sm-4 col-xs-12">
@@ -71,8 +73,9 @@
                                     }}
                                 </label>
                                 <ng-select class="custom form-control browser-default" [items]="products"
-                                    [disabled]="isProductsListDisabled && !isPersonalOrdersOnly" bindLabel="name"
-                                    bindValue="id" [(ngModel)]="selectedProduct" [ngModelOptions]="{standalone: true}">
+                                    [disabled]="isProductsListDisabled" bindLabel="name" bindValue="id"
+                                    (change)="onChangeProduct($event)" [(ngModel)]="selectedProduct"
+                                    [ngModelOptions]="{standalone: true}">
                                 </ng-select>
                             </div>
                             <div class="col-sm-4 col-xs-12">
@@ -96,99 +99,110 @@
         </div>
         <br>
         <div class="row">
-            <div class="col-md-12" *ngIf="orderItems.users.length>0">
-                <div class="card-normal no-decorations mb-40" *ngFor="let user of orderItems.users">
-                    <div class="row">
-                        <div class="col-md-6">
-                            <h4><b>{{user.name}}</b></h4>
-                        </div>
-                        <div class="col-md-6 text-right">
-                            <a href="tel:{{user.phone}}">{{user.phone}}</a>
-                            <!-- users don't have a location or address -->
-                            <!-- <p>{{user.address}}</p> -->
-                            <!-- <a href="https://www.google.com/maps/dir/{{user.latitude}},{{user.longitude}}"
-                                target="_blank">
-                                <button type="button" class="btn btn-outline-info btn-sm">
-                                    Open item location in Google map
-                                </button>
-                            </a> -->
-                        </div>
-                    </div>
-                    <br>
-                    <div *ngFor="let orderItem of user.orderItems">
-                        <div class="card-normal no-decorations" [ngClass]="{'item_due ': orderItem.isDue}">
-                            <div class="row product">
-                                <div class="col-md-12">
-                                    <h4 class="margin-b-0">{{orderItem.name}}</h4>
-                                </div>
+            <div class="col-md-12" *ngIf="orderItems.length>0">
+                <p>{{totalCount}} {{totalCount == 1 ? "order":"orders"}} found.</p>
+                <div *ngFor="let orderItem of orderItems">
+                    <div class="card-normal no-decorations mb-10" [ngClass]="{'item_due ': orderItem.isDue}">
+                        <div class="row product">
+                            <div class="col-md-4">
+                                <h4 class="margin-b-0">
+                                    {{orderItem.name}}
+                                </h4>
                             </div>
-                            <hr>
-                            <div class="row product">
-                                <div class="col-md-2">
-                                    <div style="background-image: url('{{imagePath + orderItem.location}}');
+                            <div class="col-md-4">
+                                <span title="Order no." class="font-bold">
+                                    Order no. #{{orderItem.id}}
+                                </span>
+                                <span class="status-label not-collected" *ngIf="orderItem.status == 1">
+                                    Not Collected
+                                </span>
+                                <span class="status-label collected" *ngIf="orderItem.status == 2">
+                                    Collected
+                                </span>
+                                <span class="status-label received" *ngIf="orderItem.status == 3">
+                                    Received
+                                </span>
+                                <span class="status-label cancelled" *ngIf="orderItem.status == 4">
+                                    Cancelled
+                                </span>
+                            </div>
+                            <div class="col-md-4">
+                                <p class="margin-b-0 text-right">
+                                    {{orderItem.customer_name}} <a
+                                        href="tel:{{orderItem.customer_phone}}">{{orderItem.customer_phone}}</a></p>
+                            </div>
+                        </div>
+                        <hr>
+                        <div class="row product">
+                            <div class="col-md-2">
+                                <div style="background-image: url('{{imagePath + orderItem.location}}');
                             background-repeat: no-repeat;
                             background-position: center;
                             background-size: cover;
                             width: 100%;height: 100px;">
-                                    </div>
                                 </div>
-                                <div class="col-md-4">
-                                    <p>Quantity: {{orderItem.quantity}}</p>
-                                    <p class="price">{{orderItem.quantity * orderItem.price| currency:"Rs. "}}</p>
-                                    <p *ngIf="orderItem.duration">Duration: {{orderItem.duration}} month(s)</p>
-                                    <p *ngIf="orderItem.duration" [ngClass]="{'bold':orderItem.isDue}">
-                                        Due date: {{orderItem.dueDate | date: 'yyyy MMMM dd hh.mm a'}}
-                                    </p>
+                            </div>
+                            <div class="col-md-4">
+                                <p>Quantity: {{orderItem.quantity}}</p>
+                                <p class="price">{{orderItem.quantity * orderItem.price| currency:"Rs. "}}</p>
+                                <p *ngIf="orderItem.duration">Duration: {{orderItem.duration}} month(s)</p>
+                                <p *ngIf="orderItem.duration" [ngClass]="{'bold':orderItem.isDue}">
+                                    Due date: {{orderItem.dueDate | date: 'yyyy MMMM dd hh.mm a'}}
+                                </p>
+                            </div>
+                            <div class="col-md-4">
+                                <p *ngIf="!isPersonalOrdersOnly && orderItem.shop_name">
+                                    Shop: {{orderItem.shop_name +', '+orderItem.shop_city_name}}
+                                </p>
+                                <p>
+                                    Order date: {{orderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a'}}</p>
+                                <p *ngIf="orderItem.cancelled_at">
+                                    Cancelled date: {{orderItem.cancelled_at | date: 'yyyy MMMM dd hh.mm a'}}</p>
+                                <div *ngIf="orderItem.collected_at">
+                                    <span>
+                                        Collected date: {{orderItem.collected_at | date: 'yyyy MMMM dd hh.mm a'}}
+                                    </span>
+                                    <br>
                                 </div>
-                                <div class="col-md-4">
-                                    <p *ngIf="!isPersonalOrdersOnly">Shop: {{orderItem.shop_name_address}}</p>
-                                    <p>Order No: {{orderItem.id}}</p>
-                                    <p>
-                                        Order date: {{orderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a'}}</p>
-                                    <p *ngIf="orderItem.cancelled_at">
-                                        Cancelled date: {{orderItem.cancelled_at | date: 'yyyy MMMM dd hh.mm a'}}</p>
-                                    <div *ngIf="orderItem.collected_at">
-                                        <span>
-                                            Collected date: {{orderItem.collected_at | date: 'yyyy MMMM dd hh.mm a'}}
-                                        </span>
-                                        <br>
-                                    </div>
-                                    <p *ngIf="orderItem.note"><b>Customer Note:</b> {{orderItem.note}}</p>
-                                    <p *ngIf="orderItem.admin_note"><b>Admin Note:</b> {{orderItem.admin_note}}</p>
-                                </div>
-                                <!-- un-collected filter -->
-                                <div class="col-md-2" *ngIf="params.status == 1">
-                                    <button type="button" class="btn btn-outline-success btn-sm"
-                                        *ngIf="orderItem.status == 1" style="width: 100%;margin-bottom:2px"
-                                        #updateOrderModal (click)="openUpdateOrderModal(content, orderItem)">
-                                        Collected by customer
-                                    </button>
-                                    <button type="button" class="btn btn-outline-danger btn-sm" style="width: 100%;"
-                                        #cancelOrderModal (click)="openCancelOrderModal(contentCancel, orderItem)"
-                                        *ngIf=" orderItem.status == 1">
-                                        Mark as cancelled
-                                    </button>
-                                </div>
-                                <!-- collected filter -->
-                                <div class="col-md-2" *ngIf="params.status == 2">
-                                    <!-- orderitem db status collected -->
-                                    <button type="button" class="btn btn-default btn-sm" *ngIf="orderItem.duration"
-                                        style="width: 100%;margin-bottom:2px" #receiveOrderModal
-                                        (click)="openOrderItemReceivedModal(contentReceived, orderItem)">
-                                        Mark as received
-                                    </button>
-                                    <button type="button" class="btn btn-danger btn-sm"
-                                        style="width: 100%;margin-bottom:2px" #refundOrderModal
-                                        (click)="openRefundOrderModal(contentRefund, orderItem)">
-                                        Refund
-                                    </button>
-                                </div>
+                                <p *ngIf="orderItem.note"><b>Customer Note:</b> {{orderItem.note}}</p>
+                                <p *ngIf="orderItem.admin_note"><b>Admin Note:</b> {{orderItem.admin_note}}</p>
+                            </div>
+                            <!-- un-collected filter -->
+                            <div class="col-md-2" *ngIf="params.status == 1">
+                                <button type="button" class="btn btn-success btn-sm" *ngIf="orderItem.status == 1"
+                                    style="width: 100%;margin-bottom:2px" #updateOrderModal
+                                    (click)="openUpdateOrderModal(content, orderItem)">
+                                    Collected by customer
+                                </button>
+                                <button type="button" class="btn btn-danger btn-sm" style="width: 100%;"
+                                    #cancelOrderModal (click)="openCancelOrderModal(contentCancel, orderItem)"
+                                    *ngIf=" orderItem.status == 1">
+                                    Mark as cancelled
+                                </button>
+                            </div>
+                            <!-- collected filter -->
+                            <div class="col-md-2" *ngIf="params.status == 2">
+                                <!-- orderitem db status collected -->
+                                <button type="button" class="btn btn-default btn-sm" *ngIf="orderItem.duration"
+                                    style="width: 100%;margin-bottom:2px" #receiveOrderModal
+                                    (click)="openOrderItemReceivedModal(contentReceived, orderItem)">
+                                    Mark as received
+                                </button>
+                                <button type="button" class="btn btn-danger btn-sm"
+                                    style="width: 100%;margin-bottom:2px" #refundOrderModal
+                                    (click)="openRefundOrderModal(contentRefund, orderItem)">
+                                    Refund
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
+                <div class="pagination">
+                    <ngb-pagination [collectionSize]="totalCount" [pageSize]="perPage" [(page)]="page"
+                        (pageChange)="onClickSearch($event)" [rotate]="true"></ngb-pagination>
+                </div>
             </div>
-            <div class="col-md-12" *ngIf="orderItems.users.length==0">
+            <div class="col-md-12" *ngIf="orderItems.length==0">
                 <h3>No orders found.</h3>
             </div>
         </div>

@@ -75,7 +75,11 @@ const routes: Routes = [
   { path: 'profile', component: ProfileComponent, canActivate: [CanActivateRouteGuard], data: { roles: [UserRolesConstants.CUSTOMER, UserRolesConstants.ADMIN, UserRolesConstants.SHOP_ADMIN] } },
 
   { path: 'landing', component: LandingComponent },
-  { path: 'icons', component: NucleoiconsComponent }
+  { path: 'icons', component: NucleoiconsComponent },
+  {
+    path: '**',
+    redirectTo: '/not-found'
+  },
 ];
 
 @NgModule({

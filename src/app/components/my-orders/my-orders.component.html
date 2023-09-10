@@ -40,13 +40,19 @@
                         </div>
                     </div>
                     <div class="row">
-                        <div class="col-sm-4 col-xs-12">
+                        <div class="col-sm-3 col-xs-12">
+                            <label>Order id</label>
+                            <div class="form-group">
+                                <input class="form-control" name="orderId" formControlName="orderId" />
+                            </div>
+                        </div>
+                        <div class="col-sm-3 col-xs-12">
                             <label>Product name</label>
                             <div class="form-group">
                                 <input class="form-control" name="dp" formControlName="productName" />
                             </div>
                         </div>
-                        <div class="col-sm-4 col-xs-12">
+                        <div class="col-sm-3 col-xs-12">
                             <label>Date from</label>
                             <div class="input-group">
                                 <input class="form-control" placeholder="yyyy-mm-dd" name="dp" [(ngModel)]="dateFrom"
@@ -55,7 +61,7 @@
                                     type="button"></button>
                             </div>
                         </div>
-                        <div class="col-sm-4 col-xs-12">
+                        <div class="col-sm-3 col-xs-12">
                             <label>Date to</label>
                             <div class="input-group">
                                 <input class="form-control" placeholder="yyyy-mm-dd" name="dp" [(ngModel)]="dateTo"
@@ -69,7 +75,8 @@
                         <div class="col-sm-12 col-xs-12">
                             <br>
                             <button type="button" class="btn btn-warning btn float-right" (click)="fetchOrders()"
-                                replaceText="Searching" [spinnerButton]="isSearching">Search</button>
+                                replaceText="Searching" originalText="Search"
+                                [spinnerButton]="isSearching">Search</button>
                         </div>
                     </div>
                 </form>
@@ -107,8 +114,22 @@
                     <div *ngFor="let orderItem of shop.orderItems">
                         <div class="card-normal no-decorations" [ngClass]="{'item_due ': orderItem.isDue}">
                             <div class="row product">
-                                <div class="col-md-9">
+                                <div class="col-md-5">
                                     <h4>{{orderItem.name}}</h4>
+                                </div>
+                                <div class="col-md-4" style="display: flex; align-items: flex-start;">
+                                    <span title="Order no." class="font-bold" style="margin-right: 10px;">
+                                        Order no. #{{orderItem.id}}
+                                    </span>
+                                    <span class="status-label not-collected" *ngIf="orderItem.status == 1">
+                                        Not Collected
+                                    </span>
+                                    <span class="status-label collected" *ngIf="orderItem.status == 2">
+                                        Collected
+                                    </span>
+                                    <span class="status-label cancelled" *ngIf="orderItem.status == 4">
+                                        Cancelled
+                                    </span>
                                 </div>
                                 <div class="col-md-3">
                                     <button type="button" class="btn btn-default btn-sm" *ngIf="orderItem.status == 2"
@@ -153,8 +174,6 @@
                                     <p *ngIf="orderItem.note"><b>Note:</b> {{orderItem.note}}</p>
                                 </div>
                                 <div class="col-md-4">
-                                    <b>Order Id:</b> {{orderItem.id}}
-                                    <br>
                                     <b>Order date:</b> {{orderItem.order_created_at | date: 'yyyy/MM/dd hh.mm a' }}
                                     <div *ngIf="orderItem.collected_at">
                                         <b>Collected date:</b> {{orderItem.collected_at | date: 'yyyy MMMM dd hh.mm a'
@@ -183,17 +202,31 @@
                     <div *ngFor="let orderItem of user.orderItems">
                         <div class="card-normal no-decorations" [ngClass]="{'item_due ': orderItem.isDue}">
                             <div class="row product">
-                                <div class="col-md-9">
+                                <div class="col-md-5">
                                     <h4>{{orderItem.name}}</h4>
                                 </div>
-                                <div class="col-md-3 text-right">
-                                    <button type="button" class="btn btn-default btn-sm"
-                                        *ngIf="orderItem.status == 2 && orderItem.duration !=null"
+                                <div class="col-md-4" style="display: flex; align-items: flex-start;">
+                                    <span title="Order no." class="font-bold" style="margin-right: 10px;">
+                                        Order no. #{{orderItem.id}}
+                                    </span>
+                                    <span class="status-label not-collected" *ngIf="orderItem.status == 1">
+                                        Not Collected
+                                    </span>
+                                    <span class="status-label collected" *ngIf="orderItem.status == 2">
+                                        Collected
+                                    </span>
+                                    <span class="status-label cancelled" *ngIf="orderItem.status == 4">
+                                        Cancelled
+                                    </span>
+                                </div>
+                                <div class="col-md-3">
+                                    <button type="button" class="btn btn-default btn-sm" *ngIf="orderItem.status == 2"
                                         style="width: 100%;margin-bottom:2px" #renewOrderModal
                                         (click)="openOrderItemRenewModal(contentRenew, orderItem)">
                                         Renew order
                                     </button>
-                                    <button type="button" class="btn btn-success btn-sm" *ngIf="orderItem.status == 2"
+                                    <button type="button" class="btn btn-default btn-sm"
+                                        *ngIf="orderItem.status == 2 && orderItem.duration !=null"
                                         style="width: 100%;margin-bottom:2px" #reviewOrderModal
                                         (click)="openOrderItemReviewModal(contentReview, orderItem)">
                                         Leave a review
@@ -345,7 +378,7 @@
                 <p class="quantity">Quantity: {{selectedOrderItem.quantity}}</p>
                 <p *ngIf="selectedOrderItem.duration">Duration: {{selectedOrderItem.duration}} month(s)</p>
                 <p [ngClass]="{'bold':selectedOrderItem.isDue}">
-                    Order No: {{selectedOrderItem.id}}
+                    Order No: {{selectedOrderItem.id}}Order No: {{selectedOrderItem.id}}
                 </p>
                 <p [ngClass]="{'bold':selectedOrderItem.isDue}">
                     Order date: {{selectedOrderItem.order_created_at | date: 'yyyy MMMM dd hh.mm a'}}
@@ -359,12 +392,14 @@
         <div class="row">
             <div class="col-sm-12">
                 <p class="price">
-                    Paid amount: {{(selectedOrderItem.duration ? selectedOrderItem.duration * selectedOrderItem.price :
+                    Paid amount: {{(selectedOrderItem.duration ? selectedOrderItem.duration *
+                    selectedOrderItem.price :
                     selectedOrderItem.quantity * selectedOrderItem.price)| currency:"Rs. "}}
                 </p>
                 <p>
                     <b>
-                        After cancelling the order, it will take 5-10 business days to trasfer the money back to your
+                        After cancelling the order, it will take 5-10 business days to trasfer the money back to
+                        your
                         account. Contact admin if it doesn't transfer to your account.
                     </b>
                 </p>

@@ -146,10 +146,10 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             .pipe(take(1))
             .pipe(finalize(() => {
                 this.isLoading = false;
+                this.isSearching = false;
             }))
             .subscribe(response => {
                 this.shops = response[0];
-                console.log(this.shops);
                 if (this.shops.length == 1) {
                     this.lat = parseFloat(this.shops[0].latitude);
                     this.lng = parseFloat(this.shops[0].longitude);
@@ -158,7 +158,6 @@ export class MyProductsComponent implements OnInit, OnDestroy {
                 this.products = response[1].data;
                 this.totalCount = response[1].total_count
                 this.user = response[2];
-                this.isSearching = false;
 
                 this.productSearchForm.controls['searchTerm'].setValue(this.params.searchTerm);
                 this.productSearchForm.controls['shopId'].setValue(this.params.shopId);
@@ -597,11 +596,10 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         let wholesaleMinQuantity = product.sellable_item ? product.sellable_item.wholesale_minimum_quantity : product.rentable_item.wholesale_minimum_quantity;
         this.isWholesalePricingEnabled = wholesalePrice ? true : false;
 
-        let mainFile = product.files.find(file => file.id == product.image_id);
-        this.mainImage = this.imagePath + mainFile.location;
-        this.subImagesList = product.files.filter(file => file.id != product.image_id);
-        console.log(this.subImagesList);
+        let mainFile = product.files.find(file => file.is_default);
 
+        this.mainImage = this.imagePath + mainFile.location;
+        this.subImagesList = product.files.filter(file => file.is_default == false);
 
         this.productForm = this.formBuilder.group({
             address: new FormControl(address, []),
@@ -765,7 +763,6 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     }
 
     search() {
-        this.isSearching = true;
         this.params = {
             type: this.params.type,
             searchTerm: this.productSearchForm.controls.searchTerm.value,

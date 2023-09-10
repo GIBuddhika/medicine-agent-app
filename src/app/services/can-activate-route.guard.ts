@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router } from '@angular/router';
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, Router, ActivatedRoute } from '@angular/router';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth/auth.service';
 
@@ -16,7 +16,12 @@ export class CanActivateRouteGuard implements CanActivate {
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot)
         : Observable<boolean> | Promise<boolean> | boolean {
         if (!localStorage.getItem('token')) {
+            if (window.location.href.includes("/admin")) {
+                this.router.navigate(['/admin/login'], { queryParams: { 'redirect': window.location.href } });
+                return false;
+            }
             this.router.navigate(['/']);
+            return false;
         }
 
         let blockedAccountTypes = route.data.blockedAccountTypes as Array<string>;
@@ -38,8 +43,6 @@ export class CanActivateRouteGuard implements CanActivate {
             } else {
                 return true;
             }
-        } else {
-            this.router.navigate(['/']);
         }
     }
 }

@@ -55,11 +55,12 @@
                                 Rs. {{total | currency:'':''}}</h4>
                         </div>
                         <br>
-                        <button *ngIf="isLoggedInUser" class="btn btn-outline-warning btn-sm full-width"
+                        <button *ngIf="isLoggedInUser && isCustomer" class="btn btn-outline-warning btn-sm full-width"
                             #openPaymentModalId (click)="openPaymentModal(content)">Checkout</button>
                         <br>
-                        <button *ngIf="!isLoggedInUser" class="btn btn-outline-warning btn-sm full-width"
-                            routerLink="/login" [queryParams]="{redirect: 'cart'}">Login before checkout</button>
+                        <button *ngIf="!(isLoggedInUser && isCustomer)"
+                            class="btn btn-outline-warning btn-sm full-width" routerLink="/login"
+                            [queryParams]="{redirect: 'cart'}">Login before checkout</button>
                     </div>
                 </div>
             </div>

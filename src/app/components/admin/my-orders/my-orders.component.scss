@@ -47,3 +47,28 @@ button.bi.bi-calendar3 {
     pointer-events: none;
     opacity: 0.4;
 }
+
+.status-label {
+    font-size: 10px;
+    padding: 3px;
+    border-radius: 3px;
+    line-height: 1;
+    float: right;
+    margin-bottom: 5px;
+
+    &.not-collected {
+        background: greenyellow;
+    }
+
+    &.collected {
+        background: skyblue;
+    }
+
+    &.received {
+        background: yellow;
+    }
+
+    &.cancelled {
+        background: coral;
+    }
+}

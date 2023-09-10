@@ -1,6 +1,7 @@
 import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
+import { UserRolesConstants } from 'app/constants/user-roles';
 import { OrdersService } from 'app/services/orders.service';
 import { ProductsService } from 'app/services/products.service';
 import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service';
@@ -23,6 +24,7 @@ export class CartComponent implements OnInit {
   total: number = 0;
   modalRef: any;
   isLoggedInUser: boolean = false;
+  isCustomer: boolean = false;
   stripe: any;
   card: any;
   elements: any;
@@ -39,6 +41,9 @@ export class CartComponent implements OnInit {
     this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
     if (localStorage.getItem('token')) {
       this.isLoggedInUser = true;
+    }
+    if (localStorage.getItem('user_role') == UserRolesConstants.CUSTOMER.toString()) {
+      this.isCustomer = true;
     }
   }
 

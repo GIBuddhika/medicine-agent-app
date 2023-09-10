@@ -36,7 +36,7 @@ export class AdminLoginComponent implements OnInit, OnDestroy {
     });
     if (localStorage.getItem("token")) {
       if (this.redirect) {
-        this.router.navigate([this.redirect]);
+        window.location.href = this.redirect;
       } else {
         if (localStorage.getItem("first_time_login") == "true") {
           localStorage.removeItem("first_time_login")
@@ -97,7 +97,7 @@ export class AdminLoginComponent implements OnInit, OnDestroy {
           }
         }
         localStorage.setItem("first_time_login", "true");
-        localStorage.setItem("account_type",  response.user.admin_account_type);
+        localStorage.setItem("account_type", response.user.admin_account_type);
         window.location.reload();
       }, errors => {
         this.errorMessage = '<div class="text-center">Email or password invalid.</div>';
