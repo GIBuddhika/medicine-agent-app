@@ -32,24 +32,25 @@
 
                 <!-- customer only pages -->
                 <li class="nav-item" *ngIf="isLoggedInUser && isCustomer">
-                    <a routerLink="/my-orders" class="nav-link">
+                    <a routerLink="/my-orders" class="nav-link" [ngClass]="{'active':activeMenu==='customer-orders'}">
                         <i class="nc-icon nc-app"></i> My Orders</a>
                 </li>
                 <!-- end - customer only pages  -->
 
                 <!-- admin only pages -->
                 <li class="nav-item" *ngIf="isLoggedInUser && (isAdmin || isShopAdmin)">
-                    <a routerLink="/admin/orders" class="nav-link">
+                    <a routerLink="/admin/orders" class="nav-link" [ngClass]="{'active':activeMenu==='admin-orders'}">
                         <i class="nc-icon nc-app"></i> My Orders</a>
                 </li>
                 <li class="nav-item"
                     *ngIf="isLoggedInUser && (isAdmin || isShopAdmin) && accountType != isAccTypePersonal">
-                    <a routerLink="/admin/shops" class="nav-link">
+                    <a routerLink="/admin/shops" class="nav-link" [ngClass]="{'active':activeMenu==='admin-shops'}">
                         <i class="nc-icon nc-shop"></i> My Shops</a>
                 </li>
                 <li class="nav-item" *ngIf="isLoggedInUser && (isAdmin || isShopAdmin)">
                     <div ngbDropdown class="d-inline-block dropdown">
-                        <a class="nav-link" id="dropdownBasic1" ngbDropdownToggle>
+                        <a class="nav-link" id="dropdownBasic1" ngbDropdownToggle
+                            [ngClass]="{'active':activeMenu==='admin-products'}">
                             <i class="nc-icon nc-tile-56"></i> My products
                         </a>
                         <div ngbDropdownMenu aria-labelledby="dropdownBasic1" class="dropdown-primary">
@@ -67,24 +68,28 @@
                 </li>
 
                 <li class="nav-item" *ngIf="isLoggedInUser && isAdmin && accountType != isAccTypePersonal">
-                    <a routerLink="/admin/shop-admins" class="nav-link">
+                    <a routerLink="/admin/shop-admins" class="nav-link"
+                        [ngClass]="{'active':activeMenu==='admin-shop-admins'}">
                         <i class="nc-icon nc-user-run"></i> Shop Admins</a>
                 </li>
                 <!-- end - admin only pages -->
 
                 <li class="nav-item cart" *ngIf="!onMobile">
-                    <a routerLink="/cart" class="nav-link cart-item" title="Cart">
+                    <a routerLink="/cart" class="nav-link cart-item" title="Cart"
+                        [ngClass]="{'active':activeMenu==='cart'}">
                         <i class="nc-icon nc-cart-simple"></i>
                         <span *ngIf="cartCount > 0">{{cartCount}}</span>
                     </a>
                 </li>
                 <li class="nav-item" *ngIf="isLoggedInUser">
                     <div ngbDropdown class="d-inline-block dropdown">
-                        <a class="nav-link" id="dropdownBasic1" ngbDropdownToggle>
+                        <a class="nav-link" id="dropdownBasic1" ngbDropdownToggle
+                            [ngClass]="{'active':activeMenu==='my-account'}">
                             <i class="nc-icon nc-circle-10"></i> My Account
                         </a>
                         <div ngbDropdownMenu aria-labelledby="dropdownBasic1" class="dropdown-primary">
-                            <a *ngIf="isAdmin || isShopAdmin" class="dropdown-item" routerLink="/admin/account-summary">Account summary</a>
+                            <a *ngIf="isAdmin || isShopAdmin" class="dropdown-item"
+                                routerLink="/admin/account-summary">Account summary</a>
                             <a class="dropdown-item" routerLink="/profile">Update profile</a>
                             <a class="dropdown-item" (click)="logout()">Logout</a>
                         </div>

@@ -1,7 +1,7 @@
 import { Component, OnInit, ElementRef, HostListener } from '@angular/core';
 import { Location, LocationStrategy, PathLocationStrategy } from '@angular/common';
 import { updateCartCountService } from 'app/shared-services/update-cart-count.service';
-import { Router } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { UserRolesConstants } from 'app/constants/user-roles';
 import { AccountTypeConstants } from 'app/constants/account-types';
 
@@ -35,11 +35,19 @@ export class NavbarComponent implements OnInit {
     isShopAdmin: boolean = false;
     sidebarVisible: boolean;
 
+    // activeMenu
+    activeMenu: string = "";
+
     constructor(
         public location: Location,
         private element: ElementRef,
         private updateCartCountService: updateCartCountService,
+        private router: Router,
     ) {
+        router.events.filter(event => event instanceof NavigationEnd)
+            .subscribe(event => {
+                this.hightlightMenuItem();
+            });
         this.sidebarVisible = false;
         if (localStorage.getItem('token')) {
             this.isLoggedInUser = true;
@@ -130,5 +138,35 @@ export class NavbarComponent implements OnInit {
         window.location.href = path;
     }
 
+    hightlightMenuItem() {
+        let url = location.pathname;
+        this.activeMenu = "";
 
+        switch (url) {
+            case '/my-orders':
+                this.activeMenu = "customer-orders";
+                break;
+            case '/admin/orders':
+                this.activeMenu = "admin-orders";
+                break;
+            case '/admin/shops':
+                this.activeMenu = "admin-shops";
+                break;
+            case '/admin/products':
+                this.activeMenu = "admin-products";
+                break;
+            case '/admin/shop-admins':
+                this.activeMenu = "admin-shop-admins";
+                break;
+            case '/admin/account-summary':
+            case '/profile':
+                this.activeMenu = "my-account";
+                break;
+            case '/cart':
+                this.activeMenu = "cart";
+                break;
+            default:
+                break;
+        }
+    }
 }

@@ -48,7 +48,11 @@ li {
     position: absolute;
     right: 50px;
     color: #66615B;
+}
 
+.nav-link.active {
+    background-color: aquamarine;
+    border-radius: 25px;
 }
 
 .nav-link.cart span,

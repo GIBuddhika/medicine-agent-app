@@ -39,8 +39,14 @@ export class AdminLoginComponent implements OnInit, OnDestroy {
         window.location.href = this.redirect;
       } else {
         if (localStorage.getItem("first_time_login") == "true") {
-          localStorage.removeItem("first_time_login")
-          this.router.navigate(['/']);
+          localStorage.removeItem("first_time_login");
+
+          if (localStorage.getItem("user_role") != UserRolesConstants.CUSTOMER.toString()) {
+            this.router.navigate(['/admin/orders']);
+          } else {
+            this.router.navigate(['/']);
+          }
+
         } else {
           this.updateMainViewSharedService.updateMainView("login");
         }
