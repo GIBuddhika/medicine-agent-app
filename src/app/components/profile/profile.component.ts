@@ -21,6 +21,18 @@ export class ProfileComponent implements OnInit {
     userProfileForm: FormGroup;
     submitting: boolean = false;
 
+    isSubmittedBanks: boolean = false;
+    submittingBanks: boolean = false;
+    paymentsForm: FormGroup;
+    selectedBank: {
+        id: number,
+        name: string
+    };
+    banks = [
+        { id: 1, name: 'HNB' },
+        { id: 2, name: 'Sampath bank' }
+    ];
+
     focus;
     focus1;
 
@@ -28,13 +40,13 @@ export class ProfileComponent implements OnInit {
     isCustomer: boolean = false;
     isShopAdmin: boolean = false;
 
-    userPasswordForm: FormGroup;
     phone: number;
     email: string;
     userData = {
         email: null,
         name: null,
         phone: null,
+        user_meta: null
     };
 
     constructor(
@@ -55,16 +67,16 @@ export class ProfileComponent implements OnInit {
         this.userProfileForm = this.formBuilder.group({
             name: new FormControl('', [Validators.required]),
             phone: new FormControl('', [Validators.required, PhoneValidator]),
-            // bank: new FormControl('', [Validators.required]),
-            // accountNumber: new FormControl('', [Validators.required]),
-            // accountName: new FormControl('', [Validators.required]),
             password: new FormControl('', []),
             confirmPassword: new FormControl('', []),
         }, {
             validator: this.checkPasswords
         });
 
-        this.userPasswordForm = this.formBuilder.group({
+        this.paymentsForm = this.formBuilder.group({
+            branch: new FormControl('', [Validators.required]),
+            accountNumber: new FormControl('', [Validators.required, Validators.pattern("^[0-9]*$")]),
+            accountName: new FormControl('', [Validators.required]),
         });
 
         (async () => {
@@ -80,6 +92,22 @@ export class ProfileComponent implements OnInit {
         this.email = this.userData.email;
         this.userProfileForm.controls.name.setValue(this.userData.name);
         this.userProfileForm.controls.phone.setValue(this.userData.phone);
+
+        if (this.userData.user_meta.find(meta => meta.key == "bank")) {
+            this.selectedBank = this.banks.find(bank => bank.name == this.userData.user_meta.find(meta => meta.key == "bank")?.value);
+        }
+
+        if (this.userData.user_meta.find(meta => meta.key == "branch")) {
+            this.paymentsForm.controls.branch.setValue(this.userData.user_meta.find(meta => meta.key == "branch")?.value);
+        }
+
+        if (this.userData.user_meta.find(meta => meta.key == "account_number")) {
+            this.paymentsForm.controls.accountNumber.setValue(this.userData.user_meta.find(meta => meta.key == "account_number")?.value);
+        }
+
+        if (this.userData.user_meta.find(meta => meta.key == "account_name")) {
+            this.paymentsForm.controls.accountName.setValue(this.userData.user_meta.find(meta => meta.key == "account_name")?.value);
+        }
     }
 
     checkPasswords(group: FormGroup) {
@@ -102,12 +130,12 @@ export class ProfileComponent implements OnInit {
             name: this.userProfileForm.controls.name.value,
             phone: this.userProfileForm.controls.phone.value,
             password: null,
-            confirmPassword: null,
+            password_confirmation: null,
         };
 
         if (this.userProfileForm.controls.password.value && this.userProfileForm.controls.confirmPassword.value) {
             submitData.password = this.userProfileForm.controls.password.value;
-            submitData.confirmPassword = this.userProfileForm.controls.confirmPassword.value;
+            submitData.password_confirmation = this.userProfileForm.controls.confirmPassword.value;
         }
 
         try {
@@ -125,6 +153,48 @@ export class ProfileComponent implements OnInit {
             );
         } finally {
             this.submitting = false;
+        }
+    }
+
+
+    onChangeBank(bank) {
+        if (bank != undefined) {
+            this.selectedBank = bank;
+        }
+    }
+
+    async onSubmitBanks() {
+        this.errorsList = [];
+        this.isSubmittedBanks = true;
+        if (!this.paymentsForm.valid) {
+            console.log(this.paymentsForm);
+
+            return false;
+        }
+        this.submittingBanks = true;
+
+        var submitData = {
+            bank: this.selectedBank.name,
+            branch: this.paymentsForm.controls.branch.value,
+            account_number: this.paymentsForm.controls.accountNumber.value,
+            account_name: this.paymentsForm.controls.accountName.value,
+        };
+
+        try {
+            await this.usersService.updateCurrentUser(submitData).toPromise();
+            Swal.fire(
+                'Success',
+                'Profile updated.',
+                'success'
+            );
+        } catch (error) {
+            Swal.fire(
+                'Something went wrong',
+                'Profile update failed. Please try again.',
+                'error'
+            );
+        } finally {
+            this.submittingBanks = false;
         }
     }
 

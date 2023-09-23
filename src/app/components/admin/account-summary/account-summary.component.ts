@@ -149,10 +149,7 @@ export class AccountSummaryComponent implements OnInit {
           break;
       }
 
-      let file = order.item.files.find(file => {
-        return file.id == order.item.image_id;
-      });
-      order.image_location = file.location;
+      order.image_location = order.item.files.find(file => file.is_default == true).location;
       order.dueDate = this.setDueDate(order);
     });
   }
@@ -170,7 +167,7 @@ export class AccountSummaryComponent implements OnInit {
 
     this.params.personal_only = this.isPersonalOrdersOnly;
 
-    let shopId = this.orderSearchForm.controls.shopId.value;
+    let shopId = this.orderSearchForm?.controls?.shopId?.value;
 
     if (shopId) {
       this.params.shop_id = shopId;

@@ -27,9 +27,9 @@
                             </div>
                         </div>
                         <div class="row">
-                            <div class="col-sm-4 col-xs-12">
-                                <div class="shop" [ngClass]="{'disabled':isPersonalOrdersOnly}"
-                                    *ngIf="(accountType == isAccountTypeShopOnly || accountType == isAccountTypeShopAndPersonal) && shops.length > 0">
+                            <div class="col-sm-4 col-xs-12"
+                                *ngIf="(accountType == isAccountTypeShopOnly || accountType == isAccountTypeShopAndPersonal) && shops.length > 0">
+                                <div class="shop" [ngClass]="{'disabled':isAccountTypeShopOnly}">
                                     <label>Shop</label>
                                     <select class="browser-default custom-select form-control" formControlName="shopId"
                                         id="shopId">
@@ -68,7 +68,7 @@
                 <div class="row">
                     <div class="col-sm-12">
                         <button type="button" class="btn btn-warning btn float-right" (click)="filterOrders()"
-                            replaceText="Searching" [spinnerButton]="isSearching">Search</button>
+                            replaceText="Searching" [spinnerButton]="isSearching" originalText="Search">Search</button>
                     </div>
                 </div>
             </div>
@@ -151,7 +151,7 @@
                     </div>
                 </div>
             </div>
-            <div class="pagination">
+            <div class="pagination" *ngIf="accountSummary.total>0">
                 <ngb-pagination [collectionSize]="accountSummary.total" [pageSize]="pageSize" [(page)]="page"
                     (pageChange)="filterOnPaginate($event)" [rotate]="true"></ngb-pagination>
             </div>

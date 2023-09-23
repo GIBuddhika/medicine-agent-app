@@ -3,13 +3,12 @@ import { MapsAPILoader } from '@agm/core';
 import { ProductsService } from '../../services/products.service';
 import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { concat, merge, observable, Observable, of, Subject } from 'rxjs';
-import { take, debounceTime, distinctUntilChanged, filter, map, finalize, catchError, tap, switchMap } from 'rxjs/operators';
+import { concat, merge, Observable, of, Subject } from 'rxjs';
+import { take, debounceTime, distinctUntilChanged, filter, map, catchError, tap, switchMap } from 'rxjs/operators';
 import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { MetaService } from 'app/services/meta.service';
 import { UpdateMainViewSharedService } from 'app/shared-services/update-main-view.service';
 import { ActivatedRoute, Params, Router } from '@angular/router';
-import { BrandsService } from 'app/services/brands.service';
 import { ActiveIgredientsService } from 'app/services/active-ingredients.service';
 
 @Component({
@@ -20,6 +19,7 @@ import { ActiveIgredientsService } from 'app/services/active-ingredients.service
 export class HomeComponent implements OnInit, OnDestroy {
 
     imagePath: string = "";
+    action: string = null;
     isLoading: boolean = true;
     isLoadingPage: boolean = true;
     products: any = [];
@@ -78,7 +78,6 @@ export class HomeComponent implements OnInit, OnDestroy {
         private updateMainViewSharedService: UpdateMainViewSharedService,
         private route: ActivatedRoute,
         private router: Router,
-        private brandsService: BrandsService,
         private activeIgredientsService: ActiveIgredientsService,
     ) {
         this.updateMainViewSharedService.updateMainView("home");
@@ -92,6 +91,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     async ngOnInit() {
         this.route.queryParams.subscribe(async (param: Params) => {
             if (param.action == null) {
+                this.action = null;
                 this.mapsAPILoader.load().then(() => {
                     this.geoCoder = new google.maps.Geocoder;
                     this.getMainData();
@@ -100,6 +100,7 @@ export class HomeComponent implements OnInit, OnDestroy {
                     searchTerm: new FormControl("", []),
                 });
             } else {
+                this.action = param.action;
                 let district = null;
                 if (param.district) {
                     district = this.districts.find(dis => (dis.name).toLowerCase() == (param.district).toLowerCase());
@@ -200,7 +201,9 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.products = response.data;
         this.totalCount = response.total_count;
         if (this.totalCount == 0) {
-            this.showSimilarProducts();
+            if (this.action == 'search') {
+                this.showSimilarProducts();
+            }
             return false;
         }
 
@@ -257,11 +260,11 @@ export class HomeComponent implements OnInit, OnDestroy {
 
         if (products.total_count == 0 && this.districtName) {
             if (isInitial == true && this.cityName) {
-                this.cityName = null;
+                this.selectedCity = null;
                 this.searchData.cityId = null;
                 this.searchItems(false);
             } else if (isInitial == true && !this.cityName) {
-                this.districtName = null;
+                this.selectedDistrict = null;
                 this.searchData.districtId = null;
                 this.searchItems(false);
             }

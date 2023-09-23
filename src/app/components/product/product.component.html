@@ -167,12 +167,22 @@
             <div class="row">
                 <div class="col-md-12">
                     <div *ngIf="activeTab == 'description'">
+                        <h3><b>Brand:</b> {{product.brand?.name}}</h3>
+                        <br>
+                        <div *ngIf="product.active_ingredients.length >0">
+                            <h3><b>Active Ingredients:</b></h3>
+                            <ul *ngFor="let active_ingredient of product.active_ingredients">
+                                <li>{{active_ingredient.name}}</li>
+                            </ul>
+                            <br>
+                        </div>
+                        <h3><b>Product description:</b></h3>
                         {{product.description|titlecase}}
                     </div>
                     <div *ngIf="activeTab == 'reviews'">
                         <div class="row" *ngIf="product.reviewsData.rating == 0">
                             <div class="col-md-12">
-                                No ratings found for this item.
+                                No reviews found for this item.
                             </div>
                         </div>
                         <div *ngIf="product.reviewsData.rating > 0">

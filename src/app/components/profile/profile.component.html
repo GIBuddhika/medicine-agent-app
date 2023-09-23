@@ -7,6 +7,7 @@
                 </div>
             </div>
             <div class="card-normal" style="padding:20px;">
+                <h3>Persoanl</h3>
                 <form [formGroup]="userProfileForm" (ngSubmit)="onSubmit()">
                     <div class="row">
                         <div class="col-sm-6">
@@ -86,16 +87,99 @@
                     </div>
                 </form>
             </div>
-        </div>
-    </div>
-    <div class="row" *ngIf="false">
-        <div class="col-sm-6">
-            <h3>Bank details</h3>
-            <form [formGroup]="userPasswordForm" (ngSubmit)="onSubmit()">
-
-                <p *ngIf="isSubmitted && userPasswordForm.errors && userPasswordForm.errors.notSame" class="form-error">
-                    Password does not match</p>
-            </form>
+            <br>
+            <div class="card-normal" style="padding:20px;" *ngIf="!isCustomer">
+                <h3>Payments</h3>
+                <form [formGroup]="paymentsForm" (ngSubmit)="onSubmitBanks()"
+                    style="position: relative; padding-bottom: 50px;">
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>Bank</label>
+                                <div class="input-group form-group-no-border"
+                                    [ngClass]="{'input-group-focus':focus===true}">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="nc-icon nc-money-coins"></i>
+                                        </span>
+                                    </div>
+                                    <ng-select class="custom form-control browser-default" [items]="banks"
+                                        bindLabel="name" (change)="onChangeBank($event)" [(ngModel)]="selectedBank"
+                                        [ngModelOptions]="{standalone: true}">
+                                    </ng-select>
+                                </div>
+                                <div *ngIf="isSubmittedBanks && !selectedBank">
+                                    <p class="form-error">Required</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>Branch name</label>
+                                <div class="input-group form-group-no-border"
+                                    [ngClass]="{'input-group-focus':focus===true}">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="nc-icon nc-badge"></i>
+                                        </span>
+                                    </div>
+                                    <input type="text" id="branch" class="form-control" placeholder="Branch name"
+                                        (focus)="focus=true" (blur)="focus=false" formControlName="branch">
+                                </div>
+                                <div *ngIf="isSubmittedBanks && paymentsForm.controls.branch.errors">
+                                    <p *ngIf="paymentsForm.controls.branch.errors.required" class="form-error">
+                                        Required</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>Account number</label>
+                                <div class="input-group form-group-no-border"
+                                    [ngClass]="{'input-group-focus':focus===true}">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="nc-icon nc-credit-card"></i>
+                                        </span>
+                                    </div>
+                                    <input type="text" id="accountNumber" class="form-control"
+                                        placeholder="Account number" (focus)="focus=true" (blur)="focus=false"
+                                        formControlName="accountNumber">
+                                </div>
+                                <div *ngIf="isSubmittedBanks && paymentsForm.controls.accountNumber.errors">
+                                    <p *ngIf="paymentsForm.controls.accountNumber.errors.required" class="form-error">
+                                        Required</p>
+                                    <p *ngIf="paymentsForm.controls.accountNumber.errors.pattern" class="form-error">
+                                        Enter numbers only</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-sm-6">
+                            <div class="form-group">
+                                <label>Account name</label>
+                                <div class="input-group form-group-no-border"
+                                    [ngClass]="{'input-group-focus':focus===true}">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">
+                                            <i class="nc-icon nc-caps-small"></i>
+                                        </span>
+                                    </div>
+                                    <input type="text" id="accountName" class="form-control" placeholder="Account name"
+                                        (focus)="focus=true" (blur)="focus=false" formControlName="accountName">
+                                </div>
+                                <div *ngIf="isSubmittedBanks && paymentsForm.controls.accountName.errors">
+                                    <p *ngIf="paymentsForm.controls.accountName.errors.required" class="form-error">
+                                        Required</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-success btn-round" replaceText="Processing" style="right: 0;"
+                        [spinnerButton]="submittingBanks">Update</button>
+                </form>
+            </div>
         </div>
     </div>
 </div>
