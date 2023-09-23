@@ -1,3 +1,35 @@
+@import "~bootstrap-icons/font/bootstrap-icons.css";
+
+.ng-select.custom .ng-dropdown-panel {
+
+    margin-top: 15px;
+    margin-left: -10px;
+    color: #66615b;
+    background-color: white;
+    opacity: 0;
+    border: 1px solid #66615b;
+    border-right: none;
+    box-shadow: 1px 1px 1px black;
+}
+
+.ng-select.custom .ng-dropdown-panel .ng-option {
+    padding-bottom: 5px;
+
+    :hover {
+        color: white;
+        background-color: #fd7e14;
+    }
+}
+
+.ng-select.custom .ng-dropdown-panel .ng-option .ng-option-label {
+    display: block;
+    padding-left: 5px;
+}
+
+.ng-select.custom .ng-clear {
+    font-size: 26px;
+}
+
 .products-page .shops {
     text-align: center;
     margin-top: 50px;
@@ -120,4 +152,8 @@
 
 agm-map {
     height: 300px;
+}
+
+table.ingredients td {
+    padding: 0.2rem;
 }

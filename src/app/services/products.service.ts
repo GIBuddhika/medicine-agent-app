@@ -127,4 +127,30 @@ export class ProductsService {
         catchError(this.handleErrorsService.handle)
       );
   }
+
+  getSimilarProducts(page = 1, perPage = 10, searchData = {}): Observable<any> {
+
+    var params = {
+      page: page,
+      per_page: perPage,
+      ...searchData
+    };
+
+    const urlParams = this.router.createUrlTree(["items/similar-products"], { queryParams: params });
+
+    return this.http
+      .get<any>(this.basePath + this.serializer.serialize(urlParams),
+        {
+          observe: 'response',
+        })
+      .pipe(
+        map((response) => {
+          return {
+            data: response.body,
+            total_count: response.headers.get('App-Content-Full-Count')
+          };
+        }),
+        catchError(this.handleErrorsService.handle)
+      );
+  }
 }

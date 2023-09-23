@@ -284,7 +284,7 @@
                 <div class="flex">
                     +94&nbsp;
                     <div style="width: 100%;">
-                        <input type="text" class="form-control" formControlName="phone" id="phone" disabled
+                        <input type="text" class="form-control" formControlName="phone" id="phone"
                             placeholder="Enter 9 digits phone number">
                     </div>
                 </div>
@@ -292,6 +292,46 @@
             <div class="form-group">
                 <label>Product name</label>
                 <input type="text" ngbAutofocus class="form-control" formControlName="name" id="name">
+            </div>
+            <div class="form-group">
+                <label>Active ingredients / Generic names</label>
+                <table class="table table-striped ingredients" *ngIf="selectedActiveIngredients.length>0">
+                    <tr *ngFor="let selectedActiveIngredient of selectedActiveIngredients">
+                        <td>{{selectedActiveIngredient}}</td>
+                        <td>
+                            <a style="color: red; cursor: pointer;text-decoration: underline;"
+                                (click)="removeActiveIngredient(selectedActiveIngredient)">Remove</a>
+                        </td>
+                    </tr>
+                </table>
+                <ng-select [items]="activeIngredients$ | async" [trackByFn]="trackByFn" [minTermLength]="minLengthTerm"
+                    class="custom form-control browser-default" [loading]="activeIngredientsLoading"
+                    typeToSearchText="Please enter {{minLengthTerm}} or more characters"
+                    notFoundText="Not matching items found. Hit enter to create new one"
+                    (change)="onChangeActiveIngredient($event)" [typeahead]="activeIngredientsInput$"
+                    [(ngModel)]="selectedActiveIngredient" [ngModelOptions]="{standalone: true}"
+                    (keydown.enter)="createNewActiveIngredient($event)">
+                </ng-select>
+            </div>
+            <div class="form-group">
+                <label>Brand</label>
+                <table class="table table-striped ingredients" *ngIf="selectedBrand">
+                    <tr>
+                        <td>{{selectedBrand}}</td>
+                        <td>
+                            <a style="color: red; cursor: pointer;text-decoration: underline;"
+                                (click)="removeBrand(selectedBrand)">Remove</a>
+                        </td>
+                    </tr>
+                </table>
+                <ng-select [items]="brands$ | async" [trackByFn]="trackByFn" [minTermLength]="minLengthTermBrand"
+                    class="custom form-control browser-default" [loading]="brandsLoading"
+                    typeToSearchText="Please enter {{minLengthTermBrand}} or more characters"
+                    notFoundText="Not matching brand found. Hit enter to create new one"
+                    (change)="onChangeBrand($event)" [typeahead]="brandInput$" [(ngModel)]="selectedBrand"
+                    [ngModelOptions]="{standalone: true}" (keydown.enter)="createNewBrand($event)">
+                </ng-select>
+                <p *ngIf="!selectedBrand && isSubmitted" class="invalid-input">Required.</p>
             </div>
             <div class="form-group">
                 <label>Description</label>

@@ -52,7 +52,8 @@
         "serve": {
           "builder": "@angular-devkit/build-angular:dev-server",
           "options": {
-            "browserTarget": "pk2-angular:build"
+            "browserTarget": "pk2-angular:build",
+            "disableHostCheck": true
           },
           "configurations": {
             "production": {

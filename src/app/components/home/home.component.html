@@ -8,32 +8,45 @@
                     </div>
                     <div *ngIf="!isLoadingPage">
                         <h3>Search products</h3>
+
                         <form [formGroup]="searchForm" class="search-form" (ngSubmit)="onClickSearch()">
                             <div class="form-group">
                                 <label class="form-check-label">Product name</label>
-                                <input type="text" class="form-control" formControlName="searchTerm" id="searchTerm"
-                                    placeholder="Item name">
-                                <img src="../../../assets/img/close.png" width="20" class="input-img"
-                                    (click)="clearSearchTerm()">
+                                <div style="display: flex; position:relative;">
+                                    <input type="text" class="form-control" formControlName="searchTerm" id="searchTerm"
+                                        style="padding-right: 30px;" placeholder="Item name">
+                                    <span class="ng-clear-wrapper" title="Clear all"
+                                        style="position:absolute;right: 15px;">
+                                        <span aria-hidden="true" style="font-size: 25px; color: #66615b;"
+                                            class="ng-clear" (click)="clearSearchTerm()">×</span>
+                                    </span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-check-label">Generic name(Active ingredient)</label>
+                                <ng-select [items]="activeIngredients$ | async" [trackByFn]="trackByFn"
+                                    [minTermLength]="minLengthTerm" class="custom form-control browser-default"
+                                    [loading]="activeIngredientsLoading"
+                                    typeToSearchText="Please enter {{minLengthTerm}} or more characters"
+                                    notFoundText="Not matching items found." (change)="onChangeActiveIngredient($event)"
+                                    [typeahead]="activeIngredientsInput$" [(ngModel)]="selectedActiveIngredient"
+                                    [ngModelOptions]="{standalone: true}">
+                                </ng-select>
                             </div>
                             <div class="form-group">
                                 <label class="form-check-label">District</label>
-                                <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="districtName"
-                                    [ngModelOptions]="{standalone: true}" (selectItem)="selectedDistrict($event)"
-                                    [ngbTypeahead]="searchDistricts" (focus)="focus$.next($any($event).target.value)"
-                                    (click)="click$.next($any($event).target.value)" #instance="ngbTypeahead" />
-                                <img src="../../../assets/img/close.png" width="20" class="input-img"
-                                    (click)="clearDistrict()">
+                                <ng-select class="custom form-control browser-default" [items]="districts"
+                                    bindLabel="name" (change)="onChangeDistrict($event)" [(ngModel)]="selectedDistrict"
+                                    [ngModelOptions]="{standalone: true}" (clear)="clearDistrict()">
+                                </ng-select>
                             </div>
                             <div class="form-group">
                                 <label class="form-check-label">City</label>
-                                <input id="typeahead-focus" type="text" class="form-control" [(ngModel)]="cityName"
-                                    disabled="{{cities.length==0}}" [ngModelOptions]="{standalone: true}"
-                                    (selectItem)="selectedCity($event)" [ngbTypeahead]="searchCities"
-                                    (focus)="focusCities$.next($any($event).target.value)"
-                                    (click)="clickCities$.next($any($event).target.value)" #instance="ngbTypeahead" />
-                                <img src="../../../assets/img/close.png" width="20" class="input-img"
-                                    (click)="clearCity()">
+                                <ng-select class="custom form-control browser-default" [items]="cities"
+                                    [disabled]="!selectedDistrict" bindLabel="name" (change)="onChangeCity($event)"
+                                    [(ngModel)]="selectedCity" [ngModelOptions]="{standalone: true}"
+                                    (clear)="clearCity()">
+                                </ng-select>
                             </div>
                             <button class="btn btn-outline-success btn-sm">Search</button>
                         </form>
@@ -79,7 +92,49 @@
                         </div>
                     </div>
                     <div class="no-products" *ngIf="!isLoading && products.length==0">
-                        <p>Sorry, there're no items found for your search.</p>
+                        <h3>Sorry, there're no items found for your search.</h3>
+                        <br>
+                        <div *ngIf="similarProducts.length>0">
+                            <p>
+                                But we've found a few similar products based on your search. Please check on those too.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="similar-products">
+                    <div *ngIf="!isLoading && similarProducts.length>0">
+                        <h3>Similar products</h3>
+                        <p>{{totalCount}} {{totalCount == 1 ? "item":"items"}} found.</p>
+                        <ng-container *ngFor="let product of similarProducts">
+                            <div class="card-normal product" [routerLink]="['/products',product.slug]">
+                                <span class="for-rent-label" *ngIf="product.rentable_item">For rent</span>
+                                <div class="row">
+                                    <div class="col-sm-4">
+                                        <img width="170" [src]="product.image_url" alt="product Image"
+                                            class="img-thumbnail img-responsive">
+                                    </div>
+                                    <div class="col-sm-8">
+                                        <div class="product-details">
+                                            <p class="product-title"><b>{{product.name|titlecase}}</b></p>
+                                            <p class="shop-name" *ngIf="product.category_id==1">
+                                                {{product.is_a_shop_listing?product.shop.name:product.personal_listing.user.name|titlecase}}
+                                            </p>
+                                            <p class="shop-address">{{product.is_a_shop_listing?product.shop.address:
+                                                product.personal_listing.address|titlecase}},
+                                                {{product.city.name|titlecase}}</p>
+                                            <p class="price">Rs.
+                                                {{product.category_id==1?(product.sellable_item.retail_price|currency:'':''):((product.rentable_item.price_per_month|currency:'':'')+'
+                                                Per month')}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </ng-container>
+                        <div class="pagination">
+                            <ngb-pagination [collectionSize]="totalCount" [pageSize]="pageSize" [(page)]="page"
+                                (pageChange)="onClickSearch($event)" [rotate]="true"></ngb-pagination>
+                        </div>
                     </div>
                 </div>
             </div>

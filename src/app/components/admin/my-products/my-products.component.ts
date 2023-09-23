@@ -10,13 +10,14 @@ import { ProductsService } from '../../../services/products.service';
 import { MetaService } from '../../../services/meta.service';
 import { RuntimeEnvLoaderService } from '../../../services/runtime-env-loader.service';
 import { UsersService } from '../../../services/users.service';
-import { Subject, Observable, merge, forkJoin } from 'rxjs';
-import { take, finalize, takeUntil, debounceTime, distinctUntilChanged, filter, map } from 'rxjs/operators';
+import { Subject, Observable, merge, forkJoin, concat, of } from 'rxjs';
+import { take, finalize, takeUntil, debounceTime, distinctUntilChanged, filter, map, tap, switchMap, catchError } from 'rxjs/operators';
 import { AgmMap } from '@agm/core';
 import { MouseEvent as AGMMouseEvent } from '@agm/core';
-import { typeWithParameters } from '@angular/compiler/src/render3/util';
 import { ValidationMessagesHelper } from 'app/helpers/validation-messages.helper';
 import { UserRolesConstants } from 'app/constants/user-roles';
+import { ActiveIgredientsService } from 'app/services/active-ingredients.service';
+import { BrandsService } from 'app/services/brands.service';
 
 @Component({
     selector: 'app-products',
@@ -89,6 +90,21 @@ export class MyProductsComponent implements OnInit, OnDestroy {
     totalCount: any;
     page = 1;
 
+    searchTerm = '';
+    selectedActiveIngredients = [];
+    selectedActiveIngredient: any;
+    activeIngredients$: Observable<any>;
+    activeIngredientsLoading = false;
+    activeIngredientsInput$ = new Subject<string>();
+    minLengthTerm = 3;
+
+    searchTermBrand = '';
+    selectedBrand: any;
+    brands$: Observable<any>;
+    brandsLoading = false;
+    brandInput$ = new Subject<string>();
+    minLengthTermBrand = 3;
+
     constructor(
         private formBuilder: FormBuilder,
         private router: Router,
@@ -100,6 +116,8 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         private APIValidationMessagesHelper: APIValidationMessagesHelper,
         private envLoader: RuntimeEnvLoaderService,
         private metaService: MetaService,
+        private activeIgredientsService: ActiveIgredientsService,
+        private brandsService: BrandsService,
     ) {
         this.districts.forEach(district => {
             this.districtNames.push(district.name);
@@ -129,6 +147,8 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             }
             this.getMainData();
         });
+        this.loadActiveIngredients();
+        this.loadBrands();
     }
 
     ngOnDestroy(): void {
@@ -177,7 +197,7 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         this.productForm = this.formBuilder.group({
             shopId: new FormControl(shopId, []),
             address: new FormControl((this.shops.length == 1 ? this.shops[0].address : ''), []),
-            phone: new FormControl(this.user.phone, []),
+            phone: new FormControl({ value: this.user.phone, disabled: true }),
             name: new FormControl('', [Validators.required]),
             description: new FormControl('', []),
             price: new FormControl('', [Validators.required]),
@@ -448,13 +468,11 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         this.isDistrictError = false;
         this.isSubmitted = true;
         this.hasError = false;
-        console.log(this.productForm);
         this.validationMessagesHelper.showErrorMessages(this.productForm);
 
         if (this.isAShopListingProduct && this.shops.length == 0) {
             this.errorMessages = "Please add a shop before proceeding.";
         }
-        console.log(this.productForm);
 
         if (!this.productForm.valid) {
             this.hasError = true;
@@ -469,7 +487,6 @@ export class MyProductsComponent implements OnInit, OnDestroy {
                 this.hasError = true;
             }
         }
-        console.log(this.productForm.valid);
 
         if (this.hasError) {
             this.scrollToTop();
@@ -501,6 +518,9 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             data.min_quantity = this.productForm.value.min_quantity;
             data.wholesale_price = this.productForm.value.wholesale_price;
         }
+
+        data.active_ingredients = this.selectedActiveIngredients;
+        data.brand = this.selectedBrand;
 
         localStorage.setItem('shopId', this.productForm.value.shopId);
         localStorage.setItem('pricingCategory', data.pricing_category);
@@ -574,6 +594,10 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         let shopId = null;
         let address = null;
         let phone = null;
+        this.selectedBrand = product.brand.name;
+        this.selectedActiveIngredients = product.active_ingredients.map(function (activeIngredient) {
+            return activeIngredient.name;
+        });
 
         if (product.is_a_shop_listing) {
             this.isAShopListingProduct = true;
@@ -694,6 +718,9 @@ export class MyProductsComponent implements OnInit, OnDestroy {
             data.wholesale_price = this.productForm.value.wholesale_price;
         }
 
+        data.active_ingredients = this.selectedActiveIngredients;
+        data.brand = this.selectedBrand;
+
         this.productsService.update(this.productId, data)
             .pipe(take(1))
             .pipe(finalize(() => {
@@ -775,5 +802,97 @@ export class MyProductsComponent implements OnInit, OnDestroy {
         this.lat = event.coords.lat;
         this.lng = event.coords.lng;
         this.markerDragEnd(event);
+    }
+
+    loadActiveIngredients() {
+        this.activeIngredients$ =
+            concat(
+                of([]), // default items
+                this.activeIngredientsInput$.pipe(
+                    filter(res => {
+                        // runs before api request
+                        return res !== null && res.length >= this.minLengthTerm
+                    }),
+                    distinctUntilChanged(),
+                    debounceTime(500),
+                    tap(() => this.activeIngredientsLoading = true),
+                    switchMap(term => {
+                        console.log(term);
+
+                        return this.activeIgredientsService.getAll(term).pipe(
+                            catchError(() => of([])), // empty list on error
+                            tap(() => this.activeIngredientsLoading = false)
+                        );
+                    })
+                )
+            );
+    }
+
+    onChangeActiveIngredient(activeIngredient) {
+        if (activeIngredient != undefined) {
+            this.selectedActiveIngredients.push(activeIngredient);
+            this.selectedActiveIngredients = Array.from(new Set(this.selectedActiveIngredients));
+            this.activeIngredientsInput$ = new Subject<string>();
+            this.loadActiveIngredients();
+            this.selectedActiveIngredient = "";
+        }
+    }
+
+    createNewActiveIngredient(event) {
+        let activeIngredient = event.target.value;
+        console.log(activeIngredient);
+
+        if (activeIngredient) {
+            this.selectedActiveIngredients.push(activeIngredient);
+            this.selectedActiveIngredients = Array.from(new Set(this.selectedActiveIngredients));
+            this.activeIngredientsInput$ = new Subject<string>();
+            this.loadActiveIngredients();
+            this.selectedActiveIngredient = "";
+        }
+    }
+
+    removeActiveIngredient(activeIngredient) {
+        this.selectedActiveIngredients = this.selectedActiveIngredients.filter(a => a != activeIngredient);
+        this.selectedActiveIngredients = Array.from(new Set(this.selectedActiveIngredients));
+    }
+
+
+    loadBrands() {
+        this.brands$ =
+            concat(
+                of([]), // default items
+                this.brandInput$.pipe(
+                    filter(res => {
+                        // runs before api request
+                        return res !== null && res.length >= this.minLengthTerm
+                    }),
+                    distinctUntilChanged(),
+                    debounceTime(500),
+                    tap(() => this.brandsLoading = true),
+                    switchMap(term => {
+                        return this.brandsService.getAll(term).pipe(
+                            catchError(() => of([])), // empty list on error
+                            tap(() => this.brandsLoading = false)
+                        );
+                    })
+                )
+            );
+    }
+
+    onChangeBrand(brand) {
+        if (brand != undefined) {
+            this.selectedBrand = brand;
+        }
+    }
+
+    createNewBrand(event) {
+        let brand = event.target.value;
+        if (brand) {
+            this.selectedBrand = brand;
+        }
+    }
+
+    removeBrand(brand) {
+        this.selectedBrand = null;
     }
 }

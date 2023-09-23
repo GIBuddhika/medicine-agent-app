@@ -3,12 +3,14 @@ import { MapsAPILoader } from '@agm/core';
 import { ProductsService } from '../../services/products.service';
 import { RuntimeEnvLoaderService } from 'app/services/runtime-env-loader.service';
 import { FormBuilder, FormControl, FormGroup } from '@angular/forms';
-import { merge, Observable, Subject } from 'rxjs';
-import { take, debounceTime, distinctUntilChanged, filter, map, finalize } from 'rxjs/operators';
+import { concat, merge, observable, Observable, of, Subject } from 'rxjs';
+import { take, debounceTime, distinctUntilChanged, filter, map, finalize, catchError, tap, switchMap } from 'rxjs/operators';
 import { NgbTypeahead } from '@ng-bootstrap/ng-bootstrap';
 import { MetaService } from 'app/services/meta.service';
 import { UpdateMainViewSharedService } from 'app/shared-services/update-main-view.service';
 import { ActivatedRoute, Params, Router } from '@angular/router';
+import { BrandsService } from 'app/services/brands.service';
+import { ActiveIgredientsService } from 'app/services/active-ingredients.service';
 
 @Component({
     selector: 'app-home',
@@ -21,6 +23,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     isLoading: boolean = true;
     isLoadingPage: boolean = true;
     products: any = [];
+    similarProducts: any = [];
     searchForm: FormGroup;
     searchData: any = {
         searchTerm: "",
@@ -32,8 +35,18 @@ export class HomeComponent implements OnInit, OnDestroy {
     cityNames: any = [];
     districts = JSON.parse(localStorage.getItem('districts'));
     districtNames = [];
+    filteredDistrictNames: Observable<any>;
+    districtInput$ = new Subject<string>();
     districtName: string;
     districtId: number;
+    selectedDistrict: {
+        id: null,
+        name: null
+    };
+    selectedCity: {
+        id: null,
+        name: null
+    };
 
     @ViewChild('instance', { static: true }) instance: NgbTypeahead;
     focus$ = new Subject<string>();
@@ -48,6 +61,14 @@ export class HomeComponent implements OnInit, OnDestroy {
     page = 1;
     totalCount: number = 0;
 
+    searchTerm = '';
+    selectedActiveIngredients = [];
+    selectedActiveIngredient: any;
+    activeIngredients$: Observable<any>;
+    activeIngredientsLoading = false;
+    activeIngredientsInput$ = new Subject<string>();
+    minLengthTerm = 3;
+
     constructor(
         private productsService: ProductsService,
         private envLoader: RuntimeEnvLoaderService,
@@ -57,6 +78,8 @@ export class HomeComponent implements OnInit, OnDestroy {
         private updateMainViewSharedService: UpdateMainViewSharedService,
         private route: ActivatedRoute,
         private router: Router,
+        private brandsService: BrandsService,
+        private activeIgredientsService: ActiveIgredientsService,
     ) {
         this.updateMainViewSharedService.updateMainView("home");
         this.imagePath = this.envLoader.config.IMAGE_BASE_URL;
@@ -77,8 +100,9 @@ export class HomeComponent implements OnInit, OnDestroy {
                     searchTerm: new FormControl("", []),
                 });
             } else {
+                let district = null;
                 if (param.district) {
-                    let district = this.districts.find(dis => (dis.name).toLowerCase() == (param.district).toLowerCase());
+                    district = this.districts.find(dis => (dis.name).toLowerCase() == (param.district).toLowerCase());
                     if (district) {
                         this.districtName = district ? district.name : null;
                         this.searchData.districtId = district.id;
@@ -91,6 +115,11 @@ export class HomeComponent implements OnInit, OnDestroy {
                             }
                         }
                     }
+                }
+                this.selectedDistrict = district ?? null;
+
+                if (param.generic_name) {
+                    this.selectedActiveIngredient = param.generic_name;
                 }
 
                 this.searchData.searchTerm = param.search ?? "";
@@ -105,6 +134,7 @@ export class HomeComponent implements OnInit, OnDestroy {
             }
             this.isLoadingPage = false;
         });
+        this.loadActiveIngredients();
     }
 
     ngOnDestroy(): void {
@@ -128,8 +158,6 @@ export class HomeComponent implements OnInit, OnDestroy {
     async getAddressFromGoogleMap() {
         return new Promise((resolve, reject) => {
             return this.metaService.getAddressFromGoogleMap(this.lat, this.lng).subscribe(async res => {
-                console.log(res);
-
                 let town = this.getAddress(res, "administrative_area_level_4");
                 let city = this.getAddress(res, "administrative_area_level_3");
                 let district = this.getAddress(res, "administrative_area_level_2");
@@ -142,6 +170,7 @@ export class HomeComponent implements OnInit, OnDestroy {
                     districtObj = this.districts.find(dis => dis.name == 'Colombo');
                     this.districtName = 'Colombo';
                 }
+                this.selectedDistrict = districtObj;
 
                 await this.getCitiesByDistrict(districtObj.id);
                 let townName = this.cityNames.find(cityItem => cityItem == town);
@@ -156,6 +185,12 @@ export class HomeComponent implements OnInit, OnDestroy {
                         this.cityName = this.districtName == 'Colombo' ? 'Kollupitiya' : this.districtName;
                     }
                 }
+                let cityObj = this.cities.find(city => city.name == this.cityName);
+                this.selectedCity = {
+                    id: cityObj.id,
+                    name: cityObj.name
+                };
+
                 resolve(this.cityName);
             });
         });
@@ -165,6 +200,7 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.products = response.data;
         this.totalCount = response.total_count;
         if (this.totalCount == 0) {
+            this.showSimilarProducts();
             return false;
         }
 
@@ -183,22 +219,15 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.searchForm.controls.searchTerm.setValue(null);
         this.searchData.searchTerm = null;
     }
-    clearDistrict() {
-        this.districtName = null;
-        this.cities = [];
-        this.clearCity();
-    }
-    clearCity() {
-        this.cityName = null;
-    }
 
     onClickSearch(page = 1) {
         this.page = page;
         this.router.navigate([], {
             queryParams: {
                 search: this.searchForm.controls.searchTerm.value,
-                district: this.districtName,
-                city: this.cityName,
+                generic_name: this.selectedActiveIngredient,
+                district: this.selectedDistrict?.name,
+                city: this.selectedCity?.name,
                 action: 'search',
                 page: this.page
             }
@@ -209,27 +238,29 @@ export class HomeComponent implements OnInit, OnDestroy {
         this.isLoading = true;
         this.searchData = {};
         localStorage.setItem('current_page', this.page.toString());
+        this.similarProducts = [];
 
         if (this.searchForm.controls.searchTerm.value) {
             this.searchData.searchTerm = this.searchForm.controls.searchTerm.value
         }
-        if (this.districtName) {
-            this.searchData.districtId = this.districts.filter(v => v.name.toLowerCase() == this.districtName.toLowerCase())[0].id;
+        if (this.selectedActiveIngredient) {
+            this.searchData.genericName = this.selectedActiveIngredient;
         }
-        if (this.cityName) {
-            this.searchData.cityId = this.cities.filter(v => v.name.toLowerCase() == this.cityName.toLowerCase())[0].id;
+        if (this.selectedDistrict) {
+            this.searchData.districtId = this.selectedDistrict.id;
+        }
+        if (this.selectedCity) {
+            this.searchData.cityId = this.selectedCity.id;
         }
 
         const products = await this.productsService.all(this.page, this.pageSize, this.searchData).toPromise();
 
         if (products.total_count == 0 && this.districtName) {
             if (isInitial == true && this.cityName) {
-                console.log('fetch by district');
                 this.cityName = null;
                 this.searchData.cityId = null;
                 this.searchItems(false);
             } else if (isInitial == true && !this.cityName) {
-                console.log('fetch whole country');
                 this.districtName = null;
                 this.searchData.districtId = null;
                 this.searchItems(false);
@@ -262,16 +293,6 @@ export class HomeComponent implements OnInit, OnDestroy {
                 : this.cityNames.filter(v => v.toLowerCase().indexOf(term.toLowerCase()) > -1)
             ))
         );
-    }
-
-    selectedDistrict(event) {
-        this.districtName = event.item;
-        var districtObj = this.districts.filter(v => v.name.toLowerCase() == this.districtName.toLowerCase());
-        this.getCitiesByDistrict(districtObj[0].id);
-    }
-
-    selectedCity(event) {
-        this.cityName = event.item;
     }
 
     getCitiesByDistrict(districtId) {
@@ -310,4 +331,82 @@ export class HomeComponent implements OnInit, OnDestroy {
             return false;
         }
     }
+
+    loadActiveIngredients() {
+        this.activeIngredients$ =
+            concat(
+                of([]),
+                this.activeIngredientsInput$.pipe(
+                    filter(res => {
+                        return res !== null && res.length >= this.minLengthTerm
+                    }),
+                    distinctUntilChanged(),
+                    debounceTime(500),
+                    tap(() => this.activeIngredientsLoading = true),
+                    switchMap(term => {
+                        return this.activeIgredientsService.getAll(term).pipe(
+                            catchError(() => of([])), // empty list on error
+                            tap(() => this.activeIngredientsLoading = false)
+                        );
+                    })
+                )
+            );
+    }
+
+    onChangeActiveIngredient(activeIngredient) {
+        if (activeIngredient != undefined) {
+            this.selectedActiveIngredient = activeIngredient;
+        }
+    }
+
+    onChangeDistrict(district) {
+        if (district != undefined) {
+            this.selectedDistrict = district;
+            this.districtId = district.id;
+            this.selectedCity = null;
+            this.getCitiesByDistrict(this.districtId);
+        }
+    }
+
+    onChangeCity(city) {
+        if (city != undefined) {
+            this.selectedCity = city;
+        }
+    }
+
+    clearDistrict() {
+        this.selectedDistrict = null;
+        this.selectedCity = null;
+    }
+
+    clearCity() {
+        this.selectedCity = null;
+    }
+
+    async showSimilarProducts() {
+        let similarProducts = await this.productsService.getSimilarProducts(this.page, this.pageSize, {
+            searchTerm: this.searchData.searchTerm,
+            genericName: this.selectedActiveIngredient,
+            districtId: this.selectedDistrict?.id,
+            cityId: this.selectedCity?.id
+        }).toPromise();
+
+
+        this.similarProducts = similarProducts.data;
+        this.totalCount = similarProducts.total_count;
+        if (this.totalCount == 0) {
+            return false;
+        }
+
+        this.similarProducts.forEach(product => {
+            if (product.files.length > 0) {
+                product.image_url = this.imagePath + product.files.find(file => file.is_default == true).location;
+            } else if (product.shop && product.shop.image_path) {
+                product.image_url = this.imagePath + product.shop.image_path;
+            } else {
+                product.image_url = '/assets/img/default-product.jpeg';
+            }
+        });
+    }
+
 }
