@@ -143,3 +143,14 @@ button.bi.bi-calendar3 {
         background: coral;
     }
 }
+
+.btn-review {
+    width: 100%;
+    margin-bottom: 2px;
+    background-color: greenyellow;
+    border: greenyellow;
+
+    &:hover {
+        background-color: #7acc00;
+    }
+}

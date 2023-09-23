@@ -69,7 +69,7 @@ const routes: Routes = [
   { path: 'products/:slug', component: ProductComponent },
   { path: 'shops/:slug', component: ProductComponent },
   { path: 'cart', component: CartComponent },
-  { path: 'my-orders', component: MyOrdersComponent },
+  { path: 'my-orders', component: MyOrdersComponent, canActivate: [CanActivateRouteGuard], data: { roles: [UserRolesConstants.CUSTOMER] } },
 
   { path: 'home', component: HomeComponent },
   { path: 'profile', component: ProfileComponent, canActivate: [CanActivateRouteGuard], data: { roles: [UserRolesConstants.CUSTOMER, UserRolesConstants.ADMIN, UserRolesConstants.SHOP_ADMIN] } },

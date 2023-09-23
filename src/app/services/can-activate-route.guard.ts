@@ -16,8 +16,11 @@ export class CanActivateRouteGuard implements CanActivate {
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot)
         : Observable<boolean> | Promise<boolean> | boolean {
         if (!localStorage.getItem('token')) {
-            if (window.location.href.includes("/admin")) {
+            if (window.location.href.includes("force-admin-login")) {
                 this.router.navigate(['/admin/login'], { queryParams: { 'redirect': window.location.href } });
+                return false;
+            } else if (window.location.href.includes("force-customer-login")) {
+                this.router.navigate(['/login'], { queryParams: { 'redirect': window.location.href } });
                 return false;
             }
             this.router.navigate(['/']);

@@ -36,7 +36,7 @@ export class LoginComponent implements OnInit, OnDestroy {
         });
         if (localStorage.getItem("token") && localStorage.getItem("user_role") == UserRolesConstants.CUSTOMER.toString()) {
             if (this.redirect) {
-                this.router.navigate([this.redirect]);
+                window.location.href = this.redirect;
             } else {
                 if (localStorage.getItem("first_time_login") == "true") {
                     localStorage.removeItem("first_time_login")

@@ -164,24 +164,29 @@
                                     </span>
                                     <br>
                                 </div>
-                                <p *ngIf="orderItem.note"><b>Customer Note:</b> {{orderItem.note}}</p>
-                                <p *ngIf="orderItem.admin_note"><b>Admin Note:</b> {{orderItem.admin_note}}</p>
+                                <p *ngIf="orderItem.note"
+                                    style="background: lightslategrey; padding: 10px; border-radius: 5px;">
+                                    <b>Customer Note:</b> {{orderItem.note}}
+                                </p>
+                                <p *ngIf="orderItem.admin_note"
+                                    style="background: powderblue; padding: 10px; border-radius: 5px;">
+                                    <b>Admin Note:</b> {{orderItem.admin_note}}
+                                </p>
                             </div>
                             <!-- un-collected filter -->
-                            <div class="col-md-2" *ngIf="params.status == 1">
-                                <button type="button" class="btn btn-success btn-sm" *ngIf="orderItem.status == 1"
+                            <div class="col-md-2" *ngIf=" orderItem.status == 1">
+                                <button type="button" class="btn btn-success btn-sm"
                                     style="width: 100%;margin-bottom:2px" #updateOrderModal
                                     (click)="openUpdateOrderModal(content, orderItem)">
                                     Collected by customer
                                 </button>
                                 <button type="button" class="btn btn-danger btn-sm" style="width: 100%;"
-                                    #cancelOrderModal (click)="openCancelOrderModal(contentCancel, orderItem)"
-                                    *ngIf=" orderItem.status == 1">
-                                    Mark as cancelled
+                                    #cancelOrderModal (click)="openCancelOrderModal(contentCancel, orderItem)">
+                                    Cancel order
                                 </button>
                             </div>
                             <!-- collected filter -->
-                            <div class="col-md-2" *ngIf="params.status == 2">
+                            <div class="col-md-2" *ngIf="orderItem.status == 2">
                                 <!-- orderitem db status collected -->
                                 <button type="button" class="btn btn-default btn-sm" *ngIf="orderItem.duration"
                                     style="width: 100%;margin-bottom:2px" #receiveOrderModal

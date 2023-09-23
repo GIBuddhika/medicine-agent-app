@@ -77,7 +77,8 @@
                         </div>
                         <br>
                         <div class="">
-                            Note for the admin
+                            <p>Note for the seller</p>(This note will be shown to the seller along with the order
+                            details)
                             <textarea type="text" class="form-control" [(ngModel)]="noteForAdmin"
                                 [ngModelOptions]="{standalone: true}" id="note" rows="4"></textarea>
                         </div>
@@ -96,8 +97,8 @@
                         <div class="flex mb-10" *ngIf="product.is_a_shop_listing">
                             <i _ngcontent-uob-c127="" class="nc-icon nc-shop"></i>
                             <div class="ml-10">
-                                <h4 class="m-0"><b class="cursor-pointer"
-                                        [routerLink]="['/shops',product.shop.slug]">{{product.is_a_shop_listing?product.shop.name:product.user.name}}</b>
+                                <h4 class="m-0">
+                                    {{product.is_a_shop_listing?product.shop.name:product.user.name}}
                                 </h4>
                             </div>
                             <hr>

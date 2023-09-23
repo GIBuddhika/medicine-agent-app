@@ -57,7 +57,7 @@ export class HomeComponent implements OnInit, OnDestroy {
     lat: number;
     lng: number;
     geoCoder;
-    pageSize = 10;
+    pageSize = 2;
     page = 1;
     totalCount: number = 0;
 

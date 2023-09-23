@@ -147,6 +147,11 @@ export class MyOrdersComponent implements OnInit {
     let orderItemsResponse = await this.myOrdersService.getMyOrdersAdmin(this.params).toPromise();
     this.orderItems = orderItemsResponse.order_items;
     this.totalCount = orderItemsResponse.total;
+
+    this.orderItems.forEach(orderItem => {
+      orderItem.dueDate = this.setDueDate(orderItem);
+    });
+
   }
 
   async getShops() {

@@ -132,14 +132,14 @@
                                     </span>
                                 </div>
                                 <div class="col-md-3">
-                                    <button type="button" class="btn btn-default btn-sm" *ngIf="orderItem.status == 2"
+                                    <button type="button" class="btn btn-default btn-sm"
+                                        *ngIf="orderItem.status == 2 && orderItem.duration != null"
                                         style="width: 100%;margin-bottom:2px" #renewOrderModal
                                         (click)="openOrderItemRenewModal(contentRenew, orderItem)">
                                         Renew order
                                     </button>
-                                    <button type="button" class="btn btn-default btn-sm"
-                                        *ngIf="orderItem.status == 2 && orderItem.duration !=null"
-                                        style="width: 100%;margin-bottom:2px" #reviewOrderModal
+                                    <button type="button" class="btn btn-default btn-sm btn-review"
+                                        *ngIf="orderItem.status == 2" #reviewOrderModal
                                         (click)="openOrderItemReviewModal(contentReview, orderItem)">
                                         Leave a review
                                     </button>
@@ -220,14 +220,14 @@
                                     </span>
                                 </div>
                                 <div class="col-md-3">
-                                    <button type="button" class="btn btn-default btn-sm" *ngIf="orderItem.status == 2"
+                                    <button type="button" class="btn btn-default btn-sm"
+                                        *ngIf="orderItem.status == 2 && orderItem.duration != null"
                                         style="width: 100%;margin-bottom:2px" #renewOrderModal
                                         (click)="openOrderItemRenewModal(contentRenew, orderItem)">
                                         Renew order
                                     </button>
-                                    <button type="button" class="btn btn-default btn-sm"
-                                        *ngIf="orderItem.status == 2 && orderItem.duration !=null"
-                                        style="width: 100%;margin-bottom:2px" #reviewOrderModal
+                                    <button type="button" class="btn btn-default btn-sm btn-review"
+                                        *ngIf="orderItem.status == 2 && orderItem.duration !=null" #reviewOrderModal
                                         (click)="openOrderItemReviewModal(contentReview, orderItem)">
                                         Leave a review
                                     </button>
